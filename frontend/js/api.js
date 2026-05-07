@@ -65,6 +65,11 @@ async function apiRequest(endpoint, options = {}) {
             return;
         }
 
+        // Якщо 204 No Content - не парсимо JSON
+        if (response.status === 204) {
+            return null;
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
