@@ -12,8 +12,38 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.api import auth, students, attendance, payments, stats, groups, trainers, users
 
-# Створення таблиць
+# Створення таблиць та ініціалізація БД
+print("Initializing database...")
 Base.metadata.create_all(bind=engine)
+
+# Автоматична ініціалізація адміна при старті
+from app.core.database import SessionLocal
+from app.core.security import get_password_hash
+from app.models.models import User
+
+db = SessionLocal()
+try:
+    # Перевірка, чи є хоча б один користувач
+    existing_user = db.query(User).first()
+    if not existing_user:
+        print("Creating default admin user...")
+        admin = User(
+            username="admin",
+            password_hash=get_password_hash("admin123"),
+            role="admin",
+            full_name="Адміністратор",
+            is_active=True
+        )
+        db.add(admin)
+        db.commit()
+        print("Default admin created: username='admin', password='admin123'")
+    else:
+        print("Database already initialized")
+except Exception as e:
+    print(f"Error during initialization: {e}")
+    db.rollback()
+finally:
+    db.close()
 
 app = FastAPI(
     title="CRM для спортивної школи",
