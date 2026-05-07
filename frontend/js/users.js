@@ -53,6 +53,10 @@ async function loadUsers() {
 
 // Відкрити модальне вікно додавання користувача
 function openAddUserModal() {
+    console.log('openAddUserModal called');
+    const modal = document.getElementById('userModal');
+    console.log('Modal element:', modal);
+
     document.getElementById('modalTitle').textContent = 'Додати користувача';
     document.getElementById('userForm').reset();
     document.getElementById('userId').value = '';
@@ -62,7 +66,8 @@ function openAddUserModal() {
     document.getElementById('userRole').value = 'trainer';
     document.getElementById('trainerFieldsGroup').style.display = 'block';
 
-    document.getElementById('userModal').style.display = 'flex';
+    modal.style.display = 'flex';
+    console.log('Modal should be visible now');
 }
 
 // Закрити модальне вікно

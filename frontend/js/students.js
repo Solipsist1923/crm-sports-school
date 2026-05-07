@@ -21,8 +21,14 @@ function loadUserInfo() {
 
 async function loadGroups() {
     try {
-        // TODO: Додати API для груп
-        allGroups = [];
+        allGroups = await groupsAPI.getAll();
+
+        // Populate group select
+        const select = document.getElementById('groupId');
+        if (select) {
+            select.innerHTML = '<option value="">Без групи</option>' +
+                allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+        }
     } catch (error) {
         console.error('Error loading groups:', error);
     }
