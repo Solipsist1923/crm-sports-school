@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Додати backend до Python path
+sys.path.insert(0, os.path.dirname(__file__))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -5,7 +11,6 @@ from fastapi.responses import FileResponse
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.api import auth, students, attendance, payments, stats, groups, trainers
-import os
 
 # Створення таблиць
 Base.metadata.create_all(bind=engine)
