@@ -1,10 +1,15 @@
 // API Configuration
-// Автоматично визначає URL (для локальної розробки та production)
-// Завжди використовує протокол сторінки (http або https)
-const API_BASE_URL = window.location.origin;
+// Завжди використовуємо HTTPS на production, HTTP тільки для localhost
+let API_BASE_URL;
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    API_BASE_URL = window.location.origin;
+} else {
+    // На production завжди HTTPS
+    API_BASE_URL = 'https://' + window.location.hostname;
+}
 
 // Local Storage Keys
 const TOKEN_KEY = 'crm_token';
 const USER_KEY = 'crm_user';
 
-// Version: 2.0 - Fixed HTTPS support
+// Version: 3.0 - Force HTTPS on production
