@@ -52,26 +52,34 @@ async def health_check():
     return {"status": "ok"}
 
 # Mount static files (frontend)
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
-if os.path.exists(frontend_path):
-    css_path = os.path.join(frontend_path, "css")
-    js_path = os.path.join(frontend_path, "js")
-    images_path = os.path.join(frontend_path, "images")
+frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
+print(f"Frontend path: {frontend_path}")
+print(f"Frontend exists: {os.path.exists(frontend_path)}")
 
-    if os.path.exists(css_path):
-        app.mount("/css", StaticFiles(directory=css_path), name="css")
-    if os.path.exists(js_path):
-        app.mount("/js", StaticFiles(directory=js_path), name="js")
-    if os.path.exists(images_path):
-        app.mount("/images", StaticFiles(directory=images_path), name="images")
+css_path = os.path.join(frontend_path, "css")
+js_path = os.path.join(frontend_path, "js")
+images_path = os.path.join(frontend_path, "images")
 
-    @app.get("/")
-    async def serve_frontend():
-        return FileResponse(os.path.join(frontend_path, "pages", "login.html"))
+if os.path.exists(css_path):
+    app.mount("/css", StaticFiles(directory=css_path), name="css")
+    print("Mounted /css")
+if os.path.exists(js_path):
+    app.mount("/js", StaticFiles(directory=js_path), name="js")
+    print("Mounted /js")
+if os.path.exists(images_path):
+    app.mount("/images", StaticFiles(directory=images_path), name="images")
+    print("Mounted /images")
 
-    @app.get("/{page}.html")
-    async def serve_page(page: str):
-        file_path = os.path.join(frontend_path, "pages", f"{page}.html")
-        if os.path.exists(file_path):
-            return FileResponse(file_path)
-        return {"error": "Page not found"}
+@app.get("/")
+async def serve_frontend():
+    login_path = os.path.join(frontend_path, "pages", "login.html")
+    if os.path.exists(login_path):
+        return FileResponse(login_path)
+    return {"error": "Frontend not found", "path": login_path}
+
+@app.get("/{page}.html")
+async def serve_page(page: str):
+    file_path = os.path.join(frontend_path, "pages", f"{page}.html")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "Page not found", "path": file_path}
