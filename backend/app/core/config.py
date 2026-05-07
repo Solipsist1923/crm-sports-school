@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List
+import os
 
 class Settings(BaseSettings):
     # Security
@@ -8,7 +9,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # Database
-    DATABASE_URL: str = "sqlite:///./crm.db"
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./crm.db")
 
     # Telegram
     TELEGRAM_BOT_TOKEN: str = ""
