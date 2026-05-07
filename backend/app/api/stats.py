@@ -19,12 +19,19 @@ async def get_dashboard_stats(
     """Отримання статистики для дашборду"""
     today = date.today()
 
+    # Отримуємо trainer_id якщо користувач тренер
+    trainer_id = None
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            trainer_id = trainer.trainer.id
+
     # Базовий запит для учнів
     students_query = db.query(Student)
 
     # Якщо тренер, показуємо тільки його учнів
-    if current_user.role == "trainer" and current_user.trainer:
-        students_query = students_query.filter(Student.trainer_id == current_user.trainer.id)
+    if trainer_id:
+        students_query = students_query.filter(Student.trainer_id == trainer_id)
 
     # Загальна кількість учнів
     total_students = students_query.count()
@@ -32,21 +39,18 @@ async def get_dashboard_stats(
     # Активні учні
     active_students = students_query.filter(Student.is_active == True).count()
 
-    # Кількість груп (тільки для адміна)
+    # Кількість груп
     from app.models.models import Group
-    if current_user.role == "admin":
-        total_groups = db.query(Group).filter(Group.is_active == True).count()
-    else:
-        total_groups = db.query(Group).filter(
-            Group.trainer_id == current_user.trainer.id,
-            Group.is_active == True
-        ).count()
+    groups_query = db.query(Group).filter(Group.is_active == True)
+    if trainer_id:
+        groups_query = groups_query.filter(Group.trainer_id == trainer_id)
+    total_groups = groups_query.count()
 
     # Відвідування сьогодні
     attendance_query = db.query(Attendance).filter(Attendance.date == today)
-    if current_user.role == "trainer" and current_user.trainer:
+    if trainer_id:
         attendance_query = attendance_query.join(Student).filter(
-            Student.trainer_id == current_user.trainer.id
+            Student.trainer_id == trainer_id
         )
     today_attendance = attendance_query.filter(Attendance.status == "present").count()
 
@@ -55,9 +59,9 @@ async def get_dashboard_stats(
         Payment.next_payment_date < today,
         Payment.status != "paid"
     )
-    if current_user.role == "trainer" and current_user.trainer:
+    if trainer_id:
         debts_query = debts_query.join(Student).filter(
-            Student.trainer_id == current_user.trainer.id
+            Student.trainer_id == trainer_id
         )
     students_with_debts = debts_query.distinct(Payment.student_id).count()
 
@@ -67,9 +71,9 @@ async def get_dashboard_stats(
         Subscription.is_active == True,
         (Subscription.remaining_classes <= 3) | (Subscription.end_date <= week_later)
     )
-    if current_user.role == "trainer" and current_user.trainer:
+    if trainer_id:
         expiring_subs_query = expiring_subs_query.join(Student).filter(
-            Student.trainer_id == current_user.trainer.id
+            Student.trainer_id == trainer_id
         )
     expiring_subscriptions = expiring_subs_query.count()
 
@@ -79,9 +83,9 @@ async def get_dashboard_stats(
         Insurance.is_active == True,
         Insurance.end_date <= two_weeks_later
     )
-    if current_user.role == "trainer" and current_user.trainer:
+    if trainer_id:
         expiring_ins_query = expiring_ins_query.join(Student).filter(
-            Student.trainer_id == current_user.trainer.id
+            Student.trainer_id == trainer_id
         )
     expiring_insurance = expiring_ins_query.count()
 
@@ -102,36 +106,45 @@ async def get_attendance_stats(
     current_user: User = Depends(get_current_user)
 ):
     """Отримання статистики відвідувань по учнях"""
-    query = db.query(
-        Student.id.label("student_id"),
-        Student.first_name,
-        Student.last_name,
-        func.count(func.case((Attendance.status == "present", 1))).label("total_present"),
-        func.count(func.case((Attendance.status == "absent", 1))).label("total_absent"),
-        func.count(func.case((Attendance.status == "sick", 1))).label("total_sick"),
-        func.count(Attendance.id).label("total_classes"),
-        (func.count(func.case((Attendance.status == "present", 1))) * 100.0 /
-         func.nullif(func.count(Attendance.id), 0)).label("attendance_rate")
-    ).outerjoin(Attendance, Student.id == Attendance.student_id)\
-     .filter(Student.is_active == True)\
-     .group_by(Student.id, Student.first_name, Student.last_name)
+    try:
+        query = db.query(
+            Student.id.label("student_id"),
+            Student.first_name,
+            Student.last_name,
+            func.coalesce(func.sum(func.case((Attendance.status == "present", 1), else_=0)), 0).label("total_present"),
+            func.coalesce(func.sum(func.case((Attendance.status == "absent", 1), else_=0)), 0).label("total_absent"),
+            func.coalesce(func.sum(func.case((Attendance.status == "sick", 1), else_=0)), 0).label("total_sick"),
+            func.coalesce(func.count(Attendance.id), 0).label("total_classes")
+        ).outerjoin(Attendance, Student.id == Attendance.student_id)\
+         .filter(Student.is_active == True)\
+         .group_by(Student.id, Student.first_name, Student.last_name)
 
-    # Якщо тренер, показуємо тільки його учнів
-    if current_user.role == "trainer" and current_user.trainer:
-        query = query.filter(Student.trainer_id == current_user.trainer.id)
+        # Якщо тренер, показуємо тільки його учнів
+        if current_user.role == "trainer":
+            trainer = db.query(User).filter(User.id == current_user.id).first()
+            if trainer and trainer.trainer:
+                query = query.filter(Student.trainer_id == trainer.trainer.id)
 
-    stats = query.order_by(func.count(Attendance.id).desc()).limit(limit).all()
+        stats = query.order_by(func.coalesce(func.count(Attendance.id), 0).desc()).limit(limit).all()
 
-    return [
-        AttendanceStats(
-            student_id=s.student_id,
-            first_name=s.first_name,
-            last_name=s.last_name,
-            total_present=s.total_present or 0,
-            total_absent=s.total_absent or 0,
-            total_sick=s.total_sick or 0,
-            total_classes=s.total_classes or 0,
-            attendance_rate=round(s.attendance_rate or 0, 2)
-        )
-        for s in stats
-    ]
+        result = []
+        for s in stats:
+            total_classes = int(s.total_classes) if s.total_classes else 0
+            total_present = int(s.total_present) if s.total_present else 0
+            attendance_rate = round((total_present * 100.0 / total_classes), 2) if total_classes > 0 else 0.0
+
+            result.append(AttendanceStats(
+                student_id=s.student_id,
+                first_name=s.first_name,
+                last_name=s.last_name,
+                total_present=total_present,
+                total_absent=int(s.total_absent) if s.total_absent else 0,
+                total_sick=int(s.total_sick) if s.total_sick else 0,
+                total_classes=total_classes,
+                attendance_rate=attendance_rate
+            ))
+
+        return result
+    except Exception as e:
+        print(f"Error in get_attendance_stats: {e}")
+        return []
