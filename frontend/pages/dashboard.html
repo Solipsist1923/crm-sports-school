@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дашборд - CRM</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-dumbbell"></i>
+                <h2>CRM Школа</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item active">
+                    <i class="fas fa-home"></i>
+                    <span>Дашборд</span>
+                </a>
+                <a href="students.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Учні</span>
+                </a>
+                <a href="attendance.html" class="nav-item">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Відвідування</span>
+                </a>
+                <a href="payments.html" class="nav-item">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Оплати</span>
+                </a>
+                <a href="groups.html" class="nav-item">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Групи</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <p id="userName">Користувач</p>
+                        <small id="userRole">Роль</small>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Вийти
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Дашборд</h1>
+                <div class="header-actions">
+                    <span class="current-date" id="currentDate"></span>
+                </div>
+            </header>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalStudents">0</h3>
+                        <p>Всього учнів</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="activeStudents">0</h3>
+                        <p>Активні учні</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="todayAttendance">0</h3>
+                        <p>Відвідувань сьогодні</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="studentsWithDebts">0</h3>
+                        <p>Борги</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div class="alerts-section">
+                <div class="alert-card warning" id="expiringSubscriptions" style="display: none;">
+                    <i class="fas fa-calendar-times"></i>
+                    <div>
+                        <h4>Абонементи закінчуються</h4>
+                        <p><span id="expiringSubs">0</span> учнів мають абонементи, що закінчуються</p>
+                    </div>
+                    <a href="students.html?filter=expiring_subs" class="alert-link">Переглянути</a>
+                </div>
+                <div class="alert-card danger" id="expiringInsurance" style="display: none;">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        <h4>Страховки закінчуються</h4>
+                        <p><span id="expiringIns">0</span> учнів мають страховки, що закінчуються</p>
+                    </div>
+                    <a href="students.html?filter=expiring_insurance" class="alert-link">Переглянути</a>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h2>Швидкі дії</h2>
+                <div class="actions-grid">
+                    <a href="students.html?action=add" class="action-card">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Додати учня</span>
+                    </a>
+                    <a href="attendance.html?action=mark" class="action-card">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Відмітити відвідування</span>
+                    </a>
+                    <a href="payments.html?action=add" class="action-card">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span>Додати оплату</span>
+                    </a>
+                    <a href="students.html?filter=debts" class="action-card">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Переглянути борги</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <h2>Статистика відвідувань</h2>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Учень</th>
+                                <th>Присутній</th>
+                                <th>Відсутній</th>
+                                <th>Хворів</th>
+                                <th>Всього</th>
+                                <th>Відвідуваність</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceStatsTable">
+                            <tr>
+                                <td colspan="6" class="text-center">Завантаження...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>

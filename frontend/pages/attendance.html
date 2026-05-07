@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Відвідування - CRM</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-dumbbell"></i>
+                <h2>CRM Школа</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Дашборд</span>
+                </a>
+                <a href="students.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Учні</span>
+                </a>
+                <a href="attendance.html" class="nav-item active">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Відвідування</span>
+                </a>
+                <a href="payments.html" class="nav-item">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Оплати</span>
+                </a>
+                <a href="groups.html" class="nav-item">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Групи</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <p id="userName">Користувач</p>
+                        <small id="userRole">Роль</small>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Вийти
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Відвідування</h1>
+                <div class="header-actions">
+                    <input type="date" id="attendanceDate" class="date-input">
+                    <button class="btn btn-primary" onclick="openMarkAttendanceModal()">
+                        <i class="fas fa-check"></i>
+                        Відмітити відвідування
+                    </button>
+                </div>
+            </header>
+
+            <!-- Attendance Table -->
+            <div class="table-card">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Учень</th>
+                                <th>Дата</th>
+                                <th>Статус</th>
+                                <th>Примітки</th>
+                                <th>Відмітив</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTable">
+                            <tr>
+                                <td colspan="6" class="text-center">Завантаження...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mark Attendance Modal -->
+    <div id="attendanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Відмітити відвідування</h2>
+                <button class="modal-close" onclick="closeAttendanceModal()">&times;</button>
+            </div>
+            <form id="attendanceForm" class="modal-form">
+                <div class="form-group">
+                    <label for="studentSelect">Учень *</label>
+                    <select id="studentSelect" required>
+                        <option value="">Оберіть учня</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="attendanceDate2">Дата *</label>
+                    <input type="date" id="attendanceDate2" required>
+                </div>
+                <div class="form-group">
+                    <label for="statusSelect">Статус *</label>
+                    <select id="statusSelect" required>
+                        <option value="present">Присутній</option>
+                        <option value="absent">Відсутній</option>
+                        <option value="sick">Хворів</option>
+                        <option value="excused">Поважна причина</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="attendanceNotes">Примітки</label>
+                    <textarea id="attendanceNotes" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAttendanceModal()">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/attendance.js"></script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Групи - CRM</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-dumbbell"></i>
+                <h2>CRM Школа</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Дашборд</span>
+                </a>
+                <a href="students.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Учні</span>
+                </a>
+                <a href="attendance.html" class="nav-item">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Відвідування</span>
+                </a>
+                <a href="payments.html" class="nav-item">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Оплати</span>
+                </a>
+                <a href="groups.html" class="nav-item active">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Групи</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <p id="userName">Користувач</p>
+                        <small id="userRole">Роль</small>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Вийти
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Групи</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openAddGroupModal()">
+                        <i class="fas fa-plus"></i>
+                        Додати групу
+                    </button>
+                </div>
+            </header>
+
+            <!-- Groups Grid -->
+            <div class="groups-grid" id="groupsGrid">
+                <div class="text-center" style="grid-column: 1/-1; padding: 40px;">
+                    Завантаження...
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Group Modal -->
+    <div id="groupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Додати групу</h2>
+                <button class="modal-close" onclick="closeGroupModal()">&times;</button>
+            </div>
+            <form id="groupForm" class="modal-form">
+                <input type="hidden" id="groupId">
+                <div class="form-group">
+                    <label for="groupName">Назва групи *</label>
+                    <input type="text" id="groupName" required placeholder="Наприклад: Початківці 6-8 років">
+                </div>
+                <div class="form-group">
+                    <label>Розклад занять</label>
+                    <div class="schedule-builder">
+                        <div class="schedule-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="day-checkbox" value="Понеділок">
+                                <span>Понеділок</span>
+                            </label>
+                            <input type="time" class="time-input" data-day="Понеділок" disabled>
+                        </div>
+                        <div class="schedule-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="day-checkbox" value="Вівторок">
+                                <span>Вівторок</span>
+                            </label>
+                            <input type="time" class="time-input" data-day="Вівторок" disabled>
+                        </div>
+                        <div class="schedule-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="day-checkbox" value="Середа">
+                                <span>Середа</span>
+                            </label>
+                            <input type="time" class="time-input" data-day="Середа" disabled>
+                        </div>
+                        <div class="schedule-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="day-checkbox" value="Четвер">
+                                <span>Четвер</span>
+                            </label>
+                            <input type="time" class="time-input" data-day="Четвер" disabled>
+                        </div>
+                        <div class="schedule-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="day-checkbox" value="П'ятниця">
+                                <span>П'ятниця</span>
+                            </label>
+                            <input type="time" class="time-input" data-day="П'ятниця" disabled>
+                        </div>
+                        <div class="schedule-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="day-checkbox" value="Субота">
+                                <span>Субота</span>
+                            </label>
+                            <input type="time" class="time-input" data-day="Субота" disabled>
+                        </div>
+                        <div class="schedule-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="day-checkbox" value="Неділя">
+                                <span>Неділя</span>
+                            </label>
+                            <input type="time" class="time-input" data-day="Неділя" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="trainerId">Тренер</label>
+                        <select id="trainerId">
+                            <option value="">Без тренера</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxStudents">Макс. учнів</label>
+                        <input type="number" id="maxStudents" min="1" value="15">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeGroupModal()">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/groups.js"></script>
+</body>
+</html>
