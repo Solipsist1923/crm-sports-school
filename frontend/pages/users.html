@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Користувачі - CRM</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-dumbbell"></i>
+                <h2>CRM Школа</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Дашборд</span>
+                </a>
+                <a href="students.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Учні</span>
+                </a>
+                <a href="attendance.html" class="nav-item">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Відвідування</span>
+                </a>
+                <a href="payments.html" class="nav-item">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Оплати</span>
+                </a>
+                <a href="groups.html" class="nav-item">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Групи</span>
+                </a>
+                <a href="users.html" class="nav-item active" id="usersLink" style="display: none;">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Користувачі</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <p id="userName">Користувач</p>
+                        <small id="userRole">Роль</small>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Вийти
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Управління користувачами</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openAddUserModal()">
+                        <i class="fas fa-plus"></i>
+                        Додати користувача
+                    </button>
+                </div>
+            </header>
+
+            <!-- Users Table -->
+            <div class="table-card">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Логін</th>
+                                <th>Повне ім'я</th>
+                                <th>Роль</th>
+                                <th>Статус</th>
+                                <th>Дата створення</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <tr>
+                                <td colspan="6" class="text-center">Завантаження...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Додати користувача</h2>
+                <button class="modal-close" onclick="closeUserModal()">&times;</button>
+            </div>
+            <form id="userForm" class="modal-form">
+                <input type="hidden" id="userId">
+                <div class="form-group">
+                    <label for="username">Логін *</label>
+                    <input type="text" id="username" required placeholder="Логін для входу">
+                </div>
+                <div class="form-group">
+                    <label for="fullName">Повне ім'я *</label>
+                    <input type="text" id="fullName" required placeholder="Прізвище Ім'я По батькові">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userRole">Роль *</label>
+                        <select id="userRole" required>
+                            <option value="trainer">Тренер</option>
+                            <option value="admin">Адміністратор</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Пароль *</label>
+                        <input type="text" id="password" required placeholder="Пароль">
+                        <small style="color: var(--text-secondary);">Мінімум 6 символів</small>
+                    </div>
+                </div>
+                <div class="form-group" id="trainerFieldsGroup" style="display: none;">
+                    <label>Дані тренера</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trainerFirstName">Ім'я</label>
+                            <input type="text" id="trainerFirstName">
+                        </div>
+                        <div class="form-group">
+                            <label for="trainerLastName">Прізвище</label>
+                            <input type="text" id="trainerLastName">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trainerPhone">Телефон</label>
+                            <input type="tel" id="trainerPhone" placeholder="+380501234567">
+                        </div>
+                        <div class="form-group">
+                            <label for="trainerSpecialization">Спеціалізація</label>
+                            <input type="text" id="trainerSpecialization" placeholder="Наприклад: Гімнастика">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeUserModal()">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/users.js"></script>
+</body>
+</html>

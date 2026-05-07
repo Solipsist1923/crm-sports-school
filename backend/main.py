@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api import auth, students, attendance, payments, stats, groups, trainers
+from app.api import auth, students, attendance, payments, stats, groups, trainers, users
 
 # Створення таблиць
 Base.metadata.create_all(bind=engine)
@@ -38,6 +38,7 @@ app.include_router(payments.router)
 app.include_router(stats.router)
 app.include_router(groups.router)
 app.include_router(trainers.router)
+app.include_router(users.router)
 
 @app.get("/")
 async def root():
