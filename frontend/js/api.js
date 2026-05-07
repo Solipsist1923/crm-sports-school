@@ -280,3 +280,19 @@ function showError(message) {
 function showSuccess(message) {
     alert(message);
 }
+
+// Show users menu for admin
+function showUsersMenuForAdmin() {
+    const user = getUser();
+    if (user && user.role === 'admin') {
+        const usersLink = document.getElementById('usersLink');
+        if (usersLink) {
+            usersLink.style.display = 'flex';
+        }
+    }
+}
+
+// Call this on page load
+document.addEventListener('DOMContentLoaded', function() {
+    showUsersMenuForAdmin();
+});

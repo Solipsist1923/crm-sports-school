@@ -181,9 +181,18 @@ window.onclick = function(event) {
     }
 };
 
+// Завантаження інформації про користувача
+function loadUserInfo() {
+    const user = getUser();
+    if (user) {
+        document.getElementById('userName').textContent = user.full_name;
+        document.getElementById('userRole').textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+    }
+}
+
 // Ініціалізація
 document.addEventListener('DOMContentLoaded', function() {
     checkUserRole();
     loadUsers();
-    updateUserInfo();
+    loadUserInfo();
 });
