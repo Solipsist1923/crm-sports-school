@@ -70,68 +70,6 @@ function closeUserModal() {
     document.getElementById('userModal').style.display = 'none';
 }
 
-// Обробка зміни ролі
-document.getElementById('userRole').addEventListener('change', function() {
-    const trainerFields = document.getElementById('trainerFieldsGroup');
-    if (this.value === 'trainer') {
-        trainerFields.style.display = 'block';
-    } else {
-        trainerFields.style.display = 'none';
-    }
-});
-
-// Обробка форми користувача
-document.getElementById('userForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const username = document.getElementById('username').value.trim();
-    const fullName = document.getElementById('fullName').value.trim();
-    const role = document.getElementById('userRole').value;
-    const password = document.getElementById('password').value;
-
-    if (password.length < 6) {
-        showNotification('Пароль повинен містити мінімум 6 символів', 'error');
-        return;
-    }
-
-    const userData = {
-        username,
-        full_name: fullName,
-        role,
-        password,
-        is_active: true
-    };
-
-    // Якщо роль тренер, додаємо дані тренера
-    if (role === 'trainer') {
-        const trainerFirstName = document.getElementById('trainerFirstName').value.trim();
-        const trainerLastName = document.getElementById('trainerLastName').value.trim();
-        const trainerPhone = document.getElementById('trainerPhone').value.trim();
-        const trainerSpecialization = document.getElementById('trainerSpecialization').value.trim();
-
-        userData.trainer_data = {
-            first_name: trainerFirstName || '',
-            last_name: trainerLastName || '',
-            phone: trainerPhone || '',
-            specialization: trainerSpecialization || ''
-        };
-    }
-
-    try {
-        await apiRequest('/api/users', {
-            method: 'POST',
-            body: JSON.stringify(userData)
-        });
-
-        showNotification('Користувача успішно створено', 'success');
-        closeUserModal();
-        loadUsers();
-    } catch (error) {
-        console.error('Error creating user:', error);
-        showNotification(error.message || 'Помилка створення користувача', 'error');
-    }
-});
-
 // Видалення користувача
 async function deleteUser(userId, username) {
     if (!confirm(`Ви впевнені, що хочете видалити користувача "${username}"?`)) {
@@ -177,14 +115,6 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Закриття модального вікна при кліку поза ним
-window.onclick = function(event) {
-    const modal = document.getElementById('userModal');
-    if (event.target === modal) {
-        closeUserModal();
-    }
-};
-
 // Завантаження інформації про користувача
 function loadUserInfo() {
     const user = getUser();
@@ -199,4 +129,74 @@ document.addEventListener('DOMContentLoaded', function() {
     checkUserRole();
     loadUsers();
     loadUserInfo();
+
+    // Обробка зміни ролі
+    document.getElementById('userRole').addEventListener('change', function() {
+        const trainerFields = document.getElementById('trainerFieldsGroup');
+        if (this.value === 'trainer') {
+            trainerFields.style.display = 'block';
+        } else {
+            trainerFields.style.display = 'none';
+        }
+    });
+
+    // Обробка форми користувача
+    document.getElementById('userForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value.trim();
+        const fullName = document.getElementById('fullName').value.trim();
+        const role = document.getElementById('userRole').value;
+        const password = document.getElementById('password').value;
+
+        if (password.length < 6) {
+            showNotification('Пароль повинен містити мінімум 6 символів', 'error');
+            return;
+        }
+
+        const userData = {
+            username,
+            full_name: fullName,
+            role,
+            password,
+            is_active: true
+        };
+
+        // Якщо роль тренер, додаємо дані тренера
+        if (role === 'trainer') {
+            const trainerFirstName = document.getElementById('trainerFirstName').value.trim();
+            const trainerLastName = document.getElementById('trainerLastName').value.trim();
+            const trainerPhone = document.getElementById('trainerPhone').value.trim();
+            const trainerSpecialization = document.getElementById('trainerSpecialization').value.trim();
+
+            userData.trainer_data = {
+                first_name: trainerFirstName || '',
+                last_name: trainerLastName || '',
+                phone: trainerPhone || '',
+                specialization: trainerSpecialization || ''
+            };
+        }
+
+        try {
+            await apiRequest('/api/users', {
+                method: 'POST',
+                body: JSON.stringify(userData)
+            });
+
+            showNotification('Користувача успішно створено', 'success');
+            closeUserModal();
+            loadUsers();
+        } catch (error) {
+            console.error('Error creating user:', error);
+            showNotification(error.message || 'Помилка створення користувача', 'error');
+        }
+    });
+
+    // Закриття модального вікна при кліку поза ним
+    window.onclick = function(event) {
+        const modal = document.getElementById('userModal');
+        if (event.target === modal) {
+            closeUserModal();
+        }
+    };
 });
