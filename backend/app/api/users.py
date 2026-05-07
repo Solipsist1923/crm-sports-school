@@ -4,9 +4,10 @@ from typing import List
 from datetime import datetime
 
 from app.core.database import get_db
-from app.core.security import get_password_hash, get_current_user
+from app.core.security import get_password_hash
 from app.models.models import User, Trainer
 from app.schemas.schemas import UserCreate, UserResponse, TrainerCreate
+from app.api.auth import get_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -88,7 +89,7 @@ async def create_user(
         username=user_data.username,
         full_name=user_data.full_name,
         role=user_data.role,
-        hashed_password=hashed_password,
+        password_hash=hashed_password,
         is_active=user_data.is_active,
         created_at=datetime.utcnow()
     )
