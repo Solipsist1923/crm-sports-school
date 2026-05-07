@@ -13,7 +13,7 @@ function checkUserRole() {
 // Завантаження користувачів
 async function loadUsers() {
     try {
-        const response = await apiRequest('/users');
+        const response = await apiRequest('/api/users');
         const users = response.users || [];
 
         const tbody = document.getElementById('usersTable');
@@ -114,7 +114,7 @@ document.getElementById('userForm').addEventListener('submit', async function(e)
     }
 
     try {
-        await apiRequest('/users', {
+        await apiRequest('/api/users', {
             method: 'POST',
             body: JSON.stringify(userData)
         });
@@ -135,7 +135,7 @@ async function deleteUser(userId, username) {
     }
 
     try {
-        await apiRequest(`/users/${userId}`, {
+        await apiRequest(`/api/users/${userId}`, {
             method: 'DELETE'
         });
 

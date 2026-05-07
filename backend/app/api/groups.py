@@ -28,9 +28,10 @@ async def get_groups(
         query = query.filter(Group.trainer_id == trainer_id)
 
     # Якщо тренер, показуємо тільки його групи
-    trainer = db.query(User).filter(User.id == current_user.id).first()
-    if trainer and trainer.trainer:
-        query = query.filter(Group.trainer_id == trainer.trainer.id)
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            query = query.filter(Group.trainer_id == trainer.trainer.id)
 
     groups = query.offset(skip).limit(limit).all()
     return groups
@@ -48,10 +49,11 @@ async def get_group(
         raise HTTPException(status_code=404, detail="Group not found")
 
     # Перевірка доступу для тренера
-    trainer = db.query(User).filter(User.id == current_user.id).first()
-    if trainer and trainer.trainer:
-        if group.trainer_id != trainer.trainer.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            if group.trainer_id != trainer.trainer.id:
+                raise HTTPException(status_code=403, detail="Access denied")
 
     return group
 
@@ -82,10 +84,11 @@ async def update_group(
         raise HTTPException(status_code=404, detail="Group not found")
 
     # Перевірка доступу для тренера
-    trainer = db.query(User).filter(User.id == current_user.id).first()
-    if trainer and trainer.trainer:
-        if db_group.trainer_id != trainer.trainer.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            if db_group.trainer_id != trainer.trainer.id:
+                raise HTTPException(status_code=403, detail="Access denied")
 
     # Оновлення полів
     update_data = group_update.model_dump(exclude_unset=True)

@@ -9,7 +9,7 @@ from app.models.models import User, Trainer
 from app.schemas.schemas import UserCreate, UserResponse, TrainerCreate
 from app.api.auth import get_current_user
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/api/users", tags=["users"])
 
 @router.get("", response_model=dict)
 async def get_users(

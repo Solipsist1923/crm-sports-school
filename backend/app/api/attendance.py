@@ -34,9 +34,10 @@ async def get_attendance(
         query = query.filter(Attendance.date <= date_to)
 
     # Якщо тренер, показуємо тільки його учнів
-    trainer = db.query(User).filter(User.id == current_user.id).first()
-    if trainer and trainer.trainer:
-        query = query.join(Student).filter(Student.trainer_id == trainer.trainer.id)
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            query = query.join(Student).filter(Student.trainer_id == trainer.trainer.id)
 
     attendance = query.order_by(Attendance.date.desc()).offset(skip).limit(limit).all()
     return attendance
@@ -55,9 +56,10 @@ async def get_attendance_by_date(
         query = query.join(Student).filter(Student.group_id == group_id)
 
     # Якщо тренер, показуємо тільки його учнів
-    trainer = db.query(User).filter(User.id == current_user.id).first()
-    if trainer and trainer.trainer:
-        query = query.join(Student).filter(Student.trainer_id == trainer.trainer.id)
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            query = query.join(Student).filter(Student.trainer_id == trainer.trainer.id)
 
     attendance = query.all()
     return attendance
@@ -76,10 +78,11 @@ async def get_student_attendance(
         raise HTTPException(status_code=404, detail="Student not found")
 
     # Перевірка доступу для тренера
-    trainer = db.query(User).filter(User.id == current_user.id).first()
-    if trainer and trainer.trainer:
-        if student.trainer_id != trainer.trainer.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            if student.trainer_id != trainer.trainer.id:
+                raise HTTPException(status_code=403, detail="Access denied")
 
     attendance = db.query(Attendance)\
         .filter(Attendance.student_id == student_id)\
@@ -102,10 +105,11 @@ async def mark_attendance(
         raise HTTPException(status_code=404, detail="Student not found")
 
     # Перевірка доступу для тренера
-    trainer = db.query(User).filter(User.id == current_user.id).first()
-    if trainer and trainer.trainer:
-        if student.trainer_id != trainer.trainer.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            if student.trainer_id != trainer.trainer.id:
+                raise HTTPException(status_code=403, detail="Access denied")
 
     # Перевірка, чи вже є відмітка на цю дату
     existing = db.query(Attendance).filter(
