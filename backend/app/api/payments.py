@@ -33,8 +33,9 @@ async def get_payments(
         query = query.filter(Payment.status == status)
 
     # Якщо тренер, показуємо тільки його учнів
-    if current_user.role == "trainer" and current_user.trainer:
-        query = query.join(Student).filter(Student.trainer_id == current_user.trainer.id)
+    trainer = db.query(User).filter(User.id == current_user.id).first()
+    if trainer and trainer.trainer:
+        query = query.join(Student).filter(Student.trainer_id == trainer.trainer.id)
 
     payments = query.order_by(Payment.payment_date.desc()).offset(skip).limit(limit).all()
     return payments
@@ -52,8 +53,9 @@ async def get_overdue_payments(
     )
 
     # Якщо тренер, показуємо тільки його учнів
-    if current_user.role == "trainer" and current_user.trainer:
-        query = query.join(Student).filter(Student.trainer_id == current_user.trainer.id)
+    trainer = db.query(User).filter(User.id == current_user.id).first()
+    if trainer and trainer.trainer:
+        query = query.join(Student).filter(Student.trainer_id == trainer.trainer.id)
 
     payments = query.order_by(Payment.next_payment_date).all()
     return payments
@@ -71,8 +73,9 @@ async def get_student_payments(
         raise HTTPException(status_code=404, detail="Student not found")
 
     # Перевірка доступу для тренера
-    if current_user.role == "trainer" and current_user.trainer:
-        if student.trainer_id != current_user.trainer.id:
+    trainer = db.query(User).filter(User.id == current_user.id).first()
+    if trainer and trainer.trainer:
+        if student.trainer_id != trainer.trainer.id:
             raise HTTPException(status_code=403, detail="Access denied")
 
     payments = db.query(Payment)\
@@ -95,8 +98,9 @@ async def create_payment(
         raise HTTPException(status_code=404, detail="Student not found")
 
     # Перевірка доступу для тренера
-    if current_user.role == "trainer" and current_user.trainer:
-        if student.trainer_id != current_user.trainer.id:
+    trainer = db.query(User).filter(User.id == current_user.id).first()
+    if trainer and trainer.trainer:
+        if student.trainer_id != trainer.trainer.id:
             raise HTTPException(status_code=403, detail="Access denied")
 
     db_payment = Payment(
@@ -123,8 +127,9 @@ async def update_payment(
 
     # Перевірка доступу для тренера
     student = db.query(Student).filter(Student.id == db_payment.student_id).first()
-    if current_user.role == "trainer" and current_user.trainer:
-        if student.trainer_id != current_user.trainer.id:
+    trainer = db.query(User).filter(User.id == current_user.id).first()
+    if trainer and trainer.trainer:
+        if student.trainer_id != trainer.trainer.id:
             raise HTTPException(status_code=403, detail="Access denied")
 
     # Оновлення полів

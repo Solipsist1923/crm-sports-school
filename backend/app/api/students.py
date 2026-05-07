@@ -47,8 +47,10 @@ async def get_students(
         query = query.filter(Student.is_active == is_active)
 
     # Якщо користувач тренер, показуємо тільки його учнів
-    if current_user.role == "trainer" and current_user.trainer:
-        query = query.filter(Student.trainer_id == current_user.trainer.id)
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            query = query.filter(Student.trainer_id == trainer.trainer.id)
 
     students = query.offset(skip).limit(limit).all()
     return students
@@ -66,9 +68,11 @@ async def get_student(
         raise HTTPException(status_code=404, detail="Student not found")
 
     # Перевірка доступу для тренера
-    if current_user.role == "trainer" and current_user.trainer:
-        if student.trainer_id != current_user.trainer.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            if student.trainer_id != trainer.trainer.id:
+                raise HTTPException(status_code=403, detail="Access denied")
 
     return student
 
@@ -79,11 +83,16 @@ async def create_student(
     current_user: User = Depends(get_current_user)
 ):
     """Створення нового учня"""
-    db_student = Student(**student.model_dump())
-    db.add(db_student)
-    db.commit()
-    db.refresh(db_student)
-    return db_student
+    try:
+        db_student = Student(**student.model_dump())
+        db.add(db_student)
+        db.commit()
+        db.refresh(db_student)
+        return db_student
+    except Exception as e:
+        db.rollback()
+        print(f"Error creating student: {e}")
+        raise HTTPException(status_code=400, detail=f"Помилка збереження даних: {str(e)}")
 
 @router.put("/{student_id}", response_model=StudentResponse)
 async def update_student(
@@ -99,9 +108,11 @@ async def update_student(
         raise HTTPException(status_code=404, detail="Student not found")
 
     # Перевірка доступу для тренера
-    if current_user.role == "trainer" and current_user.trainer:
-        if db_student.trainer_id != current_user.trainer.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+    if current_user.role == "trainer":
+        trainer = db.query(User).filter(User.id == current_user.id).first()
+        if trainer and trainer.trainer:
+            if db_student.trainer_id != trainer.trainer.id:
+                raise HTTPException(status_code=403, detail="Access denied")
 
     # Оновлення полів
     update_data = student_update.model_dump(exclude_unset=True)
