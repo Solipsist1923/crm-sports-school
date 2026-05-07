@@ -211,12 +211,14 @@ async function deleteGroup(id) {
     }
 
     try {
+        console.log('Deleting group:', id);
         await groupsAPI.delete(id);
+        console.log('Group deleted successfully');
         await loadGroups();
         alert('Групу видалено');
     } catch (error) {
         console.error('Error deleting group:', error);
-        alert('Помилка видалення групи');
+        alert(`Помилка видалення групи: ${error.message || 'Невідома помилка'}`);
     }
 }
 

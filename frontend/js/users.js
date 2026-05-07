@@ -57,7 +57,11 @@ function openAddUserModal() {
     document.getElementById('userForm').reset();
     document.getElementById('userId').value = '';
     document.getElementById('password').required = true;
-    document.getElementById('trainerFieldsGroup').style.display = 'none';
+
+    // За замовчуванням роль тренер і показуємо поля тренера
+    document.getElementById('userRole').value = 'trainer';
+    document.getElementById('trainerFieldsGroup').style.display = 'block';
+
     document.getElementById('userModal').style.display = 'flex';
 }
 
