@@ -563,7 +563,7 @@ body {
 
     .main-content {
         margin-left: 0;
-        padding: 80px 10px 20px;
+        padding: 85px 12px 20px; /* Більший відступ для фіксованої шапки */
     }
 
     .content-header {
@@ -571,10 +571,10 @@ body {
         top: 0;
         left: 0;
         right: 0;
-        height: 60px;
+        height: 70px;
         background: white;
-        z-index: 1100;
-        padding: 0 10px;
+        z-index: 1000;
+        padding: 0 12px;
         margin: 0;
         border-bottom: 1px solid var(--border-color);
         flex-direction: row !important;
@@ -617,7 +617,13 @@ body {
         display: flex !important; /* Use flex for centering icon */
         align-items: center !important; /* Center icon vertically */
         justify-content: center;
-        font-size: 18px;
+        font-size: 0; /* Hide text content */
+        overflow: hidden; /* Ensure no text spills */
+    }
+
+    .header-actions .btn i {
+        font-size: 18px !important; /* Make icon visible */
+        margin: 0 !important; /* Remove any default icon margins */
     }
 
     /* Specific style for date input in header-actions (Attendance page) */
@@ -636,6 +642,16 @@ body {
     }
     .header-title-wrap h1 {
         flex-shrink: 1; /* Allow h1 to shrink */
+        max-width: calc(100% - 100px); /* Adjust max-width to leave space for burger and add button */
+    }
+
+    /* Adjustments for the "Прострочені" button on Payments page */
+    .header-actions .btn-secondary {
+        background: var(--warning-color); /* Make it more prominent */
+        color: white;
+    }
+    .header-actions .btn-secondary i {
+        color: white !important; /* Ensure icon color is white */
     }
 
     .stats-grid {
