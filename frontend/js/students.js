@@ -145,7 +145,7 @@ function getInsuranceClass(endDate) {
     expDate.setHours(0, 0, 0, 0);
     
     const diffTime = expDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays <= 0) return 'status-danger'; // Прострочена - червоний
     if (diffDays <= 30) return 'status-warning'; // Менше місяця - жовтий
@@ -179,10 +179,16 @@ function filterStudents() {
 
     if (insuranceExpiring) {
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
         const monthLater = new Date(today);
         monthLater.setDate(today.getDate() + 30);
+
         filtered = filtered.filter(s => 
-            s.insurance_end && new Date(s.insurance_end) >= today && new Date(s.insurance_end) <= monthLater
+            s.insurance_end && (function() {
+                const sDate = new Date(s.insurance_end.includes('T') ? s.insurance_end : `${s.insurance_end}T00:00:00`);
+                sDate.setHours(0, 0, 0, 0);
+                return sDate <= monthLater; // Показуємо і прострочені, і ті, що скоро закінчаться
+            })()
         );
     }
 

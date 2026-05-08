@@ -82,7 +82,6 @@ async def get_dashboard_stats(
     # Змінюємо запит на таблицю Student, бо дані тепер там
     expiring_ins_query = db.query(Student).filter(
         Student.is_active == True,
-        Student.insurance_end >= today,
         Student.insurance_end <= month_later
     )
     if trainer_id:
