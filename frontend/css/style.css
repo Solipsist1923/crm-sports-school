@@ -563,7 +563,7 @@ body {
 
     .main-content {
         margin-left: 0;
-        padding: 85px 12px 20px; /* Більший відступ для фіксованої шапки */
+        padding: 80px 10px 20px;
     }
 
     .content-header {
@@ -571,10 +571,10 @@ body {
         top: 0;
         left: 0;
         right: 0;
-        height: 70px;
+        height: 60px;
         background: white;
-        z-index: 1000;
-        padding: 0 12px;
+        z-index: 1100;
+        padding: 0 10px;
         margin: 0;
         border-bottom: 1px solid var(--border-color);
         flex-direction: row !important;
