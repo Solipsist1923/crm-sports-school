@@ -93,6 +93,9 @@ class StudentBase(BaseModel):
     telegram_parent: Optional[str] = None
     group_id: Optional[int] = None
     trainer_id: Optional[int] = None
+    insurance_start: Optional[date] = None
+    insurance_end: Optional[date] = None
+    medical_certificate: bool = False
     notes: Optional[str] = None
 
 class StudentCreate(StudentBase):
@@ -106,6 +109,9 @@ class StudentUpdate(BaseModel):
     telegram_parent: Optional[str] = None
     group_id: Optional[int] = None
     trainer_id: Optional[int] = None
+    insurance_start: Optional[date] = None
+    insurance_end: Optional[date] = None
+    medical_certificate: Optional[bool] = None
     notes: Optional[str] = None
     is_active: Optional[bool] = None
 

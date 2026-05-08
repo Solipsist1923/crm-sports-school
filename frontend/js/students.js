@@ -59,7 +59,16 @@ function renderStudents(students) {
             <td>${formatDate(student.birth_date)}</td>
             <td>${student.phone_parent}</td>
             <td>${student.group_id || '-'}</td>
-            <td>${student.trainer_id || '-'}</td>
+            <td>
+                <div class="status-icons">
+                    <i class="fas fa-file-medical ${student.medical_certificate ? 'text-success' : 'text-danger'}" 
+                       title="${student.medical_certificate ? 'Довідка є' : 'Довідки немає'}"></i>
+                    <span class="insurance-status ${getInsuranceClass(student.insurance_end)}">
+                        <i class="fas fa-shield-alt"></i> 
+                        ${student.insurance_end ? formatDate(student.insurance_end) : 'немає'}
+                    </span>
+                </div>
+            </td>
             <td>
                 <span class="badge ${student.is_active ? 'badge-success' : 'badge-danger'}">
                     ${student.is_active ? 'Активний' : 'Неактивний'}
@@ -81,16 +90,30 @@ function setupFilters() {
     const searchInput = document.getElementById('searchInput');
     const groupFilter = document.getElementById('groupFilter');
     const statusFilter = document.getElementById('statusFilter');
+    const insuranceFilter = document.getElementById('insuranceFilter'); // Додайте цей елемент в HTML
 
     searchInput.addEventListener('input', filterStudents);
     groupFilter.addEventListener('change', filterStudents);
     statusFilter.addEventListener('change', filterStudents);
+    if (insuranceFilter) insuranceFilter.addEventListener('change', filterStudents);
+}
+
+function getInsuranceClass(endDate) {
+    if (!endDate) return 'text-danger';
+    const today = new Date();
+    const expDate = new Date(endDate);
+    const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return 'text-danger';
+    if (diffDays <= 14) return 'text-warning';
+    return 'text-success';
 }
 
 function filterStudents() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const groupId = document.getElementById('groupFilter').value;
     const status = document.getElementById('statusFilter').value;
+    const insuranceExpiring = document.getElementById('insuranceFilter')?.checked;
 
     let filtered = allStudents;
 
@@ -109,6 +132,15 @@ function filterStudents() {
         filtered = filtered.filter(s => s.is_active);
     } else if (status === 'inactive') {
         filtered = filtered.filter(s => !s.is_active);
+    }
+
+    if (insuranceExpiring) {
+        const today = new Date();
+        const twoWeeksLater = new Date();
+        twoWeeksLater.setDate(today.getDate() + 14);
+        filtered = filtered.filter(s => 
+            s.insurance_end && new Date(s.insurance_end) >= today && new Date(s.insurance_end) <= twoWeeksLater
+        );
     }
 
     renderStudents(filtered);
@@ -137,6 +169,9 @@ async function editStudent(id) {
         document.getElementById('phoneParent').value = student.phone_parent;
         document.getElementById('telegramParent').value = student.telegram_parent || '';
         document.getElementById('groupId').value = student.group_id || '';
+        document.getElementById('insuranceStart').value = student.insurance_start || '';
+        document.getElementById('insuranceEnd').value = student.insurance_end || '';
+        document.getElementById('medicalCertificate').checked = student.medical_certificate || false;
         document.getElementById('notes').value = student.notes || '';
 
         document.getElementById('studentModal').classList.add('show');
@@ -172,6 +207,9 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         phone_parent: document.getElementById('phoneParent').value,
         telegram_parent: document.getElementById('telegramParent').value || null,
         group_id: document.getElementById('groupId').value ? parseInt(document.getElementById('groupId').value) : null,
+        insurance_start: document.getElementById('insuranceStart').value || null,
+        insurance_end: document.getElementById('insuranceEnd').value || null,
+        medical_certificate: document.getElementById('medicalCertificate').checked,
         notes: document.getElementById('notes').value || null
     };
 

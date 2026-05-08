@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 from typing import List, Optional
-from datetime import date
+from datetime import date, timedelta
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
@@ -19,6 +19,7 @@ async def get_students(
     group_id: Optional[int] = None,
     trainer_id: Optional[int] = None,
     is_active: Optional[bool] = None,
+    insurance_expiring: Optional[bool] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -45,6 +46,15 @@ async def get_students(
     # Фільтр за активністю
     if is_active is not None:
         query = query.filter(Student.is_active == is_active)
+
+    # Фільтр за страховкою, що закінчується протягом найближчих 14 днів
+    if insurance_expiring:
+        today = date.today()
+        two_weeks_later = today + timedelta(days=14)
+        query = query.filter(
+            Student.insurance_end >= today,
+            Student.insurance_end <= two_weeks_later
+        )
 
     # Якщо користувач тренер, показуємо тільки його учнів
     if current_user.role == "trainer":
