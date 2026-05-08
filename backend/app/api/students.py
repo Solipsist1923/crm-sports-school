@@ -81,10 +81,9 @@ async def get_student(
 
     # Перевірка доступу для тренера
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            if student.trainer_id != trainer.trainer.id:
-                raise HTTPException(status_code=403, detail="Access denied")
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if not trainer_profile or student.trainer_id != trainer_profile.id:
+            raise HTTPException(status_code=403, detail="Access denied")
 
     return student
 
@@ -121,10 +120,9 @@ async def update_student(
 
     # Перевірка доступу для тренера
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            if db_student.trainer_id != trainer.trainer.id:
-                raise HTTPException(status_code=403, detail="Access denied")
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if not trainer_profile or db_student.trainer_id != trainer_profile.id:
+            raise HTTPException(status_code=403, detail="Access denied")
 
     # Оновлення полів
     update_data = student_update.model_dump(exclude_unset=True)
