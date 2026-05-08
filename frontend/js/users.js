@@ -55,16 +55,26 @@ async function loadUsers() {
 function openAddUserModal() {
     console.log('openAddUserModal called');
     const modal = document.getElementById('userModal');
-    console.log('Modal element:', modal);
+    if (!modal) {
+        console.error('Modal element #userModal not found');
+        return;
+    }
 
-    document.getElementById('modalTitle').textContent = 'Додати користувача';
-    document.getElementById('userForm').reset();
-    document.getElementById('userId').value = '';
-    document.getElementById('password').required = true;
+    const modalTitle = document.getElementById('modalTitle');
+    const userForm = document.getElementById('userForm');
+    const userIdField = document.getElementById('userId');
+    const passwordField = document.getElementById('password');
+    const userRoleField = document.getElementById('userRole');
+    const trainerFieldsGroup = document.getElementById('trainerFieldsGroup');
+
+    if (modalTitle) modalTitle.textContent = 'Додати користувача';
+    if (userForm) userForm.reset();
+    if (userIdField) userIdField.value = '';
+    if (passwordField) passwordField.required = true;
 
     // За замовчуванням роль тренер і показуємо поля тренера
-    document.getElementById('userRole').value = 'trainer';
-    document.getElementById('trainerFieldsGroup').style.display = 'block';
+    if (userRoleField) userRoleField.value = 'trainer';
+    if (trainerFieldsGroup) trainerFieldsGroup.style.display = 'block';
 
     modal.style.display = 'flex';
     console.log('Modal should be visible now');
@@ -122,10 +132,14 @@ function showNotification(message, type = 'info') {
 
 // Завантаження інформації про користувача
 function loadUserInfo() {
-    const user = getUser();
-    if (user) {
-        document.getElementById('userName').textContent = user.full_name;
-        document.getElementById('userRole').textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user && user.full_name) {
+        const userNameEl = document.getElementById('userName');
+        // Використовуємо окремий ID для відображення ролі, щоб не було конфлікту з формою
+        const userRoleEl = document.getElementById('userRoleDisplay'); 
+        
+        if (userNameEl) userNameEl.textContent = user.full_name;
+        if (userRoleEl) userRoleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
     }
 }
 

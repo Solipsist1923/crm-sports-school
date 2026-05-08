@@ -6,7 +6,8 @@
       "Bash(git push *)",
       "Bash(sqlite3 crm.db \".tables\")",
       "Bash(sqlite3 *)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(curl -I https://crm-sports-school-production.up.railway.app/js/config.js)"
     ]
   }
 }
