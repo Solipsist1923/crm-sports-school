@@ -136,10 +136,12 @@ function setupFilters() {
 function getInsuranceClass(endDate) {
     if (!endDate) return 'text-danger';
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const expDate = new Date(endDate);
+    expDate.setHours(0, 0, 0, 0);
     const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return 'text-danger'; // Прострочена - червоний
+    if (diffDays <= 0) return 'text-danger'; // Прострочена або закінчується сьогодні - червоний
     if (diffDays <= 30) return 'text-warning'; // Менше місяця - жовтий
     return 'text-success'; // Більше місяця - зелений
 }

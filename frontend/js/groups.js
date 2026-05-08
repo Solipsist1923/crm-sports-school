@@ -223,7 +223,7 @@ async function deleteGroup(id) {
 }
 
 function viewGroupStudents(groupId) {
-    window.location.href = `students.html?group_id=${groupId}`;
+    window.location.href = `students.html?groupId=${groupId}`;
 }
 
 document.getElementById('groupForm').addEventListener('submit', async (e) => {
