@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
 
+import datetime as dt
 from app.core.database import get_db
 from app.core.security import get_password_hash
 from app.models.models import User, Trainer
@@ -91,7 +92,7 @@ async def create_user(
         role=user_data.role,
         password_hash=hashed_password,
         is_active=user_data.is_active,
-        created_at=datetime.utcnow()
+        created_at=dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
     )
 
     db.add(new_user)
