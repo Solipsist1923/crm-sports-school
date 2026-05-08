@@ -93,7 +93,7 @@ function renderStudents(students) {
             <td>${student.phone_parent}</td>
             <td>${group ? group.name : '-'}</td>
             <td>${trainer ? `${trainer.first_name} ${trainer.last_name}` : '-'}</td>
-            <td>
+            <td class="docs-column">
                 <div class="student-docs-info">
                     <div class="${student.medical_certificate ? 'status-success' : 'status-danger'}" title="Медична довідка">
                         <i class="fas ${student.medical_certificate ? 'fa-check-circle' : 'fa-times-circle'}"></i>
@@ -162,25 +162,6 @@ function setupMobileMenu() {
             });
         });
     }
-}
-
-function getInsuranceStatus(endDate) {
-    if (!endDate) return { class: 'status-danger', icon: 'fa-exclamation-circle' };
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // Форсуємо локальний час для коректного порівняння без зсуву на день
-    const dateStr = endDate.includes('T') ? endDate : `${endDate}T00:00:00`;
-    const expDate = new Date(dateStr);
-    expDate.setHours(0, 0, 0, 0);
-    
-    const diffTime = expDate - today;
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays <= 0) return { class: 'status-danger', icon: 'fa-exclamation-circle' }; // Прострочена - червоний круг
-    if (diffDays <= 30) return { class: 'status-warning', icon: 'fa-exclamation-triangle' }; // Менше місяця - трикутник
-    return { class: 'status-success', icon: 'fa-shield-alt' }; // Все ок - щит
 }
 
 function filterStudents() {
