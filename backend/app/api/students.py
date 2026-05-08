@@ -6,7 +6,7 @@ from datetime import date, timedelta
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.models.models import Student, User
+from app.models.models import Student, User, Trainer
 from app.schemas.schemas import StudentCreate, StudentUpdate, StudentResponse
 
 router = APIRouter(prefix="/api/students", tags=["Students"])
@@ -58,9 +58,11 @@ async def get_students(
 
     # Якщо користувач тренер, показуємо тільки його учнів
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            query = query.filter(Student.trainer_id == trainer.trainer.id)
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if trainer_profile:
+            query = query.filter(Student.trainer_id == trainer_profile.id)
+        else:
+            return []
 
     students = query.offset(skip).limit(limit).all()
     return students
