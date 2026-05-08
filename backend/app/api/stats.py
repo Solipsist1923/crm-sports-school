@@ -77,13 +77,13 @@ async def get_dashboard_stats(
         )
     expiring_subscriptions = expiring_subs_query.count()
 
-    # Страховки, що закінчуються (через 14 днів)
-    two_weeks_later = today + timedelta(days=14)
+    # Страховки, що закінчуються (через 30 днів)
+    month_later = today + timedelta(days=30)
     # Змінюємо запит на таблицю Student, бо дані тепер там
     expiring_ins_query = db.query(Student).filter(
         Student.is_active == True,
         Student.insurance_end >= today,
-        Student.insurance_end <= two_weeks_later
+        Student.insurance_end <= month_later
     )
     if trainer_id:
         expiring_ins_query = expiring_ins_query.filter(Student.trainer_id == trainer_id)

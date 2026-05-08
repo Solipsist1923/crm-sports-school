@@ -50,10 +50,10 @@ async def get_students(
     # Фільтр за страховкою, що закінчується протягом найближчих 14 днів
     if insurance_expiring:
         today = date.today()
-        two_weeks_later = today + timedelta(days=14)
+        month_later = today + timedelta(days=30)
         query = query.filter(
             Student.insurance_end >= today,
-            Student.insurance_end <= two_weeks_later
+            Student.insurance_end <= month_later
         )
 
     # Якщо користувач тренер, показуємо тільки його учнів

@@ -54,7 +54,18 @@ async function loadTrainers() {
 async function loadStudents() {
     try {
         allStudents = await studentsAPI.getAll();
-        renderStudents(allStudents);
+
+        // Перевіряємо, чи передано groupId через URL (наприклад, students.html?groupId=5)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlGroupId = urlParams.get('groupId');
+
+        if (urlGroupId) {
+            const groupFilter = document.getElementById('groupFilter');
+            if (groupFilter) groupFilter.value = urlGroupId;
+            filterStudents(); // Автоматично фільтруємо список
+        } else {
+            renderStudents(allStudents);
+        }
     } catch (error) {
         console.error('Error loading students:', error);
         document.getElementById('studentsTable').innerHTML =
@@ -85,11 +96,11 @@ function renderStudents(students) {
                 <div class="student-docs-info">
                     <div class="${student.medical_certificate ? 'text-success' : 'text-danger'}" title="Медична довідка">
                         <i class="fas ${student.medical_certificate ? 'fa-check-circle' : 'fa-times-circle'}"></i>
-                        <small>Мед. довідка</small>
+                        <small>Довідка: ${student.medical_certificate ? 'Є' : 'Немає'}</small>
                     </div>
                     <div class="${getInsuranceClass(student.insurance_end)}" title="Страховка">
                         <i class="fas fa-shield-alt"></i>
-                        <small>Страх: ${student.insurance_end ? formatDate(student.insurance_end) : 'немає'}</small>
+                        <small>Страх. до: ${student.insurance_end ? formatDate(student.insurance_end) : 'Немає'}</small>
                     </div>
                 </div>
             </td>
@@ -128,9 +139,9 @@ function getInsuranceClass(endDate) {
     const expDate = new Date(endDate);
     const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return 'text-danger';
-    if (diffDays <= 14) return 'text-warning';
-    return 'text-success';
+    if (diffDays < 0) return 'text-danger'; // Прострочена - червоний
+    if (diffDays <= 30) return 'text-warning'; // Менше місяця - жовтий
+    return 'text-success'; // Більше місяця - зелений
 }
 
 function filterStudents() {
@@ -160,10 +171,10 @@ function filterStudents() {
 
     if (insuranceExpiring) {
         const today = new Date();
-        const twoWeeksLater = new Date();
-        twoWeeksLater.setDate(today.getDate() + 14);
+        const monthLater = new Date();
+        monthLater.setDate(today.getDate() + 30);
         filtered = filtered.filter(s => 
-            s.insurance_end && new Date(s.insurance_end) >= today && new Date(s.insurance_end) <= twoWeeksLater
+            s.insurance_end && new Date(s.insurance_end) >= today && new Date(s.insurance_end) <= monthLater
         );
     }
 
