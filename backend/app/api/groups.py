@@ -29,9 +29,12 @@ async def get_groups(
 
     # Якщо тренер, показуємо тільки його групи
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            query = query.filter(Group.trainer_id == trainer.trainer.id)
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if trainer_profile:
+            query = query.filter(Group.trainer_id == trainer_profile.id)
+        else:
+            # Якщо тренер не має профілю тренера, він не бачить жодної групи
+            return []
 
     groups = query.offset(skip).limit(limit).all()
     return groups
@@ -50,9 +53,9 @@ async def get_group(
 
     # Перевірка доступу для тренера
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            if group.trainer_id != trainer.trainer.id:
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if trainer_profile:
+            if group.trainer_id != trainer_profile.id:
                 raise HTTPException(status_code=403, detail="Access denied")
 
     return group
@@ -85,9 +88,9 @@ async def update_group(
 
     # Перевірка доступу для тренера
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            if db_group.trainer_id != trainer.trainer.id:
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if trainer_profile:
+            if db_group.trainer_id != trainer_profile.id:
                 raise HTTPException(status_code=403, detail="Access denied")
 
     # Оновлення полів
