@@ -58,7 +58,7 @@ async function loadStudents() {
     } catch (error) {
         console.error('Error loading students:', error);
         document.getElementById('studentsTable').innerHTML =
-            '<tr><td colspan="7" class="text-center">Помилка завантаження даних</td></tr>';
+            '<tr><td colspan="8" class="text-center">Помилка завантаження даних</td></tr>';
     }
 }
 
@@ -66,7 +66,7 @@ function renderStudents(students) {
     const tbody = document.getElementById('studentsTable');
 
     if (students.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Немає учнів</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center">Немає учнів</td></tr>';
         return;
     }
 
@@ -172,6 +172,10 @@ function openAddStudentModal() {
     document.getElementById('modalTitle').textContent = 'Додати учня';
     document.getElementById('studentForm').reset();
     document.getElementById('studentId').value = '';
+    // Явно скидаємо нові поля
+    if (document.getElementById('insuranceStart')) document.getElementById('insuranceStart').value = '';
+    if (document.getElementById('insuranceEnd')) document.getElementById('insuranceEnd').value = '';
+    if (document.getElementById('medicalCertificate')) document.getElementById('medicalCertificate').checked = false;
     document.getElementById('studentModal').classList.add('show');
 }
 

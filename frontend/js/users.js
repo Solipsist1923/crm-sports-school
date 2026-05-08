@@ -217,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         userForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
+        const userId = document.getElementById('userId').value;
         const username = document.getElementById('username').value.trim();
         const fullName = document.getElementById('fullName').value.trim();
         const role = document.getElementById('userRole').value;
