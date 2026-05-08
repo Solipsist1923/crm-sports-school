@@ -6,7 +6,7 @@ from datetime import date, timedelta
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.models.models import Student, User, Trainer
+from app.models.models import Student, User, Trainer, Group
 from app.schemas.schemas import StudentCreate, StudentUpdate, StudentResponse
 
 router = APIRouter(prefix="/api/students", tags=["Students"])
@@ -98,7 +98,15 @@ async def create_student(
 ):
     """Створення нового учня"""
     try:
-        db_student = Student(**student.model_dump())
+        student_data = student.model_dump()
+        
+        # Автоматично підтягуємо тренера з обраної групи
+        if student_data.get("group_id"):
+            group = db.query(Group).filter(Group.id == student_data["group_id"]).first()
+            if group:
+                student_data["trainer_id"] = group.trainer_id
+
+        db_student = Student(**student_data)
         db.add(db_student)
         db.commit()
         db.refresh(db_student)
@@ -132,6 +140,16 @@ async def update_student(
 
     # Оновлення полів
     update_data = student_update.model_dump(exclude_unset=True)
+    
+    # Якщо змінюється група, автоматично оновлюємо тренера
+    if "group_id" in update_data:
+        group_id = update_data["group_id"]
+        if group_id:
+            group = db.query(Group).filter(Group.id == group_id).first()
+            update_data["trainer_id"] = group.trainer_id if group else None
+        else:
+            update_data["trainer_id"] = None
+
     for field, value in update_data.items():
         setattr(db_student, field, value)
 

@@ -25,10 +25,17 @@ async function loadGroups() {
     try {
         allGroups = await groupsAPI.getAll();
 
-        // Populate group select
+        // Заповнюємо вибір групи у модальному вікні
         const select = document.getElementById('groupId');
         if (select) {
             select.innerHTML = '<option value="">Без групи</option>' +
+                allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+        }
+
+        // Заповнюємо фільтр груп у заголовку
+        const filterSelect = document.getElementById('groupFilter');
+        if (filterSelect) {
+            filterSelect.innerHTML = '<option value="">Всі групи</option>' +
                 allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
         }
     } catch (error) {
@@ -39,13 +46,6 @@ async function loadGroups() {
 async function loadTrainers() {
     try {
         allTrainers = await trainersAPI.getAll();
-
-        // Заповнюємо вибір тренера у формі
-        const select = document.getElementById('trainerId');
-        if (select) {
-            select.innerHTML = '<option value="">Без тренера</option>' +
-                allTrainers.map(t => `<option value="${t.id}">${t.first_name} ${t.last_name}</option>`).join('');
-        }
     } catch (error) {
         console.error('Error loading trainers:', error);
     }
@@ -82,13 +82,15 @@ function renderStudents(students) {
             <td>${group ? group.name : '-'}</td>
             <td>${trainer ? `${trainer.first_name} ${trainer.last_name}` : '-'}</td>
             <td>
-                <div class="status-icons">
-                    <i class="fas fa-file-medical ${student.medical_certificate ? 'text-success' : 'text-danger'}" 
-                       title="${student.medical_certificate ? 'Довідка є' : 'Довідки немає'}"></i>
-                    <span class="insurance-status ${getInsuranceClass(student.insurance_end)}">
-                        <i class="fas fa-shield-alt"></i> 
-                        ${student.insurance_end ? formatDate(student.insurance_end) : 'немає'}
-                    </span>
+                <div class="student-docs-info">
+                    <div class="${student.medical_certificate ? 'text-success' : 'text-danger'}" title="Медична довідка">
+                        <i class="fas ${student.medical_certificate ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                        <small>Мед. довідка</small>
+                    </div>
+                    <div class="${getInsuranceClass(student.insurance_end)}" title="Страховка">
+                        <i class="fas fa-shield-alt"></i>
+                        <small>Страх: ${student.insurance_end ? formatDate(student.insurance_end) : 'немає'}</small>
+                    </div>
                 </div>
             </td>
             <td>
@@ -195,7 +197,6 @@ async function editStudent(id) {
         document.getElementById('phoneParent').value = student.phone_parent;
         document.getElementById('telegramParent').value = student.telegram_parent || '';
         document.getElementById('groupId').value = student.group_id || '';
-        document.getElementById('trainerId').value = student.trainer_id || '';
         document.getElementById('insuranceStart').value = student.insurance_start || '';
         document.getElementById('insuranceEnd').value = student.insurance_end || '';
         document.getElementById('medicalCertificate').checked = student.medical_certificate || false;
@@ -234,7 +235,6 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         phone_parent: document.getElementById('phoneParent').value,
         telegram_parent: document.getElementById('telegramParent').value || null,
         group_id: document.getElementById('groupId').value ? parseInt(document.getElementById('groupId').value) : null,
-        trainer_id: document.getElementById('trainerId').value ? parseInt(document.getElementById('trainerId').value) : null,
         insurance_start: document.getElementById('insuranceStart').value || null,
         insurance_end: document.getElementById('insuranceEnd').value || null,
         medical_certificate: document.getElementById('medicalCertificate').checked,
