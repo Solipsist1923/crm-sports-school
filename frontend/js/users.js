@@ -13,12 +13,16 @@ function checkUserRole() {
 // Завантаження користувачів
 async function loadUsers() {
     try {
+        console.log('Fetching users...');
         const response = await apiRequest('/api/users');
-        const users = response.users || [];
+        
+        // Підтримка обох форматів: {users: [...]} або просто [...]
+        const users = Array.isArray(response) ? response : (response.users || []);
 
         const tbody = document.getElementById('usersTable');
+        if (!tbody) return;
 
-        if (users.length === 0) {
+        if (!users || users.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="text-center">Користувачів не знайдено</td></tr>';
             return;
         }
@@ -47,7 +51,13 @@ async function loadUsers() {
         `).join('');
     } catch (error) {
         console.error('Error loading users:', error);
-        showNotification('Помилка завантаження користувачів', 'error');
+        let errorMsg = 'Помилка завантаження користувачів';
+        if (error.message.includes('404')) {
+            errorMsg = 'Помилка 404: Ендпоінт /api/users не знайдено на сервері';
+        } else if (error.message.includes('500')) {
+            errorMsg = 'Помилка 500: Проблема з базою даних на сервері';
+        }
+        showNotification(errorMsg, 'error');
     }
 }
 
@@ -150,17 +160,20 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUserInfo();
 
     // Обробка зміни ролі
-    document.getElementById('userRole').addEventListener('change', function() {
-        const trainerFields = document.getElementById('trainerFieldsGroup');
-        if (this.value === 'trainer') {
-            trainerFields.style.display = 'block';
-        } else {
-            trainerFields.style.display = 'none';
-        }
-    });
+    const userRoleSelect = document.getElementById('userRole');
+    if (userRoleSelect) {
+        userRoleSelect.addEventListener('change', function() {
+            const trainerFields = document.getElementById('trainerFieldsGroup');
+            if (trainerFields) {
+                trainerFields.style.display = this.value === 'trainer' ? 'block' : 'none';
+            }
+        });
+    }
 
     // Обробка форми користувача
-    document.getElementById('userForm').addEventListener('submit', async function(e) {
+    const userForm = document.getElementById('userForm');
+    if (userForm) {
+        userForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const username = document.getElementById('username').value.trim();
@@ -210,6 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showNotification(error.message || 'Помилка створення користувача', 'error');
         }
     });
+    }
 
     // Закриття модального вікна при кліку поза ним
     window.onclick = function(event) {
