@@ -80,11 +80,16 @@ function openAddUserModal() {
     const passwordField = document.getElementById('password');
     const userRoleField = document.getElementById('userRole');
     const trainerFieldsGroup = document.getElementById('trainerFieldsGroup');
+    const usernameField = document.getElementById('username');
 
     if (modalTitle) modalTitle.textContent = 'Додати користувача';
     if (userForm) userForm.reset();
     if (userIdField) userIdField.value = '';
-    if (passwordField) passwordField.required = true;
+    if (usernameField) usernameField.disabled = false;
+    if (passwordField) {
+        passwordField.required = true;
+        passwordField.placeholder = 'Мінімум 6 символів';
+    }
 
     // За замовчуванням роль тренер і показуємо поля тренера
     if (userRoleField) userRoleField.value = 'trainer';
@@ -92,6 +97,38 @@ function openAddUserModal() {
 
     modal.style.display = 'flex';
     console.log('Modal should be visible now');
+}
+
+// Відкрити модальне вікно для редагування
+function openEditUserModal(userId) {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) {
+        showNotification('Користувача не знайдено', 'error');
+        return;
+    }
+
+    openAddUserModal(); // Скидаємо стан через базову функцію
+
+    document.getElementById('modalTitle').textContent = 'Редагувати користувача';
+    document.getElementById('userId').value = user.id;
+    document.getElementById('username').value = user.username;
+    document.getElementById('username').disabled = true; // Логін міняти не можна
+    document.getElementById('fullName').value = user.full_name;
+    document.getElementById('userRole').value = user.role;
+    
+    const passwordField = document.getElementById('password');
+    passwordField.required = false;
+    passwordField.placeholder = 'Залиште порожнім, щоб не змінювати';
+
+    if (user.role === 'trainer' && user.trainer_data) {
+        document.getElementById('trainerFieldsGroup').style.display = 'block';
+        document.getElementById('trainerFirstName').value = user.trainer_data.first_name || '';
+        document.getElementById('trainerLastName').value = user.trainer_data.last_name || '';
+        document.getElementById('trainerPhone').value = user.trainer_data.phone || '';
+        document.getElementById('trainerSpecialization').value = user.trainer_data.specialization || '';
+    } else {
+        document.getElementById('trainerFieldsGroup').style.display = 'none';
+    }
 }
 
 // Закрити модальне вікно
@@ -214,7 +251,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const userId = document.getElementById('userId').value;
             const method = userId ? 'PUT' : 'POST';
             const url = userId ? `/api/users/${userId}` : '/api/users';
 
