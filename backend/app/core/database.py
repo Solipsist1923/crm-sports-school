@@ -11,7 +11,8 @@ if database_url.startswith("postgres://"):
 
 engine = create_engine(
     database_url,
-    connect_args={"check_same_thread": False} if "sqlite" in database_url else {}
+    # check_same_thread потрібен тільки для SQLite
+    connect_args={"check_same_thread": False} if database_url.startswith("sqlite") else {}
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

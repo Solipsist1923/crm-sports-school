@@ -70,14 +70,6 @@ app.include_router(groups.router)
 app.include_router(trainers.router)
 app.include_router(users.router)
 
-@app.get("/")
-async def root():
-    return {
-        "message": "CRM для спортивної школи API",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
-
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
