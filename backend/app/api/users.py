@@ -28,13 +28,24 @@ async def get_users(
 
     users_list = []
     for user in users:
+        trainer_data = None
+        if user.role == "trainer":
+            trainer = db.query(Trainer).filter(Trainer.user_id == user.id).first()
+            if trainer:
+                trainer_data = {
+                    "first_name": trainer.first_name,
+                    "last_name": trainer.last_name,
+                    "phone": trainer.phone,
+                    "specialization": trainer.specialization
+                }
         users_list.append({
             "id": user.id,
             "username": user.username,
             "full_name": user.full_name,
             "role": user.role,
             "is_active": user.is_active,
-            "created_at": user.created_at.isoformat() if user.created_at else None
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "trainer_data": trainer_data
         })
 
     return {"users": users_list}
@@ -53,6 +64,13 @@ class UserCreateRequest(BaseModel):
     full_name: str
     role: str
     password: str
+    is_active: bool = True
+    trainer_data: Optional[TrainerData] = None
+
+class UserUpdateRequest(BaseModel):
+    full_name: str
+    role: str
+    password: Optional[str] = None
     is_active: bool = True
     trainer_data: Optional[TrainerData] = None
 
@@ -119,6 +137,55 @@ async def create_user(
             "full_name": new_user.full_name,
             "role": new_user.role
         }
+    }
+
+@router.put("/{user_id}", response_model=dict)
+async def update_user(
+    user_id: int,
+    user_data: UserUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Оновити дані користувача (тільки для адміністратора)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Доступ заборонено")
+
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Користувача не знайдено")
+
+    # Оновлення основних полів
+    db_user.full_name = user_data.full_name
+    db_user.role = user_data.role
+    db_user.is_active = user_data.is_active
+
+    # Оновлюємо пароль тільки якщо ввели новий
+    if user_data.password:
+        if len(user_data.password) < 6:
+            raise HTTPException(status_code=400, detail="Пароль занадто короткий")
+        db_user.password_hash = get_password_hash(user_data.password)
+
+    # Робота з профілем тренера
+    if user_data.role == "trainer" and user_data.trainer_data:
+        trainer = db.query(Trainer).filter(Trainer.user_id == user_id).first()
+        if not trainer:
+            trainer = Trainer(user_id=user_id)
+            db.add(trainer)
+        
+        trainer.first_name = user_data.trainer_data.first_name
+        trainer.last_name = user_data.trainer_data.last_name
+        trainer.phone = user_data.trainer_data.phone
+        trainer.specialization = user_data.trainer_data.specialization
+    elif user_data.role == "admin":
+        # Видаляємо профіль тренера, якщо роль змінили на адміна
+        trainer = db.query(Trainer).filter(Trainer.user_id == user_id).first()
+        if trainer:
+            db.delete(trainer)
+
+    db.commit()
+    return {
+        "message": "Дані оновлено",
+        "user": {"id": db_user.id, "username": db_user.username}
     }
 
 @router.delete("/{user_id}")

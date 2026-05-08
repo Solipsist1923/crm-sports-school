@@ -9,6 +9,8 @@ function checkUserRole() {
     }
 }
 
+let allUsers = []; // Зберігаємо список для швидкого доступу при редагуванні
+
 // Завантаження користувачів
 async function loadUsers() {
     try {
@@ -16,17 +18,17 @@ async function loadUsers() {
         const response = await apiRequest('/api/users');
         
         // Підтримка обох форматів: {users: [...]} або просто [...]
-        const users = Array.isArray(response) ? response : (response.users || []);
+        allUsers = Array.isArray(response) ? response : (response.users || []);
 
         const tbody = document.getElementById('usersTable');
         if (!tbody) return;
 
-        if (!users || users.length === 0) {
+        if (!allUsers || allUsers.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="text-center">Користувачів не знайдено</td></tr>';
             return;
         }
 
-        tbody.innerHTML = users.map(user => `
+        tbody.innerHTML = allUsers.map(user => `
             <tr>
                 <td>${user.username}</td>
                 <td>${user.full_name}</td>
@@ -42,6 +44,9 @@ async function loadUsers() {
                 </td>
                 <td>${new Date(user.created_at).toLocaleDateString('uk-UA')}</td>
                 <td>
+                    <button class="btn-icon" onclick="openEditUserModal(${user.id})" title="Редагувати">
+                        <i class="fas fa-edit"></i>
+                    </button>
                     <button class="btn-icon btn-danger" onclick="deleteUser(${user.id}, '${user.username}')" title="Видалити">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -209,12 +214,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            await apiRequest('/api/users', {
-                method: 'POST',
+            const userId = document.getElementById('userId').value;
+            const method = userId ? 'PUT' : 'POST';
+            const url = userId ? `/api/users/${userId}` : '/api/users';
+
+            await apiRequest(url, {
+                method: method,
                 body: JSON.stringify(userData)
             });
 
-            showNotification('Користувача успішно створено', 'success');
+            showNotification(userId ? 'Користувача оновлено' : 'Користувача створено', 'success');
             closeUserModal();
             loadUsers();
         } catch (error) {
