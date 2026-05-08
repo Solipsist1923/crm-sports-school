@@ -598,7 +598,10 @@ body {
     }
 
     .header-actions {
-        width: auto;
+        display: flex; /* Make it a flex container */
+        gap: 8px; /* Space between buttons/elements */
+        align-items: center; /* Vertically align items */
+        flex-shrink: 0; /* Prevent actions from shrinking too much */
     }
 
     .header-actions .btn span {
@@ -606,15 +609,33 @@ body {
     }
     
     .header-actions .btn {
-        padding: 0; /* Скидаємо стандартний паддінг */
-        border-radius: 50%; /* Робимо круглими */
-        width: 44px; /* Фіксована ширина */
-        height: 44px; /* Фіксована висота */
-        min-width: 44px; /* Запобігаємо стисненню */
-        display: flex; /* Використовуємо flexbox для центрування */
-        align-items: center; /* Центруємо по вертикалі */
+        padding: 0 !important; /* Override default button padding */
+        border-radius: 50% !important; /* Ensure it's perfectly round */
+        width: 44px !important; /* Fixed width */
+        height: 44px !important; /* Fixed height */
+        min-width: 44px !important; /* Prevent shrinking */
+        display: flex !important; /* Use flex for centering icon */
+        align-items: center !important; /* Center icon vertically */
         justify-content: center;
         font-size: 18px;
+    }
+
+    /* Specific style for date input in header-actions (Attendance page) */
+    .header-actions .date-input {
+        height: 44px; /* Match button height */
+        padding: 0 10px; /* Adjust padding */
+        font-size: 14px;
+        flex-shrink: 0;
+        max-width: 120px; /* Limit width for date input */
+    }
+
+    /* Ensure h1 doesn't push buttons off-screen */
+    .header-title-wrap {
+        flex-grow: 1; /* Allow title to take available space */
+        min-width: 0; /* Allow title to shrink */
+    }
+    .header-title-wrap h1 {
+        flex-shrink: 1; /* Allow h1 to shrink */
     }
 
     .stats-grid {
