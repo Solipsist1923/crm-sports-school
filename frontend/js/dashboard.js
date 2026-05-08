@@ -50,9 +50,14 @@ async function loadDashboardStats() {
             document.getElementById('expiringSubs').textContent = stats.expiring_subscriptions;
         }
 
-        if (stats.expiring_insurance > 0) {
-            document.getElementById('expiringInsurance').style.display = 'flex';
-            document.getElementById('expiringIns').textContent = stats.expiring_insurance;
+        const expiredIns = stats.expired_insurance || 0;
+        const expiringIns = stats.expiring_insurance || 0;
+
+        if (expiredIns > 0 || expiringIns > 0) {
+            const insAlert = document.getElementById('expiringInsurance');
+            insAlert.style.display = 'flex';
+            document.getElementById('expiringIns').innerHTML = 
+                `Прострочено: <strong class="text-danger">${expiredIns}</strong>, закінчуються: <strong class="text-warning">${expiringIns}</strong>`;
         }
     } catch (error) {
         console.error('Error loading dashboard stats:', error);

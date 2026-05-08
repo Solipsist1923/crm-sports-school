@@ -94,14 +94,19 @@ function renderStudents(students) {
             <td>${trainer ? `${trainer.first_name} ${trainer.last_name}` : '-'}</td>
             <td>
                 <div class="student-docs-info">
-                    <div class="${student.medical_certificate ? 'text-success' : 'text-danger'}" title="Медична довідка">
+                    <div class="${student.medical_certificate ? 'status-success' : 'status-danger'}" title="Медична довідка">
                         <i class="fas ${student.medical_certificate ? 'fa-check-circle' : 'fa-times-circle'}"></i>
                         <small>Довідка: ${student.medical_certificate ? 'Є' : 'Немає'}</small>
                     </div>
-                    <div class="${getInsuranceClass(student.insurance_end)}" title="Страховка">
-                        <i class="fas fa-shield-alt"></i>
-                        <small>Страх. до: ${student.insurance_end ? formatDate(student.insurance_end) : 'Немає'}</small>
-                    </div>
+                    ${(function() {
+                        const ins = getInsuranceStatus(student.insurance_end);
+                        return `
+                            <div class="${ins.class}" title="Страховка">
+                                <i class="fas ${ins.icon}"></i>
+                                <small>Страх. до: ${student.insurance_end ? formatDate(student.insurance_end) : 'Немає'}</small>
+                            </div>
+                        `;
+                    })()}
                 </div>
             </td>
             <td>

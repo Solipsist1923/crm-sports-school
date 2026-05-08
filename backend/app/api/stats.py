@@ -77,16 +77,26 @@ async def get_dashboard_stats(
         )
     expiring_subscriptions = expiring_subs_query.count()
 
-    # Страховки, що закінчуються (через 30 днів)
+    # Страховки
     month_later = today + timedelta(days=30)
-    # Змінюємо запит на таблицю Student, бо дані тепер там
+    
+    # Вже закінчилися (Expired)
+    expired_ins_query = db.query(Student).filter(
+        Student.is_active == True,
+        Student.insurance_end < today
+    )
+    if trainer_id:
+        expired_ins_query = expired_ins_query.filter(Student.trainer_id == trainer_id)
+    expired_insurance = expired_ins_query.count()
+
+    # Закінчуються протягом 30 днів (Expiring)
     expiring_ins_query = db.query(Student).filter(
         Student.is_active == True,
+        Student.insurance_end >= today,
         Student.insurance_end <= month_later
     )
     if trainer_id:
         expiring_ins_query = expiring_ins_query.filter(Student.trainer_id == trainer_id)
-        
     expiring_insurance = expiring_ins_query.count()
 
     return DashboardStats(
@@ -96,7 +106,8 @@ async def get_dashboard_stats(
         today_attendance=today_attendance,
         students_with_debts=students_with_debts,
         expiring_subscriptions=expiring_subscriptions,
-        expiring_insurance=expiring_insurance
+        expiring_insurance=expiring_insurance,
+        expired_insurance=expired_insurance
     )
 
 @router.get("/attendance", response_model=List[AttendanceStats])

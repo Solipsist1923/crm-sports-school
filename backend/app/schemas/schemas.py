@@ -287,3 +287,4 @@ class DashboardStats(BaseModel):
     students_with_debts: int
     expiring_subscriptions: int
     expiring_insurance: int
+    expired_insurance: int
