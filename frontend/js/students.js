@@ -164,6 +164,24 @@ function setupMobileMenu() {
     }
 }
 
+function getInsuranceStatus(endDate) {
+    if (!endDate) return { class: 'status-danger', icon: 'fa-exclamation-circle' };
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const dateStr = endDate.includes('T') ? endDate : `${endDate}T00:00:00`;
+    const expDate = new Date(dateStr);
+    expDate.setHours(0, 0, 0, 0);
+    
+    const diffTime = expDate - today;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 0) return { class: 'status-danger', icon: 'fa-exclamation-circle' }; // Прострочена
+    if (diffDays <= 30) return { class: 'status-warning', icon: 'fa-exclamation-triangle' }; // Менше місяця
+    return { class: 'status-success', icon: 'fa-shield-alt' }; // Все ок
+}
+
 function filterStudents() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const groupId = document.getElementById('groupFilter').value;
