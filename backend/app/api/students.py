@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 from typing import List, Optional
@@ -83,7 +83,10 @@ async def get_student(
     if current_user.role == "trainer":
         trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
         if not trainer_profile or student.trainer_id != trainer_profile.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, 
+                detail="Доступ заборонено до цього учня"
+            )
 
     return student
 
@@ -122,7 +125,10 @@ async def update_student(
     if current_user.role == "trainer":
         trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
         if not trainer_profile or db_student.trainer_id != trainer_profile.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, 
+                detail="Ви не можете редагувати цього учня"
+            )
 
     # Оновлення полів
     update_data = student_update.model_dump(exclude_unset=True)

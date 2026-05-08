@@ -2,11 +2,13 @@
 
 let allStudents = [];
 let allGroups = [];
+let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth();
     loadUserInfo();
     await loadGroups();
+    await loadTrainers();
     await loadStudents();
     setupFilters();
 });
@@ -34,6 +36,21 @@ async function loadGroups() {
     }
 }
 
+async function loadTrainers() {
+    try {
+        allTrainers = await trainersAPI.getAll();
+
+        // Заповнюємо вибір тренера у формі
+        const select = document.getElementById('trainerId');
+        if (select) {
+            select.innerHTML = '<option value="">Без тренера</option>' +
+                allTrainers.map(t => `<option value="${t.id}">${t.first_name} ${t.last_name}</option>`).join('');
+        }
+    } catch (error) {
+        console.error('Error loading trainers:', error);
+    }
+}
+
 async function loadStudents() {
     try {
         allStudents = await studentsAPI.getAll();
@@ -53,12 +70,17 @@ function renderStudents(students) {
         return;
     }
 
-    tbody.innerHTML = students.map(student => `
+    tbody.innerHTML = students.map(student => {
+        const group = allGroups.find(g => g.id === student.group_id);
+        const trainer = allTrainers.find(t => t.id === student.trainer_id);
+        
+        return `
         <tr>
             <td>${student.first_name} ${student.last_name}</td>
             <td>${formatDate(student.birth_date)}</td>
             <td>${student.phone_parent}</td>
-            <td>${student.group_id || '-'}</td>
+            <td>${group ? group.name : '-'}</td>
+            <td>${trainer ? `${trainer.first_name} ${trainer.last_name}` : '-'}</td>
             <td>
                 <div class="status-icons">
                     <i class="fas fa-file-medical ${student.medical_certificate ? 'text-success' : 'text-danger'}" 
@@ -83,7 +105,7 @@ function renderStudents(students) {
                 </button>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 function setupFilters() {
@@ -169,6 +191,7 @@ async function editStudent(id) {
         document.getElementById('phoneParent').value = student.phone_parent;
         document.getElementById('telegramParent').value = student.telegram_parent || '';
         document.getElementById('groupId').value = student.group_id || '';
+        document.getElementById('trainerId').value = student.trainer_id || '';
         document.getElementById('insuranceStart').value = student.insurance_start || '';
         document.getElementById('insuranceEnd').value = student.insurance_end || '';
         document.getElementById('medicalCertificate').checked = student.medical_certificate || false;
@@ -207,6 +230,7 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         phone_parent: document.getElementById('phoneParent').value,
         telegram_parent: document.getElementById('telegramParent').value || null,
         group_id: document.getElementById('groupId').value ? parseInt(document.getElementById('groupId').value) : null,
+        trainer_id: document.getElementById('trainerId').value ? parseInt(document.getElementById('trainerId').value) : null,
         insurance_start: document.getElementById('insuranceStart').value || null,
         insurance_end: document.getElementById('insuranceEnd').value || null,
         medical_certificate: document.getElementById('medicalCertificate').checked,
