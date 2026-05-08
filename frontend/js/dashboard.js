@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load dashboard data
     await loadDashboardStats();
     await loadAttendanceStats();
+    setupMobileMenu();
 });
 
 function loadUserInfo() {
@@ -93,6 +94,31 @@ async function loadAttendanceStats() {
         console.error('Error loading attendance stats:', error);
         document.getElementById('attendanceStatsTable').innerHTML =
             '<tr><td colspan="6" class="text-center">Помилка завантаження даних</td></tr>';
+    }
+}
+
+function setupMobileMenu() {
+    const toggle = document.getElementById('mobileToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if (toggle && sidebar && overlay) {
+        const toggleMenu = () => {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        };
+
+        toggle.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+        
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                }
+            });
+        });
     }
 }
 
