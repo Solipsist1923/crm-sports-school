@@ -1,11 +1,10 @@
 // Перевірка ролі користувача
 function checkUserRole() {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const usersLink = document.getElementById('usersLink');
+    const user = getUser(); // Використовуємо функцію з api.js
+    console.log('Поточний користувач:', user);
 
-    if (user.role === 'admin') {
-        usersLink.style.display = 'flex';
-    } else {
+    if (!user || user.role !== 'admin') {
+        console.warn('Доступ заборонено: ви не адмін. Редирект на дашборд...');
         window.location.href = 'dashboard.html';
     }
 }
@@ -142,7 +141,7 @@ function showNotification(message, type = 'info') {
 
 // Завантаження інформації про користувача
 function loadUserInfo() {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = getUser();
     if (user && user.full_name) {
         const userNameEl = document.getElementById('userName');
         // Використовуємо окремий ID для відображення ролі, щоб не було конфлікту з формою

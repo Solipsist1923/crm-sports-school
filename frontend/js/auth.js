@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             console.log('Attempting login with:', username);
             await authAPI.login(username, password);
-            console.log('Login successful, getting user info...');
-            await authAPI.getMe();
+            const user = await authAPI.getMe();
+            console.log('User data saved:', user);
             console.log('User info retrieved, redirecting...');
             window.location.href = 'dashboard.html';
         } catch (error) {
