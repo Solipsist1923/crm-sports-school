@@ -134,16 +134,20 @@ function setupFilters() {
 }
 
 function getInsuranceClass(endDate) {
-    if (!endDate) return 'text-danger';
+    if (!endDate) return 'status-danger';
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    
     const expDate = new Date(endDate);
     expDate.setHours(0, 0, 0, 0);
-    const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
     
-    if (diffDays <= 0) return 'text-danger'; // Прострочена або закінчується сьогодні - червоний
-    if (diffDays <= 30) return 'text-warning'; // Менше місяця - жовтий
-    return 'text-success'; // Більше місяця - зелений
+    const diffTime = expDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 0) return 'status-danger'; // Прострочена - червоний
+    if (diffDays <= 30) return 'status-warning'; // Менше місяця - жовтий
+    return 'status-success'; // Більше місяця - зелений
 }
 
 function filterStudents() {
@@ -173,7 +177,7 @@ function filterStudents() {
 
     if (insuranceExpiring) {
         const today = new Date();
-        const monthLater = new Date();
+        const monthLater = new Date(today);
         monthLater.setDate(today.getDate() + 30);
         filtered = filtered.filter(s => 
             s.insurance_end && new Date(s.insurance_end) >= today && new Date(s.insurance_end) <= monthLater
