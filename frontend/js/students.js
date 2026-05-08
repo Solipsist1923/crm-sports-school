@@ -139,7 +139,9 @@ function getInsuranceClass(endDate) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const expDate = new Date(endDate);
+    // Форсуємо локальний час для коректного порівняння без зсуву на день
+    const dateStr = endDate.includes('T') ? endDate : `${endDate}T00:00:00`;
+    const expDate = new Date(dateStr);
     expDate.setHours(0, 0, 0, 0);
     
     const diffTime = expDate - today;
