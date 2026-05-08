@@ -4,7 +4,7 @@ from typing import List
 from datetime import date
 
 from app.core.database import get_db
-from app.api.auth import get_current_user
+from app.api.auth import get_current_user, get_current_active_admin
 from app.models.models import Payment, Student, User
 from app.schemas.schemas import PaymentCreate, PaymentUpdate, PaymentResponse
 
@@ -34,9 +34,9 @@ async def get_payments(
 
     # Якщо тренер, показуємо тільки його учнів
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            query = query.join(Student).filter(Student.trainer_id == trainer.trainer.id)
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if trainer_profile:
+            query = query.join(Student).filter(Student.trainer_id == trainer_profile.id)
 
     payments = query.order_by(Payment.payment_date.desc()).offset(skip).limit(limit).all()
     return payments
@@ -55,9 +55,9 @@ async def get_overdue_payments(
 
     # Якщо тренер, показуємо тільки його учнів
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            query = query.join(Student).filter(Student.trainer_id == trainer.trainer.id)
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if trainer_profile:
+            query = query.join(Student).filter(Student.trainer_id == trainer_profile.id)
 
     payments = query.order_by(Payment.next_payment_date).all()
     return payments
@@ -76,10 +76,9 @@ async def get_student_payments(
 
     # Перевірка доступу для тренера
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            if student.trainer_id != trainer.trainer.id:
-                raise HTTPException(status_code=403, detail="Access denied")
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if trainer_profile and student.trainer_id != trainer_profile.id:
+            raise HTTPException(status_code=403, detail="Access denied")
 
     payments = db.query(Payment)\
         .filter(Payment.student_id == student_id)\
@@ -102,10 +101,9 @@ async def create_payment(
 
     # Перевірка доступу для тренера
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            if student.trainer_id != trainer.trainer.id:
-                raise HTTPException(status_code=403, detail="Access denied")
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if trainer_profile and student.trainer_id != trainer_profile.id:
+            raise HTTPException(status_code=403, detail="Access denied")
 
     db_payment = Payment(
         **payment.model_dump(),
@@ -130,10 +128,10 @@ async def update_payment(
         raise HTTPException(status_code=404, detail="Payment not found")
 
     # Перевірка доступу для тренера
-    student = db.query(Student).filter(Student.id == db_payment.student_id).first()
-    trainer = db.query(User).filter(User.id == current_user.id).first()
-    if trainer and trainer.trainer:
-        if student.trainer_id != trainer.trainer.id:
+    if current_user.role == "trainer":
+        student = db.query(Student).filter(Student.id == db_payment.student_id).first()
+        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
+        if trainer_profile and student.trainer_id != trainer_profile.id:
             raise HTTPException(status_code=403, detail="Access denied")
 
     # Оновлення полів
@@ -149,12 +147,9 @@ async def update_payment(
 async def delete_payment(
     payment_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_active_admin)
 ):
     """Видалення оплати (тільки для адміністратора)"""
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admin can delete payments")
-
     db_payment = db.query(Payment).filter(Payment.id == payment_id).first()
 
     if not db_payment:
