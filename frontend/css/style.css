@@ -535,7 +535,10 @@ body {
 
     .mobile-toggle {
         display: flex !important;
-        margin-right: 5px;
+        margin-right: 10px;
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
     }
 
     .sidebar-overlay.active {
@@ -603,10 +606,13 @@ body {
     }
     
     .header-actions .btn {
-        padding: 0;
-        border-radius: 50%;
-        width: 44px;
-        height: 44px;
+        padding: 0; /* Скидаємо стандартний паддінг */
+        border-radius: 50%; /* Робимо круглими */
+        width: 44px; /* Фіксована ширина */
+        height: 44px; /* Фіксована висота */
+        min-width: 44px; /* Запобігаємо стисненню */
+        display: flex; /* Використовуємо flexbox для центрування */
+        align-items: center; /* Центруємо по вертикалі */
         justify-content: center;
         font-size: 18px;
     }
@@ -614,6 +620,15 @@ body {
     .stats-grid {
         grid-template-columns: 1fr;
         gap: 15px;
+    }
+
+    .content-header h1 {
+        font-size: 18px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
+        margin: 0;
     }
 
     .actions-grid {
