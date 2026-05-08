@@ -548,6 +548,25 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+
+/* Кольори статусів документів */
+.status-danger, .text-danger { 
+    color: #dc2626 !important; 
+    font-weight: 600; 
+}
+.status-warning, .text-warning { 
+    color: #d97706 !important; 
+    font-weight: 600; 
+}
+.status-success, .text-success { 
+    color: #059669 !important; 
+}
+
+.student-docs-info i {
+    font-size: 1.1em;
+    margin-right: 4px;
+}
+
 /* Badges */
 .badge {
     padding: 4px 12px;
