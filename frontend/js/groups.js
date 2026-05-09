@@ -5,31 +5,39 @@ let allStudents = [];
 let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    requireAuth();
-    loadUserInfo();
-    
-    Promise.all([
-        loadTrainers(),
-        loadStudents(),
-        loadGroups()
-    ]).then(() => {
+    try {
+        requireAuth();
+        loadUserInfo();
+        
+        await Promise.all([
+            loadTrainers(),
+            loadStudents(),
+            loadGroups()
+        ]);
+        
         setupScheduleBuilder();
         setupMobileMenu();
-    }).catch(err => console.error('Помилка завантаження груп:', err));
+    } catch (err) {
+        console.error('Помилка ініціалізації сторінки груп:', err);
+    }
 });
 
 function loadUserInfo() {
-    const user = getUser();
-    if (!user) return;
+    try {
+        const user = getUser();
+        if (!user) return;
 
-    const nameEl = document.getElementById('userName');
-    const roleEl = document.getElementById('userRoleDisplay');
+        const nameEl = document.getElementById('userName');
+        const roleEl = document.getElementById('userRoleDisplay');
 
-    if (nameEl) {
-        nameEl.textContent = user.full_name || 'Користувач';
-    }
-    if (roleEl) {
-        roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+        if (nameEl) {
+            nameEl.textContent = user.full_name || 'Користувач';
+        }
+        if (roleEl) {
+            roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+        }
+    } catch (err) {
+        console.warn(err);
     }
 }
 

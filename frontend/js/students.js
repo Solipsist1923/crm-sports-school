@@ -5,18 +5,22 @@ let allGroups = [];
 let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    requireAuth();
-    loadUserInfo();
-    
-    // Завантажуємо дані паралельно без блокуючого спінера
-    Promise.all([
-        loadGroups(),
-        loadTrainers(),
-        loadStudents()
-    ]).then(() => {
+    try {
+        requireAuth();
+        loadUserInfo();
+        
+        // Завантажуємо дані паралельно
+        await Promise.all([
+            loadGroups(),
+            loadTrainers(),
+            loadStudents()
+        ]);
+        
         setupFilters();
         setupMobileMenu();
-    }).catch(err => console.error('Помилка ініціалізації:', err));
+    } catch (err) {
+        console.error('Критична помилка ініціалізації:', err);
+    }
 });
 
 // Функція розрахунку статусу страховки
@@ -39,17 +43,21 @@ function getInsuranceStatus(endDate) {
 }
 
 function loadUserInfo() {
-    const user = getUser();
-    if (!user) return;
+    try {
+        const user = getUser();
+        if (!user) return;
 
-    const nameEl = document.getElementById('userName');
-    const roleEl = document.getElementById('userRoleDisplay');
-    
-    if (nameEl) {
-        nameEl.textContent = user.full_name || 'Користувач';
-    }
-    if (roleEl) {
-        roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+        const nameEl = document.getElementById('userName');
+        const roleEl = document.getElementById('userRoleDisplay');
+        
+        if (nameEl) {
+            nameEl.textContent = user.full_name || 'Користувач';
+        }
+        if (roleEl) {
+            roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+        }
+    } catch (err) {
+        console.warn('Не вдалося завантажити інфо користувача:', err);
     }
 }
 
