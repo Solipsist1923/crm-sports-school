@@ -25,7 +25,9 @@ function loadUserInfo() {
         const nameEl = document.getElementById('userName');
         const roleEl = document.getElementById('userRoleDisplay');
 
-        if (nameEl) nameEl.textContent = user.full_name || 'Користувач';
+        if (nameEl && user.full_name) {
+            nameEl.textContent = user.full_name;
+        }
         if (roleEl) {
             roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
         }

@@ -21,7 +21,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         setupMobileMenu();
 
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('groupId')) {
+        const urlGroupId = urlParams.get('groupId');
+        
+        if (urlGroupId) {
+            const groupFilter = document.getElementById('groupFilter');
+            if (groupFilter) groupFilter.value = urlGroupId;
             filterStudents();
         } else {
             renderStudents(allStudents);
@@ -58,8 +62,8 @@ function loadUserInfo() {
         const nameEl = document.getElementById('userName');
         const roleEl = document.getElementById('userRoleDisplay');
         
-        if (nameEl) {
-            nameEl.textContent = user.full_name || 'Користувач';
+        if (nameEl && user.full_name) {
+            nameEl.textContent = user.full_name;
         }
         if (roleEl) {
             roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
