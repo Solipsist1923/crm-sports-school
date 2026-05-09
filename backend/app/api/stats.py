@@ -6,7 +6,7 @@ from datetime import date, timedelta
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.models.models import Student, Attendance, Payment, Subscription, Insurance, User
+from app.models.models import Student, Attendance, Payment, Subscription, Insurance, User, Group
 from app.schemas.schemas import DashboardStats, AttendanceStats
 
 router = APIRouter(prefix="/api/stats", tags=["Statistics"])
@@ -19,18 +19,8 @@ async def get_dashboard_stats(
     """Отримання статистики для дашборду"""
     today = date.today()
 
-    # Отримуємо trainer_id якщо користувач тренер
     # Базовий запит для учнів
     students_query = db.query(Student)
-
-    # Якщо тренер, показуємо тільки його учнів
-    if trainer_id:
-        students_query = students_query.filter(
-            or_(
-                Student.trainer_id == trainer_id,
-                Student.group.has(Group.trainer_id == trainer_id)
-            )
-        )
 
     # Загальна кількість учнів
     total_students = students_query.count()
@@ -39,21 +29,11 @@ async def get_dashboard_stats(
     active_students = students_query.filter(Student.is_active == True).count()
 
     # Кількість груп
-    from app.models.models import Group
     groups_query = db.query(Group).filter(Group.is_active == True)
-    if trainer_id:
-        groups_query = groups_query.filter(Group.trainer_id == trainer_id)
     total_groups = groups_query.count()
 
     # Відвідування сьогодні
     attendance_query = db.query(Attendance).filter(Attendance.date == today)
-    if trainer_id:
-        attendance_query = attendance_query.join(Student).filter(
-            or_(
-                Student.trainer_id == trainer_id,
-                Student.group.has(Group.trainer_id == trainer_id)
-            )
-        )
     today_attendance = attendance_query.filter(Attendance.status == "present").count()
 
     # Учні з боргами
@@ -61,13 +41,6 @@ async def get_dashboard_stats(
         Payment.next_payment_date < today,
         Payment.status != "paid"
     )
-    if trainer_id:
-        debts_query = debts_query.join(Student).filter(
-            or_(
-                Student.trainer_id == trainer_id,
-                Student.group.has(Group.trainer_id == trainer_id)
-            )
-        )
     # Коректний підрахунок унікальних студентів-боржників
     students_with_debts = db.query(func.count(distinct(Payment.student_id))).\
         select_entity_from(debts_query.subquery()).scalar() or 0
@@ -78,10 +51,6 @@ async def get_dashboard_stats(
         Subscription.is_active == True,
         (Subscription.remaining_classes <= 3) | (Subscription.end_date <= week_later)
     )
-    if trainer_id:
-        expiring_subs_query = expiring_subs_query.join(Student).filter(
-            Student.trainer_id == trainer_id
-        )
     expiring_subscriptions = expiring_subs_query.count()
 
     # Страховки
@@ -92,8 +61,6 @@ async def get_dashboard_stats(
         Student.is_active == True,
         Student.insurance_end < today
     )
-    if trainer_id:
-        expired_ins_query = expired_ins_query.filter(Student.trainer_id == trainer_id)
     expired_insurance = expired_ins_query.count()
 
     # Закінчуються протягом 30 днів (Expiring)
@@ -102,8 +69,6 @@ async def get_dashboard_stats(
         Student.insurance_end >= today,
         Student.insurance_end <= month_later
     )
-    if trainer_id:
-        expiring_ins_query = expiring_ins_query.filter(Student.trainer_id == trainer_id)
     expiring_insurance = expiring_ins_query.count()
 
     return DashboardStats(
@@ -136,12 +101,6 @@ async def get_attendance_stats(
         ).outerjoin(Attendance, Student.id == Attendance.student_id)\
          .filter(Student.is_active == True)\
          .group_by(Student.id, Student.first_name, Student.last_name)
-
-        # Якщо тренер, показуємо тільки його учнів
-        if current_user.role == "trainer":
-            trainer = db.query(User).filter(User.id == current_user.id).first()
-            if trainer and trainer.trainer:
-                query = query.filter(Student.trainer_id == trainer.trainer.id)
 
         stats = query.order_by(func.coalesce(func.count(Attendance.id), 0).desc()).limit(limit).all()
 
