@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from typing import Optional
+from typing import Optional, Any
 
 from app.core.database import get_db
 from app.core.security import verify_password, create_access_token, decode_access_token
 from app.models.models import User
-from app.schemas.schemas import Token, LoginRequest, UserResponse
+from app.schemas.schemas import Token, LoginRequest, UserResponse, TokenRefreshRequest
+from app.core.config import settings
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -70,9 +71,42 @@ async def login(
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
 
+    # Створення Access токена
     access_token = create_access_token(data={"sub": user.username})
+    
+    # Створення Refresh токена
+    refresh_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
+
+@router.post("/refresh", response_model=Token)
+async def refresh_token(
+    refresh_data: TokenRefreshRequest,
+    db: Session = Depends(get_db)
+):
+    """Оновлення access токена за допомогою refresh токена"""
+    payload = decode_access_token(refresh_data.refresh_token)
+    if not payload or not payload.get("sub"):
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    
+    username = payload.get("sub")
+    user = db.query(User).filter(User.username == username).first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+
+    new_access_token = create_access_token(data={"sub": user.username})
+    return {
+        "access_token": new_access_token,
+        "refresh_token": refresh_data.refresh_token,
+        "token_type": "bearer"
+    }
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
