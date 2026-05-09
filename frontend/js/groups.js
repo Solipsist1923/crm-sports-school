@@ -64,6 +64,7 @@ async function loadStudents() {
         allStudents = await studentsAPI.getAll();
     } catch (error) {
         console.error('Error loading students:', error);
+        allStudents = [];
     }
 }
 
@@ -74,6 +75,8 @@ async function loadGroups() {
         console.error('Error loading groups:', error);
         document.getElementById('groupsGrid').innerHTML =
             '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">Помилка завантаження груп</div>';
+        allGroups = [];
+        throw error;
     }
 }
 
@@ -86,8 +89,7 @@ function renderGroups(groups) {
         return;
     }
 
-    // Створюємо мапу кількості учнів заздалегідь (це швидше)
-    const studentCounts = allStudents.reduce((acc, s) => {
+    const studentCounts = (Array.isArray(allStudents) ? allStudents : []).reduce((acc, s) => {
         if (s.group_id) acc[s.group_id] = (acc[s.group_id] || 0) + 1;
         return acc;
     }, {});

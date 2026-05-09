@@ -90,6 +90,8 @@ async function apiRequest(endpoint, options = {}) {
 
     const headers = {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
         ...options.headers
     };
 
@@ -101,8 +103,10 @@ async function apiRequest(endpoint, options = {}) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
+    const url = `${API_BASE_URL}${endpoint}`;
+
     try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const response = await fetch(url, {
             ...options,
             headers
         });
@@ -175,8 +179,9 @@ const authAPI = {
 // Students API
 const studentsAPI = {
     async getAll(params = {}) {
-        const queryString = new URLSearchParams(params).toString();
-        return await apiRequest(`/api/students?${queryString}`);
+        const searchParams = new URLSearchParams(params).toString();
+        const endpoint = searchParams ? `/api/students/?${searchParams}` : '/api/students/';
+        return await apiRequest(endpoint);
     },
 
     async getById(id) {
@@ -207,8 +212,9 @@ const studentsAPI = {
 // Attendance API
 const attendanceAPI = {
     async getAll(params = {}) {
-        const queryString = new URLSearchParams(params).toString();
-        return await apiRequest(`/api/attendance?${queryString}`);
+        const searchParams = new URLSearchParams(params).toString();
+        const endpoint = searchParams ? `/api/attendance/?${searchParams}` : '/api/attendance/';
+        return await apiRequest(endpoint);
     },
 
     async getByDate(date) {
@@ -243,8 +249,9 @@ const attendanceAPI = {
 // Payments API
 const paymentsAPI = {
     async getAll(params = {}) {
-        const queryString = new URLSearchParams(params).toString();
-        return await apiRequest(`/api/payments?${queryString}`);
+        const searchParams = new URLSearchParams(params).toString();
+        const endpoint = searchParams ? `/api/payments/?${searchParams}` : '/api/payments/';
+        return await apiRequest(endpoint);
     },
 
     async getOverdue() {
@@ -290,8 +297,9 @@ const statsAPI = {
 // Groups API
 const groupsAPI = {
     async getAll(params = {}) {
-        const queryString = new URLSearchParams(params).toString();
-        return await apiRequest(`/api/groups?${queryString}`);
+        const searchParams = new URLSearchParams(params).toString();
+        const endpoint = searchParams ? `/api/groups/?${searchParams}` : '/api/groups/';
+        return await apiRequest(endpoint);
     },
 
     async getById(id) {
@@ -322,8 +330,9 @@ const groupsAPI = {
 // Trainers API
 const trainersAPI = {
     async getAll(params = {}) {
-        const queryString = new URLSearchParams(params).toString();
-        return await apiRequest(`/api/trainers?${queryString}`);
+        const searchParams = new URLSearchParams(params).toString();
+        const endpoint = searchParams ? `/api/trainers/?${searchParams}` : '/api/trainers/';
+        return await apiRequest(endpoint);
     },
 
     async getById(id) {

@@ -2,7 +2,11 @@
 
 function formatDate(dateString) {
     if (!dateString) return '-';
-    const date = new Date(dateString);
+    // Забезпечуємо сумісність з Safari (заміна дефісів на косу риску для YYYY-MM-DD)
+    const safeDateString = dateString.includes('-') && !dateString.includes('T') 
+        ? dateString.replace(/-/g, '/') 
+        : dateString;
+    const date = new Date(safeDateString);
     return isNaN(date.getTime()) ? '-' : date.toLocaleDateString('uk-UA');
 }
 

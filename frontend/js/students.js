@@ -90,6 +90,7 @@ async function loadGroups() {
     } catch (error) {
         console.error('Error loading groups:', error);
         allGroups = [];
+        throw error;
     }
 }
 
@@ -100,6 +101,7 @@ async function loadTrainers() {
     } catch (error) {
         console.error('Error loading trainers:', error);
         allTrainers = [];
+        throw error;
     }
 }
 
