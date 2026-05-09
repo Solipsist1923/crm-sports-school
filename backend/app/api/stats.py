@@ -20,10 +20,6 @@ async def get_dashboard_stats(
     today = date.today()
 
     # Отримуємо trainer_id якщо користувач тренер
-    trainer_id = None
-    if current_user.role == "trainer" and current_user.trainer:
-        trainer_id = current_user.trainer.id
-
     # Базовий запит для учнів
     students_query = db.query(Student)
 
