@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_, distinct
+from sqlalchemy import func, distinct, case
 from typing import List
 from datetime import date, timedelta
 
@@ -19,31 +19,26 @@ async def get_dashboard_stats(
     """Отримання статистики для дашборду"""
     today = date.today()
 
-    # Базовий запит для учнів
-    students_query = db.query(Student)
-
-    # Загальна кількість учнів
-    total_students = students_query.count()
+    # Всього учнів
+    total_students = db.query(Student).count()
 
     # Активні учні
-    active_students = students_query.filter(Student.is_active == True).count()
+    active_students = db.query(Student).filter(Student.is_active == True).count()
 
     # Кількість груп
-    groups_query = db.query(Group).filter(Group.is_active == True)
-    total_groups = groups_query.count()
+    total_groups = db.query(Group).filter(Group.is_active == True).count()
 
     # Відвідування сьогодні
-    attendance_query = db.query(Attendance).filter(Attendance.date == today)
-    today_attendance = attendance_query.filter(Attendance.status == "present").count()
+    today_attendance = db.query(Attendance).filter(
+        Attendance.date == today,
+        Attendance.status == "present"
+    ).count()
 
-    # Учні з боргами
-    debts_query = db.query(Payment).filter(
+    # Учні з боргами (унікальні студенти)
+    students_with_debts = db.query(func.count(distinct(Payment.student_id))).filter(
         Payment.next_payment_date < today,
         Payment.status != "paid"
-    )
-    # Коректний підрахунок унікальних студентів-боржників
-    students_with_debts = db.query(func.count(distinct(Payment.student_id))).\
-        select_entity_from(debts_query.subquery()).scalar() or 0
+    ).scalar() or 0
 
     # Абонементи, що закінчуються (менше 3 занять або закінчуються через 7 днів)
     week_later = today + timedelta(days=7)
@@ -57,19 +52,17 @@ async def get_dashboard_stats(
     month_later = today + timedelta(days=30)
     
     # Вже закінчилися (Expired)
-    expired_ins_query = db.query(Student).filter(
+    expired_insurance = db.query(Student).filter(
         Student.is_active == True,
         Student.insurance_end < today
-    )
-    expired_insurance = expired_ins_query.count()
+    ).count()
 
     # Закінчуються протягом 30 днів (Expiring)
-    expiring_ins_query = db.query(Student).filter(
+    expiring_insurance = db.query(Student).filter(
         Student.is_active == True,
         Student.insurance_end >= today,
         Student.insurance_end <= month_later
-    )
-    expiring_insurance = expiring_ins_query.count()
+    ).count()
 
     return DashboardStats(
         total_students=total_students,
@@ -94,15 +87,15 @@ async def get_attendance_stats(
             Student.id.label("student_id"),
             Student.first_name,
             Student.last_name,
-            func.coalesce(func.sum(func.case((Attendance.status == "present", 1), else_=0)), 0).label("total_present"),
-            func.coalesce(func.sum(func.case((Attendance.status == "absent", 1), else_=0)), 0).label("total_absent"),
-            func.coalesce(func.sum(func.case((Attendance.status == "sick", 1), else_=0)), 0).label("total_sick"),
+            func.coalesce(func.sum(case((Attendance.status == "present", 1), else_=0)), 0).label("total_present"),
+            func.coalesce(func.sum(case((Attendance.status == "absent", 1), else_=0)), 0).label("total_absent"),
+            func.coalesce(func.sum(case((Attendance.status == "sick", 1), else_=0)), 0).label("total_sick"),
             func.coalesce(func.count(Attendance.id), 0).label("total_classes")
         ).outerjoin(Attendance, Student.id == Attendance.student_id)\
          .filter(Student.is_active == True)\
          .group_by(Student.id, Student.first_name, Student.last_name)
 
-        stats = query.order_by(func.coalesce(func.count(Attendance.id), 0).desc()).limit(limit).all()
+        stats = query.order_by(func.count(Attendance.id).desc()).limit(limit).all()
 
         result = []
         for s in stats:

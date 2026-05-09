@@ -8,10 +8,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         setupMobileMenu();
 
-        await Promise.allSettled([
+        const results = await Promise.allSettled([
             loadDashboardStats(),
             loadAttendanceStats()
         ]);
+        
+        if (results[0].status === 'rejected') {
+            console.error('Статистику не вдалося завантажити:', results[0].reason);
+        }
     } catch (err) {
         console.error('Помилка дашборду:', err);
     }
