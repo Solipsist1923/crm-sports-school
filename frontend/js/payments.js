@@ -66,14 +66,18 @@ async function loadStudents() {
 
         // Populate student selects
         const studentFilter = document.getElementById('studentFilter');
-        const paymentStudent = document.getElementById('paymentStudent');
+        const datalist = document.getElementById('studentsDatalist');
 
-        const options = allStudents.map(s =>
+        const filterOptions = allStudents.map(s =>
             `<option value="${s.id}">${s.first_name} ${s.last_name}</option>`
         ).join('');
 
-        studentFilter.innerHTML = '<option value="">Всі учні</option>' + options;
-        paymentStudent.innerHTML = '<option value="">Оберіть учня</option>' + options;
+        const datalistOptions = allStudents.map(s =>
+            `<option value="${s.first_name} ${s.last_name} (ID: ${s.id})">`
+        ).join('');
+
+        if (studentFilter) studentFilter.innerHTML = '<option value="">Всі учні</option>' + filterOptions;
+        if (datalist) datalist.innerHTML = datalistOptions;
     } catch (error) {
         console.error('Error loading students:', error);
     }
@@ -130,6 +134,7 @@ function renderPayments(payments) {
 
 function getTypeBadgeClass(type) {
     switch (type) {
+        case 'single': return 'badge-info';
         case 'subscription': return 'badge-success';
         case 'insurance': return 'badge-warning';
         case 'fund': return 'badge-info';
@@ -139,10 +144,8 @@ function getTypeBadgeClass(type) {
 
 function getTypeText(type) {
     switch (type) {
+        case 'single': return 'Разова оплата';
         case 'subscription': return 'Абонемент';
-        case 'insurance': return 'Страховка';
-        case 'fund': return 'Фонд';
-        case 'other': return 'Інше';
         default: return type;
     }
 }
@@ -217,8 +220,17 @@ function closePaymentModal() {
 document.getElementById('paymentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const searchValue = document.getElementById('paymentStudentSearch').value;
+    const idMatch = searchValue.match(/\(ID: (\d+)\)$/);
+    const studentId = idMatch ? parseInt(idMatch[1]) : null;
+
+    if (!studentId) {
+        alert('Будь ласка, оберіть учня зі списку запропонованих');
+        return;
+    }
+
     const paymentData = {
-        student_id: parseInt(document.getElementById('paymentStudent').value),
+        student_id: studentId,
         amount: parseFloat(document.getElementById('paymentAmount').value),
         payment_type: document.getElementById('paymentType').value,
         payment_date: document.getElementById('paymentDate').value,

@@ -134,7 +134,7 @@ class Payment(Base):
     student = relationship("Student", back_populates="payments")
 
     __table_args__ = (
-        CheckConstraint("payment_type IN ('subscription', 'insurance', 'fund', 'other')", name="check_payment_type"),
+        CheckConstraint("payment_type IN ('single', 'subscription', 'insurance', 'fund', 'other')", name="check_payment_type"),
         CheckConstraint("status IN ('paid', 'pending', 'overdue')", name="check_payment_status"),
     )
 

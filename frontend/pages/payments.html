@@ -91,10 +91,8 @@
                 <div class="filter-group">
                     <select id="typeFilter" class="filter-select">
                         <option value="">Всі типи</option>
+                        <option value="single">Разова оплата</option>
                         <option value="subscription">Абонемент</option>
-                        <option value="insurance">Страховка</option>
-                        <option value="fund">Фонд</option>
-                        <option value="other">Інше</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -143,9 +141,8 @@
             <form id="paymentForm" class="modal-form">
                 <div class="form-group">
                     <label for="paymentStudent">Учень *</label>
-                    <select id="paymentStudent" required>
-                        <option value="">Оберіть учня</option>
-                    </select>
+                    <input type="text" id="paymentStudentSearch" list="studentsDatalist" placeholder="Почніть вводити ім'я..." required autocomplete="off">
+                    <datalist id="studentsDatalist"></datalist>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -155,10 +152,8 @@
                     <div class="form-group">
                         <label for="paymentType">Тип *</label>
                         <select id="paymentType" required>
+                            <option value="single">Разова оплата</option>
                             <option value="subscription">Абонемент</option>
-                            <option value="insurance">Страховка</option>
-                            <option value="fund">Фонд</option>
-                            <option value="other">Інше</option>
                         </select>
                     </div>
                 </div>

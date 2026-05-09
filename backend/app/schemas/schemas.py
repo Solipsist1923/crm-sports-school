@@ -182,7 +182,7 @@ class PaymentBase(BaseModel):
     amount: float
     payment_date: date
     next_payment_date: Optional[date] = None
-    payment_type: str = Field(..., pattern="^(subscription|insurance|fund|other)$")
+    payment_type: str = Field(..., pattern="^(single|subscription|insurance|fund|other)$")
     status: str = Field(default="paid", pattern="^(paid|pending|overdue)$")
     notes: Optional[str] = None
 
