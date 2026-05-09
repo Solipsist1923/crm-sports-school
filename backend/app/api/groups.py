@@ -65,7 +65,13 @@ async def create_group(
     current_user: User = Depends(get_current_user)
 ):
     """Створення нової групи"""
-    db_group = Group(**group.model_dump())
+    group_data = group.model_dump()
+    
+    # Якщо створює тренер, автоматично призначаємо його
+    if current_user.role == "trainer" and current_user.trainer:
+        group_data["trainer_id"] = current_user.trainer.id
+        
+    db_group = Group(**group_data)
     db.add(db_group)
     db.commit()
     db.refresh(db_group)
@@ -104,13 +110,20 @@ async def update_group(
 async def delete_group(
     group_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin)
+    current_user: User = Depends(get_current_user)
 ):
-    """Видалення групи (тільки для адміністратора)"""
+    """Видалення групи"""
     db_group = db.query(Group).filter(Group.id == group_id).first()
 
     if not db_group:
         raise HTTPException(status_code=404, detail="Group not found")
+        
+    # Перевірка прав: адмін або власник групи (тренер)
+    if current_user.role == "trainer":
+        if not current_user.trainer or db_group.trainer_id != current_user.trainer.id:
+            raise HTTPException(status_code=403, detail="Ви можете видаляти тільки свої групи")
+    elif current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ заборонено")
 
     db.delete(db_group)
     db.commit()

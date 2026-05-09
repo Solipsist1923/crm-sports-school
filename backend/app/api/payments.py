@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from typing import List
 from datetime import date
 
 from app.core.database import get_db
 from app.api.auth import get_current_user, get_current_active_admin
-from app.models.models import Payment, Student, User
+from app.models.models import Payment, Student, User, Group, Trainer
 from app.schemas.schemas import PaymentCreate, PaymentUpdate, PaymentResponse
 
 router = APIRouter(prefix="/api/payments", tags=["Payments"])
@@ -75,10 +76,17 @@ async def get_student_payments(
         raise HTTPException(status_code=404, detail="Student not found")
 
     # Перевірка доступу для тренера
-    if current_user.role == "trainer":
-        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
-        if trainer_profile and student.trainer_id != trainer_profile.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+    if current_user.role == "trainer" and current_user.trainer:
+        trainer_id = current_user.trainer.id
+        is_own_student = db.query(Student).filter(
+            Student.id == payment.student_id,
+            or_(
+                Student.trainer_id == trainer_id,
+                Student.group.has(Group.trainer_id == trainer_id)
+            )
+        ).first()
+        if not is_own_student:
+            raise HTTPException(status_code=403, detail="Ви можете додавати оплату тільки своїм учням")
 
     payments = db.query(Payment)\
         .filter(Payment.student_id == student_id)\

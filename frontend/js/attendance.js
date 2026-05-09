@@ -44,10 +44,12 @@ async function loadStudents() {
     try {
         allStudents = await studentsAPI.getAll({ is_active: true });
 
-        // Populate student select
-        const select = document.getElementById('studentSelect');
-        select.innerHTML = '<option value="">Оберіть учня</option>' +
-            allStudents.map(s => `<option value="${s.id}">${s.first_name} ${s.last_name}</option>`).join('');
+        const datalist = document.getElementById('studentsDatalist');
+        if (datalist) {
+            datalist.innerHTML = allStudents.map(s =>
+                `<option value="${s.first_name} ${s.last_name} (ID: ${s.id})">`
+            ).join('');
+        }
     } catch (error) {
         console.error('Error loading students:', error);
     }
@@ -148,8 +150,17 @@ function closeAttendanceModal() {
 document.getElementById('attendanceForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const searchValue = document.getElementById('attendanceStudentSearch').value;
+    const idMatch = searchValue.match(/\(ID: (\d+)\)$/);
+    const studentId = idMatch ? parseInt(idMatch[1]) : null;
+
+    if (!studentId) {
+        alert('Будь ласка, оберіть учня зі списку');
+        return;
+    }
+
     const attendanceData = {
-        student_id: parseInt(document.getElementById('studentSelect').value),
+        student_id: studentId,
         date: document.getElementById('attendanceDate2').value,
         status: document.getElementById('statusSelect').value,
         notes: document.getElementById('attendanceNotes').value || null

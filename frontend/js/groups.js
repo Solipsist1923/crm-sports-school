@@ -197,6 +197,15 @@ function openAddGroupModal() {
     document.getElementById('groupForm').reset();
     document.getElementById('groupId').value = '';
 
+    // Якщо користувач - тренер, ховаємо вибір тренера
+    const user = getUser();
+    const trainerGroup = document.getElementById('trainerId').closest('.form-row');
+    if (user && user.role === 'trainer' && trainerGroup) {
+        trainerGroup.style.display = 'none';
+    } else if (trainerGroup) {
+        trainerGroup.style.display = 'grid';
+    }
+
     // Reset schedule builder
     document.querySelectorAll('.day-checkbox').forEach(cb => cb.checked = false);
     document.querySelectorAll('.time-input').forEach(input => {

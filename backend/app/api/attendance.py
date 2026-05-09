@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from typing import List
 from datetime import date, timedelta
 
@@ -78,11 +78,17 @@ async def get_student_attendance(
         raise HTTPException(status_code=404, detail="Student not found")
 
     # Перевірка доступу для тренера
-    if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            if student.trainer_id != trainer.trainer.id:
-                raise HTTPException(status_code=403, detail="Access denied")
+    if current_user.role == "trainer" and current_user.trainer:
+        trainer_id = current_user.trainer.id
+        is_own_student = db.query(Student).filter(
+            Student.id == attendance.student_id,
+            or_(
+                Student.trainer_id == trainer_id,
+                Student.group.has(Group.trainer_id == trainer_id)
+            )
+        ).first()
+        if not is_own_student:
+            raise HTTPException(status_code=403, detail="Ви можете відмічати тільки своїх учнів")
 
     attendance = db.query(Attendance)\
         .filter(Attendance.student_id == student_id)\

@@ -113,9 +113,8 @@
             <form id="attendanceForm" class="modal-form">
                 <div class="form-group">
                     <label for="studentSelect">Учень *</label>
-                    <select id="studentSelect" required>
-                        <option value="">Оберіть учня</option>
-                    </select>
+                    <input type="text" id="attendanceStudentSearch" list="studentsDatalist" placeholder="Почніть вводити ім'я..." required autocomplete="off">
+                    <datalist id="studentsDatalist"></datalist>
                 </div>
                 <div class="form-group">
                     <label for="attendanceDate2">Дата *</label>
