@@ -2,6 +2,7 @@
 
 let allStudents = [];
 let allAttendance = [];
+let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth();
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await Promise.all([
         loadStudents(),
+        loadTrainers(),
         loadAttendance()
     ]).then(() => {
         setupMobileMenu();
@@ -38,31 +40,6 @@ function loadUserInfo() {
     }
 }
 
-function setupMobileMenu() {
-    const toggle = document.getElementById('mobileToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-
-    if (toggle && sidebar && overlay) {
-        const toggleMenu = () => {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        };
-
-        toggle.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
-        
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                }
-            });
-        });
-    }
-}
-
 async function loadStudents() {
     try {
         allStudents = await studentsAPI.getAll({ is_active: true });
@@ -73,6 +50,14 @@ async function loadStudents() {
             allStudents.map(s => `<option value="${s.id}">${s.first_name} ${s.last_name}</option>`).join('');
     } catch (error) {
         console.error('Error loading students:', error);
+    }
+}
+
+async function loadTrainers() {
+    try {
+        allTrainers = await trainersAPI.getAll();
+    } catch (error) {
+        console.error('Error loading trainers:', error);
     }
 }
 
@@ -104,6 +89,10 @@ function renderAttendance(attendance) {
         const student = allStudents.find(s => s.id === a.student_id);
         const studentName = student ? `${student.first_name} ${student.last_name}` : `ID: ${a.student_id}`;
 
+        // Знаходимо тренера, чий user_id збігається з тим, хто зробив відмітку
+        const trainer = allTrainers.find(t => t.user_id === a.marked_by);
+        const trainerName = trainer ? `${trainer.first_name} ${trainer.last_name}` : `ID: ${a.marked_by || '-'}`;
+
         return `
             <tr>
                 <td>${studentName}</td>
@@ -114,7 +103,7 @@ function renderAttendance(attendance) {
                     </span>
                 </td>
                 <td>${a.notes || '-'}</td>
-                <td>ID: ${a.marked_by || '-'}</td>
+                <td>${trainerName}</td>
                 <td>
                     <button class="btn-icon btn-danger" onclick="deleteAttendance(${a.id})" title="Видалити">
                         <i class="fas fa-trash"></i>
