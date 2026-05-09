@@ -5,22 +5,18 @@ let allGroups = [];
 let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    showSpinner();
-    try {
-        requireAuth();
-        loadUserInfo();
-        await Promise.all([
-            loadGroups(),
-            loadTrainers(),
-            loadStudents()
-        ]);
+    requireAuth();
+    loadUserInfo();
+    
+    // Завантажуємо дані паралельно без блокуючого спінера
+    Promise.all([
+        loadGroups(),
+        loadTrainers(),
+        loadStudents()
+    ]).then(() => {
         setupFilters();
         setupMobileMenu();
-    } catch (error) {
-        console.error('Initialization error:', error);
-    } finally {
-        hideSpinner();
-    }
+    }).catch(err => console.error('Помилка ініціалізації:', err));
 });
 
 // Функція розрахунку статусу страховки
@@ -45,14 +41,11 @@ function getInsuranceStatus(endDate) {
 function loadUserInfo() {
     try {
         const user = getUser();
-        if (user) {
-            const nameEl = document.getElementById('userName');
-            const roleEl = document.getElementById('userRoleDisplay');
-            
-            if (nameEl) nameEl.textContent = user.full_name;
-            if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
-            console.log('User info loaded successfully');
-        }
+        const nameEl = document.getElementById('userName');
+        const roleEl = document.getElementById('userRoleDisplay');
+        
+        if (user && nameEl) nameEl.textContent = user.full_name;
+        if (user && roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
     } catch (error) {
         console.error('Error loading user info:', error);
     }

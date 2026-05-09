@@ -1,25 +1,16 @@
 // Dashboard Page Logic
 
 document.addEventListener('DOMContentLoaded', async () => {
-    showSpinner();
-    // Check authentication
     requireAuth();
-
-    // Load user info
     loadUserInfo();
-
-    // Set current date
     setCurrentDate();
 
-    // Паралельний запуск статистики
-    await Promise.all([
+    Promise.all([
         loadDashboardStats(),
         loadAttendanceStats()
     ]).then(() => {
         setupMobileMenu();
-    }).finally(() => {
-        hideSpinner();
-    });
+    }).catch(err => console.error('Помилка дашборду:', err));
 });
 
 function loadUserInfo() {

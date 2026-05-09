@@ -5,22 +5,17 @@ let allStudents = [];
 let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    showSpinner();
-    try {
-        requireAuth();
-        loadUserInfo();
-        await Promise.all([
-            loadTrainers(),
-            loadStudents(),
-            loadGroups()
-        ]);
+    requireAuth();
+    loadUserInfo();
+    
+    Promise.all([
+        loadTrainers(),
+        loadStudents(),
+        loadGroups()
+    ]).then(() => {
         setupScheduleBuilder();
         setupMobileMenu();
-    } catch (error) {
-        console.error('Initialization error:', error);
-    } finally {
-        hideSpinner();
-    }
+    }).catch(err => console.error('Помилка завантаження груп:', err));
 });
 
 function loadUserInfo() {
