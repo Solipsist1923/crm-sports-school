@@ -71,6 +71,7 @@ async function loadStudents() {
 async function loadGroups() {
     try {
         allGroups = await groupsAPI.getAll();
+        renderGroups(allGroups);
         return allGroups;
     } catch (error) {
         console.error('Error loading groups:', error);

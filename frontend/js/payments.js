@@ -122,6 +122,9 @@ function renderPayments(payments) {
                     </span>
                 </td>
                 <td>
+                    <button class="btn-icon" onclick="openEditPaymentModal(${p.id})" title="Редагувати">
+                        <i class="fas fa-edit"></i>
+                    </button>
                     <button class="btn-icon btn-danger" onclick="deletePayment(${p.id})" title="Видалити">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -206,7 +209,9 @@ async function showOverdue() {
 }
 
 function openAddPaymentModal() {
+    document.getElementById('modalTitle').textContent = 'Додати оплату';
     document.getElementById('paymentForm').reset();
+    document.getElementById('paymentId').value = '';
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('paymentDate').value = today;
     document.getElementById('paymentModal').classList.add('show');
@@ -216,9 +221,27 @@ function closePaymentModal() {
     document.getElementById('paymentModal').classList.remove('show');
 }
 
+async function openEditPaymentModal(id) {
+    const payment = allPayments.find(p => p.id === id);
+    if (!payment) return;
+
+    const student = allStudents.find(s => s.id === payment.student_id);
+    
+    document.getElementById('modalTitle').textContent = 'Редагувати оплату';
+    document.getElementById('paymentId').value = payment.id;
+    document.getElementById('paymentStudentSearch').value = student ? `${student.first_name} ${student.last_name} (ID: ${student.id})` : `ID: ${payment.student_id}`;
+    document.getElementById('paymentAmount').value = payment.amount;
+    document.getElementById('paymentType').value = payment.payment_type;
+    document.getElementById('paymentDate').value = payment.payment_date;
+    document.getElementById('paymentNotes').value = payment.notes || '';
+    
+    document.getElementById('paymentModal').classList.add('show');
+}
+
 document.getElementById('paymentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const paymentId = document.getElementById('paymentId').value;
     const searchValue = document.getElementById('paymentStudentSearch').value;
     const idMatch = searchValue.match(/\(ID: (\d+)\)$/);
     const studentId = idMatch ? parseInt(idMatch[1]) : null;
@@ -238,11 +261,15 @@ document.getElementById('paymentForm').addEventListener('submit', async (e) => {
     };
 
     try {
-        await paymentsAPI.create(paymentData);
-        alert('Оплату додано');
+        if (paymentId) {
+            await paymentsAPI.update(paymentId, paymentData);
+            alert('Оплату оновлено');
+        } else {
+            await paymentsAPI.create(paymentData);
+            alert('Оплату додано');
+        }
         closePaymentModal();
-        const updatedPayments = await loadPayments();
-        renderPayments(updatedPayments);
+        await loadPayments();
     } catch (error) {
         console.error('Error creating payment:', error);
         alert('Помилка: ' + (error.message || 'Не вдалося додати оплату'));

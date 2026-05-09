@@ -6,7 +6,7 @@ from datetime import date, timedelta
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.models.models import Attendance, Student, Subscription, User
+from app.models.models import Attendance, Student, Subscription, User, Group, Trainer
 from app.schemas.schemas import AttendanceCreate, AttendanceUpdate, AttendanceResponse
 
 router = APIRouter(prefix="/api/attendance", tags=["Attendance"])
@@ -35,9 +35,14 @@ async def get_attendance(
 
     # Якщо тренер, показуємо тільки його учнів
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            query = query.join(Student).filter(Student.trainer_id == trainer.trainer.id)
+        if current_user.trainer:
+            trainer_id = current_user.trainer.id
+            query = query.join(Student).filter(
+                or_(
+                    Student.trainer_id == trainer_id,
+                    Student.group.has(Group.trainer_id == trainer_id)
+                )
+            )
 
     attendance = query.order_by(Attendance.date.desc()).offset(skip).limit(limit).all()
     return attendance
@@ -57,9 +62,14 @@ async def get_attendance_by_date(
 
     # Якщо тренер, показуємо тільки його учнів
     if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            query = query.join(Student).filter(Student.trainer_id == trainer.trainer.id)
+        if current_user.trainer:
+            trainer_id = current_user.trainer.id
+            query = query.join(Student).filter(
+                or_(
+                    Student.trainer_id == trainer_id,
+                    Student.group.has(Group.trainer_id == trainer_id)
+                )
+            )
 
     attendance = query.all()
     return attendance
@@ -81,7 +91,7 @@ async def get_student_attendance(
     if current_user.role == "trainer" and current_user.trainer:
         trainer_id = current_user.trainer.id
         is_own_student = db.query(Student).filter(
-            Student.id == attendance.student_id,
+            Student.id == student_id,
             or_(
                 Student.trainer_id == trainer_id,
                 Student.group.has(Group.trainer_id == trainer_id)
@@ -111,11 +121,17 @@ async def mark_attendance(
         raise HTTPException(status_code=404, detail="Student not found")
 
     # Перевірка доступу для тренера
-    if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            if student.trainer_id != trainer.trainer.id:
-                raise HTTPException(status_code=403, detail="Access denied")
+    if current_user.role == "trainer" and current_user.trainer:
+        trainer_id = current_user.trainer.id
+        is_own_student = db.query(Student).filter(
+            Student.id == attendance.student_id,
+            or_(
+                Student.trainer_id == trainer_id,
+                Student.group.has(Group.trainer_id == trainer_id)
+            )
+        ).first()
+        if not is_own_student:
+            raise HTTPException(status_code=403, detail="Access denied")
 
     # Перевірка, чи вже є відмітка на цю дату
     existing = db.query(Attendance).filter(
@@ -164,10 +180,16 @@ async def update_attendance(
         raise HTTPException(status_code=404, detail="Attendance not found")
 
     # Перевірка доступу для тренера
-    student = db.query(Student).filter(Student.id == db_attendance.student_id).first()
-    trainer = db.query(User).filter(User.id == current_user.id).first()
-    if trainer and trainer.trainer:
-        if student.trainer_id != trainer.trainer.id:
+    if current_user.role == "trainer" and current_user.trainer:
+        trainer_id = current_user.trainer.id
+        is_own_student = db.query(Student).filter(
+            Student.id == db_attendance.student_id,
+            or_(
+                Student.trainer_id == trainer_id,
+                Student.group.has(Group.trainer_id == trainer_id)
+            )
+        ).first()
+        if not is_own_student:
             raise HTTPException(status_code=403, detail="Access denied")
 
     # Оновлення полів
@@ -192,10 +214,16 @@ async def delete_attendance(
         raise HTTPException(status_code=404, detail="Attendance not found")
 
     # Перевірка доступу для тренера
-    student = db.query(Student).filter(Student.id == db_attendance.student_id).first()
-    trainer = db.query(User).filter(User.id == current_user.id).first()
-    if trainer and trainer.trainer:
-        if student.trainer_id != trainer.trainer.id:
+    if current_user.role == "trainer" and current_user.trainer:
+        trainer_id = current_user.trainer.id
+        is_own_student = db.query(Student).filter(
+            Student.id == db_attendance.student_id,
+            or_(
+                Student.trainer_id == trainer_id,
+                Student.group.has(Group.trainer_id == trainer_id)
+            )
+        ).first()
+        if not is_own_student:
             raise HTTPException(status_code=403, detail="Access denied")
 
     db.delete(db_attendance)

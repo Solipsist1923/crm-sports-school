@@ -107,10 +107,11 @@
     <div id="attendanceModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Відмітити відвідування</h2>
+                <h2 id="modalTitle">Відмітити відвідування</h2>
                 <button class="modal-close" onclick="closeAttendanceModal()">&times;</button>
             </div>
             <form id="attendanceForm" class="modal-form">
+                <input type="hidden" id="attendanceId">
                 <div class="form-group">
                     <label for="studentSelect">Учень *</label>
                     <input type="text" id="attendanceStudentSearch" list="studentsDatalist" placeholder="Почніть вводити ім'я..." required autocomplete="off">

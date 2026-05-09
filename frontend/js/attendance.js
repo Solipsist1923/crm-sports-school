@@ -107,6 +107,9 @@ function renderAttendance(attendance) {
                 <td>${a.notes || '-'}</td>
                 <td>${trainerName}</td>
                 <td>
+                    <button class="btn-icon" onclick="openEditAttendanceModal(${a.id})" title="Редагувати">
+                        <i class="fas fa-edit"></i>
+                    </button>
                     <button class="btn-icon btn-danger" onclick="deleteAttendance(${a.id})" title="Видалити">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -137,7 +140,9 @@ function getStatusText(status) {
 }
 
 function openMarkAttendanceModal() {
+    document.getElementById('modalTitle').textContent = 'Відмітити відвідування';
     document.getElementById('attendanceForm').reset();
+    document.getElementById('attendanceId').value = '';
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('attendanceDate2').value = today;
     document.getElementById('attendanceModal').classList.add('show');
@@ -147,9 +152,26 @@ function closeAttendanceModal() {
     document.getElementById('attendanceModal').classList.remove('show');
 }
 
+async function openEditAttendanceModal(id) {
+    const attendance = allAttendance.find(a => a.id === id);
+    if (!attendance) return;
+
+    const student = allStudents.find(s => s.id === attendance.student_id);
+    
+    document.getElementById('modalTitle').textContent = 'Редагувати відвідування';
+    document.getElementById('attendanceId').value = attendance.id;
+    document.getElementById('attendanceStudentSearch').value = student ? `${student.first_name} ${student.last_name} (ID: ${student.id})` : `ID: ${attendance.student_id}`;
+    document.getElementById('attendanceDate2').value = attendance.date;
+    document.getElementById('statusSelect').value = attendance.status;
+    document.getElementById('attendanceNotes').value = attendance.notes || '';
+    
+    document.getElementById('attendanceModal').classList.add('show');
+}
+
 document.getElementById('attendanceForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const attendanceId = document.getElementById('attendanceId').value;
     const searchValue = document.getElementById('attendanceStudentSearch').value;
     const idMatch = searchValue.match(/\(ID: (\d+)\)$/);
     const studentId = idMatch ? parseInt(idMatch[1]) : null;
@@ -167,8 +189,13 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
     };
 
     try {
-        await attendanceAPI.mark(attendanceData);
-        alert('Відвідування відмічено');
+        if (attendanceId) {
+            await attendanceAPI.update(attendanceId, attendanceData);
+            alert('Відвідування оновлено');
+        } else {
+            await attendanceAPI.mark(attendanceData);
+            alert('Відвідування відмічено');
+        }
         closeAttendanceModal();
         await loadAttendance();
     } catch (error) {

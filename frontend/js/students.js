@@ -109,6 +109,7 @@ async function loadStudents() {
     try {
         allStudents = await studentsAPI.getAll();
         console.log('Завантажено учнів:', allStudents.length);
+        renderStudents(allStudents);
         return allStudents;
     } catch (error) {
         console.error('Error loading students:', error);
