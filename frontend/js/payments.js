@@ -116,7 +116,6 @@ function renderPayments(payments) {
                     </span>
                 </td>
                 <td>${formatDate(p.payment_date)}</td>
-                <td>${p.next_payment_date ? formatDate(p.next_payment_date) : '-'}</td>
                 <td>
                     <span class="badge ${getStatusBadgeClass(p.status)}">
                         ${getStatusText(p.status)}
@@ -234,7 +233,6 @@ document.getElementById('paymentForm').addEventListener('submit', async (e) => {
         amount: parseFloat(document.getElementById('paymentAmount').value),
         payment_type: document.getElementById('paymentType').value,
         payment_date: document.getElementById('paymentDate').value,
-        next_payment_date: document.getElementById('nextPaymentDate').value || null,
         status: 'paid',
         notes: document.getElementById('paymentNotes').value || null
     };
