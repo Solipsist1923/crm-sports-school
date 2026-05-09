@@ -224,18 +224,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const role = document.getElementById('userRole').value;
         const password = document.getElementById('password').value;
 
-        if (password.length < 6) {
+        // Пароль обов'язковий тільки для нових користувачів
+        if (!userId && password.length < 6) {
             showNotification('Пароль повинен містити мінімум 6 символів', 'error');
             return;
         }
 
         const userData = {
-            username,
             full_name: fullName,
             role,
-            password,
             is_active: true
         };
+
+        if (password) userData.password = password;
+        if (!userId) userData.username = username;
 
         // Якщо роль тренер, додаємо дані тренера
         if (role === 'trainer') {

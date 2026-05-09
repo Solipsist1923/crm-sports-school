@@ -36,8 +36,11 @@ function getInsuranceStatus(endDate) {
 function loadUserInfo() {
     const user = getUser();
     if (user) {
-        document.getElementById('userName').textContent = user.full_name;
-        document.getElementById('userRole').textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+        const nameEl = document.getElementById('userName');
+        const roleEl = document.getElementById('userRoleDisplay');
+        
+        if (nameEl) nameEl.textContent = user.full_name;
+        if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
     }
 }
 

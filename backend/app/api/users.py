@@ -154,7 +154,7 @@ async def update_user(
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Користувача не знайдено")
 
-    # Оновлення основних полів
+    # Оновлення основних полів (username не міняємо)
     db_user.full_name = user_data.full_name
     db_user.role = user_data.role
     db_user.is_active = user_data.is_active

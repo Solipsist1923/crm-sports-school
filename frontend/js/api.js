@@ -6,13 +6,15 @@ function getToken() {
 }
 
 // Set token to localStorage
-function setToken(token) {
-    localStorage.setItem(TOKEN_KEY, token);
+function setTokens(accessToken, refreshToken) {
+    localStorage.setItem(TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 }
 
 // Remove token from localStorage
 function removeToken() {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
 }
 
@@ -39,6 +41,32 @@ function requireAuth() {
     }
 }
 
+// Оновлення токена доступу
+async function refreshAccessToken() {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (!refreshToken) throw new Error('Відсутній токен оновлення');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: refreshToken })
+        });
+
+        if (!response.ok) throw new Error('Не вдалося оновити токен');
+
+        const data = await response.json();
+        setTokens(data.access_token, data.refresh_token);
+        console.log('Токен успішно оновлено');
+        return data.access_token;
+    } catch (error) {
+        console.error('Помилка оновлення сесії:', error);
+        removeToken();
+        window.location.href = 'login.html';
+        throw error;
+    }
+}
+
 // API Request wrapper
 async function apiRequest(endpoint, options = {}) {
     const token = getToken();
@@ -58,11 +86,21 @@ async function apiRequest(endpoint, options = {}) {
             headers
         });
 
-        if (response.status === 401) {
-            // Unauthorized - redirect to login
-            removeToken();
-            window.location.href = 'login.html';
-            return;
+        // Якщо токен прострочений (401) і ми ще не пробували його оновити
+        if (response.status === 401 && !options._retry) {
+            options._retry = true;
+            try {
+                const newAccessToken = await refreshAccessToken();
+                // Повторюємо запит з новим токеном
+                const retryHeaders = {
+                    ...headers,
+                    'Authorization': `Bearer ${newAccessToken}`
+                };
+                return await apiRequest(endpoint, { ...options, headers: retryHeaders });
+            } catch (refreshError) {
+                // Якщо оновлення не вдалося - перенаправляємо на вхід
+                return;
+            }
         }
 
         // Якщо 204 No Content - не парсимо JSON
@@ -90,7 +128,7 @@ const authAPI = {
             method: 'POST',
             body: JSON.stringify({ username, password })
         });
-        setToken(data.access_token);
+        setTokens(data.access_token, data.refresh_token);
         return data;
     },
 
