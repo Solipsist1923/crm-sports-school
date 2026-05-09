@@ -9,26 +9,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         requireAuth();
         loadUserInfo();
         
-        // Завантажуємо дані паралельно
-        await Promise.all([
+        // Показуємо індикатор завантаження
+        const tbody = document.getElementById('studentsTable');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center">Завантаження...</td></tr>';
+        }
+        
+        // Завантажуємо дані з обробкою помилок (allSettled краще для Safari)
+        const results = await Promise.allSettled([
             loadGroups(),
             loadTrainers(),
             loadStudents()
         ]);
         
-        // Тільки після того як ВСЕ завантажилось - малюємо
+        // Перевіряємо чи завантажився список учнів
+        const studentsResult = results[2];
+        if (studentsResult.status === 'fulfilled') {
+            renderStudents(allStudents);
+        } else {
+            console.error('Помилка завантаження учнів:', studentsResult.reason);
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Помилка завантаження даних. Перевірте з\'єднання.</td></tr>';
+            }
+        }
+        
         setupFilters();
-        setupMobileMenu();
+        if (typeof setupMobileMenu === 'function') {
+            setupMobileMenu();
+        }
 
         const urlParams = new URLSearchParams(window.location.search);
         const urlGroupId = urlParams.get('groupId');
-        
         if (urlGroupId) {
             const groupFilter = document.getElementById('groupFilter');
             if (groupFilter) groupFilter.value = urlGroupId;
             filterStudents();
-        } else {
-            renderStudents(allStudents);
         }
     } catch (err) {
         console.error('Критична помилка ініціалізації:', err);
@@ -76,15 +91,14 @@ function loadUserInfo() {
 async function loadGroups() {
     try {
         allGroups = await groupsAPI.getAll();
+        console.log('Завантажено груп:', allGroups.length);
 
-        // Заповнюємо вибір групи у модальному вікні
         const select = document.getElementById('groupId');
         if (select) {
             select.innerHTML = '<option value="">Без групи</option>' +
                 allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
         }
 
-        // Заповнюємо фільтр груп у заголовку
         const filterSelect = document.getElementById('groupFilter');
         if (filterSelect) {
             filterSelect.innerHTML = '<option value="">Всі групи</option>' +
@@ -92,24 +106,28 @@ async function loadGroups() {
         }
     } catch (error) {
         console.error('Error loading groups:', error);
+        allGroups = [];
     }
 }
 
 async function loadTrainers() {
     try {
         allTrainers = await trainersAPI.getAll();
+        console.log('Завантажено тренерів:', allTrainers.length);
     } catch (error) {
         console.error('Error loading trainers:', error);
+        allTrainers = [];
     }
 }
 
 async function loadStudents() {
     try {
         allStudents = await studentsAPI.getAll();
+        console.log('Завантажено учнів:', allStudents.length);
     } catch (error) {
         console.error('Error loading students:', error);
-        document.getElementById('studentsTable').innerHTML =
-            '<tr><td colspan="8" class="text-center">Помилка завантаження даних</td></tr>';
+        allStudents = [];
+        throw error;
     }
 }
 
@@ -129,7 +147,7 @@ function renderStudents(students) {
         <tr>
             <td>${student.first_name} ${student.last_name}</td>
             <td>${formatDate(student.birth_date)}</td>
-            <td>${student.phone_parent}</td>
+            <td>${student.phone_parent || '-'}</td>
             <td>${group ? group.name : '-'}</td>
             <td>${trainer ? `${trainer.first_name} ${trainer.last_name}` : '-'}</td>
             <td>
@@ -172,17 +190,22 @@ function setupFilters() {
     const statusFilter = document.getElementById('statusFilter');
     const insuranceFilter = document.getElementById('insuranceFilter'); // Додайте цей елемент в HTML
 
-    searchInput.addEventListener('input', filterStudents);
-    groupFilter.addEventListener('change', filterStudents);
-    statusFilter.addEventListener('change', filterStudents);
+    if (searchInput) searchInput.addEventListener('input', filterStudents);
+    if (groupFilter) groupFilter.addEventListener('change', filterStudents);
+    if (statusFilter) statusFilter.addEventListener('change', filterStudents);
     if (insuranceFilter) insuranceFilter.addEventListener('change', filterStudents);
 }
 
 function filterStudents() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const groupId = document.getElementById('groupFilter').value;
-    const status = document.getElementById('statusFilter').value;
-    const insuranceExpiring = document.getElementById('insuranceFilter')?.checked;
+    const searchInput = document.getElementById('searchInput');
+    const groupFilter = document.getElementById('groupFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const insuranceFilter = document.getElementById('insuranceFilter');
+    
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const groupId = groupFilter ? groupFilter.value : '';
+    const status = statusFilter ? statusFilter.value : '';
+    const insuranceExpiring = insuranceFilter ? insuranceFilter.checked : false;
 
     let filtered = allStudents;
 
