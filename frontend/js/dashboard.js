@@ -15,13 +15,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function loadUserInfo() {
     const user = getUser();
-    if (user) {
-        const nameEl = document.getElementById('userName');
-        const roleEl = document.getElementById('userRoleDisplay');
-        
-        if (nameEl) nameEl.textContent = user.full_name;
-        if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
-    }
+    const nameEl = document.getElementById('userName');
+    const roleEl = document.getElementById('userRoleDisplay');
+
+    if (user && nameEl) nameEl.textContent = user.full_name;
+    if (user && roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
 }
 
 function setCurrentDate() {
@@ -32,7 +30,8 @@ function setCurrentDate() {
         day: 'numeric'
     };
     const dateStr = new Date().toLocaleDateString('uk-UA', options);
-    document.getElementById('currentDate').textContent = dateStr;
+    const dateEl = document.getElementById('currentDate');
+    if (dateEl) dateEl.textContent = dateStr;
 }
 
 async function loadDashboardStats() {
@@ -40,24 +39,34 @@ async function loadDashboardStats() {
         const stats = await statsAPI.getDashboard();
 
         // Update stat cards
-        document.getElementById('totalStudents').textContent = stats.total_students;
-        document.getElementById('activeStudents').textContent = stats.active_students;
-        document.getElementById('todayAttendance').textContent = stats.today_attendance;
-        document.getElementById('studentsWithDebts').textContent = stats.students_with_debts;
+        const elements = {
+            'totalStudents': stats.total_students,
+            'activeStudents': stats.active_students,
+            'todayAttendance': stats.today_attendance,
+            'studentsWithDebts': stats.students_with_debts
+        };
+
+        Object.entries(elements).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        });
 
         // Show alerts if needed
-        if (stats.expiring_subscriptions > 0) {
-            document.getElementById('expiringSubscriptions').style.display = 'flex';
-            document.getElementById('expiringSubs').textContent = stats.expiring_subscriptions;
+        const expSubsEl = document.getElementById('expiringSubscriptions');
+        if (expSubsEl && stats.expiring_subscriptions > 0) {
+            expSubsEl.style.display = 'flex';
+            const countEl = document.getElementById('expiringSubs');
+            if (countEl) countEl.textContent = stats.expiring_subscriptions;
         }
 
         const expiredIns = stats.expired_insurance || 0;
         const expiringIns = stats.expiring_insurance || 0;
 
-        if (expiredIns > 0 || expiringIns > 0) {
-            const insAlert = document.getElementById('expiringInsurance');
+        const insAlert = document.getElementById('expiringInsurance');
+        if (insAlert && (expiredIns > 0 || expiringIns > 0)) {
             insAlert.style.display = 'flex';
-            document.getElementById('expiringIns').innerHTML = 
+            const insTextEl = document.getElementById('expiringIns');
+            if (insTextEl) insTextEl.innerHTML = 
                 `Прострочено: <strong class="text-danger">${expiredIns}</strong>, закінчуються: <strong class="text-warning">${expiringIns}</strong>`;
         }
     } catch (error) {
@@ -96,33 +105,6 @@ async function loadAttendanceStats() {
             '<tr><td colspan="6" class="text-center">Помилка завантаження даних</td></tr>';
     }
 }
-
-function setupMobileMenu() {
-    const toggle = document.getElementById('mobileToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-
-    if (toggle && sidebar && overlay) {
-        const toggleMenu = () => {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        };
-
-        toggle.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
-        
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                }
-            });
-        });
-    }
-}
-
-
 function logout() {
     if (confirm('Ви впевнені, що хочете вийти?')) {
         authAPI.logout();
