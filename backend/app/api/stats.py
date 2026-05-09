@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, distinct
 from typing import List
 from datetime import date, timedelta
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.models.models import Student, Attendance, Payment, Subscription, Insurance, User, Group
+from app.models.models import Student, Attendance, Payment, Subscription, Insurance, User
 from app.schemas.schemas import DashboardStats, AttendanceStats
 
 router = APIRouter(prefix="/api/stats", tags=["Statistics"])
@@ -72,7 +72,9 @@ async def get_dashboard_stats(
                 Student.group.has(Group.trainer_id == trainer_id)
             )
         )
-    students_with_debts = debts_query.distinct(Payment.student_id).count()
+    # Коректний підрахунок унікальних студентів-боржників
+    students_with_debts = db.query(func.count(distinct(Payment.student_id))).\
+        select_entity_from(debts_query.subquery()).scalar() or 0
 
     # Абонементи, що закінчуються (менше 3 занять або закінчуються через 7 днів)
     week_later = today + timedelta(days=7)
@@ -82,10 +84,7 @@ async def get_dashboard_stats(
     )
     if trainer_id:
         expiring_subs_query = expiring_subs_query.join(Student).filter(
-            or_(
-                Student.trainer_id == trainer_id,
-                Student.group.has(Group.trainer_id == trainer_id)
-            )
+            Student.trainer_id == trainer_id
         )
     expiring_subscriptions = expiring_subs_query.count()
 
@@ -98,12 +97,7 @@ async def get_dashboard_stats(
         Student.insurance_end < today
     )
     if trainer_id:
-        expired_ins_query = expired_ins_query.filter(
-            or_(
-                Student.trainer_id == trainer_id,
-                Student.group.has(Group.trainer_id == trainer_id)
-            )
-        )
+        expired_ins_query = expired_ins_query.filter(Student.trainer_id == trainer_id)
     expired_insurance = expired_ins_query.count()
 
     # Закінчуються протягом 30 днів (Expiring)
@@ -113,12 +107,7 @@ async def get_dashboard_stats(
         Student.insurance_end <= month_later
     )
     if trainer_id:
-        expiring_ins_query = expiring_ins_query.filter(
-            or_(
-                Student.trainer_id == trainer_id,
-                Student.group.has(Group.trainer_id == trainer_id)
-            )
-        )
+        expiring_ins_query = expiring_ins_query.filter(Student.trainer_id == trainer_id)
     expiring_insurance = expiring_ins_query.count()
 
     return DashboardStats(
@@ -154,14 +143,9 @@ async def get_attendance_stats(
 
         # Якщо тренер, показуємо тільки його учнів
         if current_user.role == "trainer":
-            if current_user.trainer:
-                trainer_id = current_user.trainer.id
-                query = query.filter(
-                    or_(
-                        Student.trainer_id == trainer_id,
-                        Student.group.has(Group.trainer_id == trainer_id)
-                    )
-                )
+            trainer = db.query(User).filter(User.id == current_user.id).first()
+            if trainer and trainer.trainer:
+                query = query.filter(Student.trainer_id == trainer.trainer.id)
 
         stats = query.order_by(func.coalesce(func.count(Attendance.id), 0).desc()).limit(limit).all()
 

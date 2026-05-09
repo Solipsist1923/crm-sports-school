@@ -25,9 +25,7 @@ function loadUserInfo() {
         const nameEl = document.getElementById('userName');
         const roleEl = document.getElementById('userRoleDisplay');
 
-        if (nameEl && user.full_name) {
-            nameEl.textContent = user.full_name;
-        }
+        if (nameEl) nameEl.textContent = user.full_name || 'Користувач';
         if (roleEl) {
             roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
         }
@@ -83,7 +81,7 @@ async function loadDashboardStats() {
         }
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
-        showError('Помилка завантаження статистики');
+        showNotification('Помилка завантаження статистики', 'error');
     }
 }
 
