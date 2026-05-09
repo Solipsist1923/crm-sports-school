@@ -4,6 +4,7 @@ let allStudents = [];
 let allPayments = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+    showSpinner();
     requireAuth();
     loadUserInfo();
 
@@ -11,10 +12,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('paymentDate').value = today;
 
-    await loadStudents();
-    await loadPayments();
-    setupFilters();
-    setupMobileMenu();
+    await Promise.all([
+        loadStudents(),
+        loadPayments()
+    ]).then(() => {
+        setupFilters();
+        setupMobileMenu();
+    }).finally(() => {
+        hideSpinner();
+    });
 });
 
 function loadUserInfo() {

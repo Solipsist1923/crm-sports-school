@@ -13,6 +13,7 @@ let allUsers = []; // Зберігаємо список для швидкого 
 
 // Завантаження користувачів
 async function loadUsers() {
+    showSpinner();
     try {
         console.log('Fetching users...');
         const response = await apiRequest('/api/users');
@@ -62,6 +63,9 @@ async function loadUsers() {
             errorMsg = 'Помилка 500: Проблема з базою даних на сервері';
         }
         showNotification(errorMsg, 'error');
+    }
+    finally {
+        hideSpinner();
     }
 }
 
@@ -199,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
     checkUserRole();
     loadUsers();
     loadUserInfo();
+    // setupMobileMenu() is called here, but it's defined below. This will be fixed by moving setupMobileMenu to utils.js
     setupMobileMenu();
 
     // Обробка зміни ролі

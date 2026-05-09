@@ -1,6 +1,7 @@
 // Dashboard Page Logic
 
 document.addEventListener('DOMContentLoaded', async () => {
+    showSpinner();
     // Check authentication
     requireAuth();
 
@@ -11,11 +12,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     setCurrentDate();
 
     // Паралельний запуск статистики
-    Promise.all([
+    await Promise.all([
         loadDashboardStats(),
         loadAttendanceStats()
     ]).then(() => {
         setupMobileMenu();
+    }).finally(() => {
+        hideSpinner();
     });
 });
 

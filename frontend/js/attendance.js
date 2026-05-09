@@ -4,6 +4,7 @@ let allStudents = [];
 let allAttendance = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+    showSpinner();
     requireAuth();
     loadUserInfo();
 
@@ -12,9 +13,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('attendanceDate').value = today;
     document.getElementById('attendanceDate2').value = today;
 
-    await loadStudents();
-    await loadAttendance();
-    setupMobileMenu();
+    await Promise.all([
+        loadStudents(),
+        loadAttendance()
+    ]).then(() => {
+        setupMobileMenu();
+    }).finally(() => {
+        hideSpinner();
+    });
 
     // Date filter
     document.getElementById('attendanceDate').addEventListener('change', loadAttendance);

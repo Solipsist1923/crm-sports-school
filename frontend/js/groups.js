@@ -5,13 +5,20 @@ let allStudents = [];
 let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+    showSpinner();
     requireAuth();
     loadUserInfo();
-    await loadTrainers();
-    await loadStudents();
-    await loadGroups();
-    setupScheduleBuilder();
-    setupMobileMenu();
+    // Запускаємо всі запити паралельно
+    await Promise.all([
+        loadTrainers(),
+        loadStudents(),
+        loadGroups()
+    ]).then(() => {
+        setupScheduleBuilder();
+        setupMobileMenu();
+    }).finally(() => {
+        hideSpinner();
+    });
 });
 
 function loadUserInfo() {

@@ -5,16 +5,19 @@ let allGroups = [];
 let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+    showSpinner();
     requireAuth();
     loadUserInfo();
     // Паралельний запуск
-    Promise.all([
+    await Promise.all([
         loadGroups(),
         loadTrainers(),
         loadStudents()
     ]).then(() => {
         setupFilters();
         setupMobileMenu();
+    }).finally(() => {
+        hideSpinner();
     });
 });
 

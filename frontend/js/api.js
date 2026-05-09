@@ -1,5 +1,17 @@
 // API Helper Functions
 
+// Перевірка доступності localStorage (для Safari Private Mode)
+function isLocalStorageAvailable() {
+    try {
+        const test = '__storage_test__';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 // Get token from localStorage
 function getToken() {
     return localStorage.getItem(TOKEN_KEY);
@@ -47,6 +59,10 @@ async function refreshAccessToken() {
     if (!refreshToken) throw new Error('Відсутній токен оновлення');
 
     try {
+        if (!isLocalStorageAvailable()) {
+            throw new Error('LocalStorage недоступний (можливо, приватний режим Safari)');
+        }
+
         const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -61,6 +77,7 @@ async function refreshAccessToken() {
         return data.access_token;
     } catch (error) {
         console.error('Помилка оновлення сесії:', error);
+        showNotification('Сесія закінчилася. Будь ласка, увійдіть знову.', 'error');
         removeToken();
         window.location.href = 'login.html';
         throw error;
@@ -77,6 +94,10 @@ async function apiRequest(endpoint, options = {}) {
     };
 
     if (token) {
+        if (!isLocalStorageAvailable()) {
+            showNotification('LocalStorage недоступний. Будь ласка, вимкніть приватний режим.', 'error');
+            throw new Error('LocalStorage недоступний');
+        }
         headers['Authorization'] = `Bearer ${token}`;
     }
 
