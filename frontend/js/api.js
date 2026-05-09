@@ -86,19 +86,17 @@ async function apiRequest(endpoint, options = {}) {
             headers
         });
 
-        // Якщо токен прострочений (401) і ми ще не пробували його оновити
-        if (response.status === 401 && !options._retry) {
+        // Якщо 401 і це НЕ запит на авторизацію/оновлення
+        if (response.status === 401 && !options._retry && !endpoint.includes('/auth/')) {
             options._retry = true;
             try {
                 const newAccessToken = await refreshAccessToken();
-                // Повторюємо запит з новим токеном
                 const retryHeaders = {
                     ...headers,
                     'Authorization': `Bearer ${newAccessToken}`
                 };
                 return await apiRequest(endpoint, { ...options, headers: retryHeaders });
             } catch (refreshError) {
-                // Якщо оновлення не вдалося - перенаправляємо на вхід
                 return;
             }
         }
@@ -108,7 +106,14 @@ async function apiRequest(endpoint, options = {}) {
             return null;
         }
 
-        const data = await response.json();
+        // Безпечний парсинг JSON
+        let data;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            data = await response.json();
+        } else {
+            data = { detail: await response.text() || response.statusText };
+        }
 
         if (!response.ok) {
             throw new Error(data.detail || 'Request failed');
