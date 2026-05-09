@@ -9,34 +9,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         requireAuth();
         loadUserInfo();
         
+        // Ініціалізуємо меню негайно, не чекаючи завантаження даних
+        if (typeof setupMobileMenu === 'function') {
+            setupMobileMenu();
+        }
+        
         // Показуємо індикатор завантаження
         const tbody = document.getElementById('studentsTable');
         if (tbody) {
             tbody.innerHTML = '<tr><td colspan="8" class="text-center">Завантаження...</td></tr>';
         }
         
-        // Завантажуємо дані з обробкою помилок (allSettled краще для Safari)
+        // Завантажуємо дані паралельно з обробкою кожного результату окремо
         const results = await Promise.allSettled([
             loadGroups(),
             loadTrainers(),
             loadStudents()
         ]);
         
-        // Перевіряємо чи завантажився список учнів
+        // Відображаємо учнів, навіть якщо групи або тренери не завантажились
         const studentsResult = results[2];
         if (studentsResult.status === 'fulfilled') {
             renderStudents(allStudents);
         } else {
-            console.error('Помилка завантаження учнів:', studentsResult.reason);
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Помилка завантаження даних. Перевірте з\'єднання.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Помилка завантаження учнів.</td></tr>';
             }
         }
         
         setupFilters();
-        if (typeof setupMobileMenu === 'function') {
-            setupMobileMenu();
-        }
 
         const urlParams = new URLSearchParams(window.location.search);
         const urlGroupId = urlParams.get('groupId');

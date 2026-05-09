@@ -9,16 +9,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         requireAuth();
         loadUserInfo();
         
-        await Promise.all([
+        // Налаштовуємо меню відразу
+        setupMobileMenu();
+        
+        // Чекаємо завантаження даних, але продовжуємо навіть при помилці в одному з них
+        await Promise.allSettled([
             loadTrainers(),
             loadStudents(),
             loadGroups()
         ]);
         
-        // Рендеримо групи тільки після того як завантажились і тренери, і студенти
+        // Малюємо те, що вдалося завантажити
         renderGroups(allGroups);
         setupScheduleBuilder();
-        setupMobileMenu();
     } catch (err) {
         console.error('Помилка ініціалізації сторінки груп:', err);
     }

@@ -5,13 +5,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         requireAuth();
         loadUserInfo();
         setCurrentDate();
+        
+        setupMobileMenu();
 
-        await Promise.all([
+        await Promise.allSettled([
             loadDashboardStats(),
             loadAttendanceStats()
         ]);
-        
-        setupMobileMenu();
     } catch (err) {
         console.error('Помилка дашборду:', err);
     }
