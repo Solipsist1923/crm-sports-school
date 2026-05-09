@@ -29,12 +29,10 @@ async def get_groups(
 
     # Якщо тренер, показуємо тільки його групи
     if current_user.role == "trainer":
-        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
-        if trainer_profile:
-            query = query.filter(Group.trainer_id == trainer_profile.id)
-        else:
-            # Якщо тренер не має профілю тренера, він не бачить жодної групи
+        if not current_user.trainer:
             return []
+        
+        query = query.filter(Group.trainer_id == current_user.trainer.id)
 
     groups = query.offset(skip).limit(limit).all()
     return groups

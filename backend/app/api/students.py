@@ -58,11 +58,17 @@ async def get_students(
 
     # Якщо користувач тренер, показуємо тільки його учнів
     if current_user.role == "trainer":
-        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
-        if trainer_profile:
-            query = query.filter(Student.trainer_id == trainer_profile.id)
-        else:
+        if not current_user.trainer:
+            # Якщо запис у таблиці trainers відсутній для цього користувача
             return []
+        
+        trainer_id = current_user.trainer.id
+        query = query.filter(
+            or_(
+                Student.trainer_id == trainer_id,
+                Student.group.has(Group.trainer_id == trainer_id)
+            )
+        )
 
     students = query.offset(skip).limit(limit).all()
     return students

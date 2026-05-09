@@ -21,17 +21,20 @@ async def get_dashboard_stats(
 
     # Отримуємо trainer_id якщо користувач тренер
     trainer_id = None
-    if current_user.role == "trainer":
-        trainer = db.query(User).filter(User.id == current_user.id).first()
-        if trainer and trainer.trainer:
-            trainer_id = trainer.trainer.id
+    if current_user.role == "trainer" and current_user.trainer:
+        trainer_id = current_user.trainer.id
 
     # Базовий запит для учнів
     students_query = db.query(Student)
 
     # Якщо тренер, показуємо тільки його учнів
     if trainer_id:
-        students_query = students_query.filter(Student.trainer_id == trainer_id)
+        students_query = students_query.filter(
+            or_(
+                Student.trainer_id == trainer_id,
+                Student.group.has(Group.trainer_id == trainer_id)
+            )
+        )
 
     # Загальна кількість учнів
     total_students = students_query.count()
