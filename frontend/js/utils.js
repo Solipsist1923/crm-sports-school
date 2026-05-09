@@ -1,3 +1,43 @@
+// Спільні утиліти для всього проекту
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? '-' : date.toLocaleDateString('uk-UA');
+}
+
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? '-' : date.toLocaleString('uk-UA');
+}
+
+function getInsuranceStatus(endDate) {
+    if (!endDate) return { class: 'status-danger', icon: 'fa-exclamation-circle' };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dateStr = endDate.includes('T') ? endDate : `${endDate}T00:00:00`;
+    const expDate = new Date(dateStr);
+    expDate.setHours(0, 0, 0, 0);
+    const diffTime = expDate - today;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0) return { class: 'status-danger', icon: 'fa-exclamation-circle' };
+    if (diffDays <= 30) return { class: 'status-warning', icon: 'fa-exclamation-triangle' };
+    return { class: 'status-success', icon: 'fa-shield-alt' };
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `position:fixed;top:20px;right:20px;padding:15px 20px;background:${type==='success'?'#10b981':type==='error'?'#ef4444':'#3b82f6'};color:white;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:10000;animation:slideIn 0.3s ease;`;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
 function setupMobileMenu() {
     const toggle = document.getElementById('mobileToggle');
     const sidebar = document.querySelector('.sidebar');

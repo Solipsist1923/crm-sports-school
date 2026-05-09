@@ -79,8 +79,9 @@ async function loadGroups() {
 
 function renderGroups(groups) {
     const grid = document.getElementById('groupsGrid');
+    if (!grid) return;
 
-    if (groups.length === 0) {
+    if (!groups || groups.length === 0) {
         grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">Немає груп</div>';
         return;
     }

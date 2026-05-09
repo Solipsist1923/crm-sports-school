@@ -332,26 +332,6 @@ const trainersAPI = {
 };
 
 // Utility Functions
-function formatDate(date) {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleDateString('uk-UA');
-}
-
-function formatDateTime(date) {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleString('uk-UA');
-}
-
-function showError(message) {
-    alert(message);
-}
-
-function showSuccess(message) {
-    alert(message);
-}
-
 // Show users menu for admin
 function showUsersMenuForAdmin() {
     const user = getUser();
