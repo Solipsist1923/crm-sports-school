@@ -65,8 +65,14 @@ function renderGroups(groups) {
         return;
     }
 
+    // Створюємо мапу кількості учнів заздалегідь (це швидше)
+    const studentCounts = allStudents.reduce((acc, s) => {
+        if (s.group_id) acc[s.group_id] = (acc[s.group_id] || 0) + 1;
+        return acc;
+    }, {});
+
     grid.innerHTML = groups.map(group => {
-        const studentsInGroup = allStudents.filter(s => s.group_id === group.id).length;
+        const studentsInCount = studentCounts[group.id] || 0;
         const trainer = allTrainers.find(t => t.id === group.trainer_id);
         const trainerName = trainer ? `${trainer.first_name} ${trainer.last_name}` : 'Не призначено';
 

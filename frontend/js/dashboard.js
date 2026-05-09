@@ -10,10 +10,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Set current date
     setCurrentDate();
 
-    // Load dashboard data
-    await loadDashboardStats();
-    await loadAttendanceStats();
-    setupMobileMenu();
+    // Паралельний запуск статистики
+    Promise.all([
+        loadDashboardStats(),
+        loadAttendanceStats()
+    ]).then(() => {
+        setupMobileMenu();
+    });
 });
 
 function loadUserInfo() {

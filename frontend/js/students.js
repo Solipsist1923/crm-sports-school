@@ -7,11 +7,15 @@ let allTrainers = [];
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth();
     loadUserInfo();
-    await loadGroups();
-    await loadTrainers();
-    await loadStudents();
-    setupFilters();
-    setupMobileMenu();
+    // Паралельний запуск
+    Promise.all([
+        loadGroups(),
+        loadTrainers(),
+        loadStudents()
+    ]).then(() => {
+        setupFilters();
+        setupMobileMenu();
+    });
 });
 
 // Функція розрахунку статусу страховки

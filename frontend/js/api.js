@@ -109,11 +109,13 @@ async function apiRequest(endpoint, options = {}) {
         // Безпечний парсинг JSON
         let data;
         const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-            data = await response.json();
-        } else {
-            data = { detail: await response.text() || response.statusText };
-        }
+        try {
+            if (contentType && contentType.includes("application/json")) {
+                data = await response.json();
+            } else {
+                data = { detail: await response.text() || response.statusText };
+            }
+        } catch (e) { data = { detail: "Error parsing response" }; }
 
         if (!response.ok) {
             throw new Error(data.detail || 'Request failed');
