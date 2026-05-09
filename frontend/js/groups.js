@@ -6,19 +6,21 @@ let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     showSpinner();
-    requireAuth();
-    loadUserInfo();
-    // Запускаємо всі запити паралельно
-    await Promise.all([
-        loadTrainers(),
-        loadStudents(),
-        loadGroups()
-    ]).then(() => {
+    try {
+        requireAuth();
+        loadUserInfo();
+        await Promise.all([
+            loadTrainers(),
+            loadStudents(),
+            loadGroups()
+        ]);
         setupScheduleBuilder();
         setupMobileMenu();
-    }).finally(() => {
+    } catch (error) {
+        console.error('Initialization error:', error);
+    } finally {
         hideSpinner();
-    });
+    }
 });
 
 function loadUserInfo() {
@@ -102,7 +104,7 @@ function renderGroups(groups) {
                     </div>
                     <div class="info-item">
                         <i class="fas fa-users"></i>
-                        <span>Учнів: ${studentsInGroup} / ${group.max_students}</span>
+                        <span>Учнів: ${studentsInCount} / ${group.max_students}</span>
                     </div>
                 </div>
                 <div class="group-actions">

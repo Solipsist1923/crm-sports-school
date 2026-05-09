@@ -6,19 +6,21 @@ let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     showSpinner();
-    requireAuth();
-    loadUserInfo();
-    // Паралельний запуск
-    await Promise.all([
-        loadGroups(),
-        loadTrainers(),
-        loadStudents()
-    ]).then(() => {
+    try {
+        requireAuth();
+        loadUserInfo();
+        await Promise.all([
+            loadGroups(),
+            loadTrainers(),
+            loadStudents()
+        ]);
         setupFilters();
         setupMobileMenu();
-    }).finally(() => {
+    } catch (error) {
+        console.error('Initialization error:', error);
+    } finally {
         hideSpinner();
-    });
+    }
 });
 
 // Функція розрахунку статусу страховки
@@ -41,13 +43,18 @@ function getInsuranceStatus(endDate) {
 }
 
 function loadUserInfo() {
-    const user = getUser();
-    if (user) {
-        const nameEl = document.getElementById('userName');
-        const roleEl = document.getElementById('userRoleDisplay');
-        
-        if (nameEl) nameEl.textContent = user.full_name;
-        if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+    try {
+        const user = getUser();
+        if (user) {
+            const nameEl = document.getElementById('userName');
+            const roleEl = document.getElementById('userRoleDisplay');
+            
+            if (nameEl) nameEl.textContent = user.full_name;
+            if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+            console.log('User info loaded successfully');
+        }
+    } catch (error) {
+        console.error('Error loading user info:', error);
     }
 }
 
@@ -166,31 +173,6 @@ function setupFilters() {
     groupFilter.addEventListener('change', filterStudents);
     statusFilter.addEventListener('change', filterStudents);
     if (insuranceFilter) insuranceFilter.addEventListener('change', filterStudents);
-}
-
-function setupMobileMenu() {
-    const toggle = document.getElementById('mobileToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-
-    if (toggle && sidebar && overlay) {
-        const toggleMenu = () => {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        };
-
-        toggle.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
-        
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                }
-            });
-        });
-    }
 }
 
 function filterStudents() {
