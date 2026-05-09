@@ -109,6 +109,7 @@ async function loadStudents() {
     try {
         allStudents = await studentsAPI.getAll();
         console.log('Завантажено учнів:', allStudents.length);
+        return allStudents;
     } catch (error) {
         console.error('Error loading students:', error);
         allStudents = [];
@@ -310,7 +311,8 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         }
 
         closeStudentModal();
-        await loadStudents();
+        const updatedStudents = await loadStudents();
+        renderStudents(updatedStudents);
     } catch (error) {
         console.error('Error saving student:', error);
         alert('Помилка збереження даних');

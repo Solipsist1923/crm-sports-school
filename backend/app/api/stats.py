@@ -154,9 +154,14 @@ async def get_attendance_stats(
 
         # Якщо тренер, показуємо тільки його учнів
         if current_user.role == "trainer":
-            trainer = db.query(User).filter(User.id == current_user.id).first()
-            if trainer and trainer.trainer:
-                query = query.filter(Student.trainer_id == trainer.trainer.id)
+            if current_user.trainer:
+                trainer_id = current_user.trainer.id
+                query = query.filter(
+                    or_(
+                        Student.trainer_id == trainer_id,
+                        Student.group.has(Group.trainer_id == trainer_id)
+                    )
+                )
 
         stats = query.order_by(func.coalesce(func.count(Attendance.id), 0).desc()).limit(limit).all()
 

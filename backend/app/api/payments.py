@@ -79,7 +79,7 @@ async def get_student_payments(
     if current_user.role == "trainer" and current_user.trainer:
         trainer_id = current_user.trainer.id
         is_own_student = db.query(Student).filter(
-            Student.id == payment.student_id,
+            Student.id == student_id,
             or_(
                 Student.trainer_id == trainer_id,
                 Student.group.has(Group.trainer_id == trainer_id)
@@ -106,12 +106,18 @@ async def create_payment(
     student = db.query(Student).filter(Student.id == payment.student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
-
     # Перевірка доступу для тренера
-    if current_user.role == "trainer":
-        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
-        if trainer_profile and student.trainer_id != trainer_profile.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+    if current_user.role == "trainer" and current_user.trainer:
+        trainer_id = current_user.trainer.id
+        is_own_student = db.query(Student).filter(
+            Student.id == payment.student_id,
+            or_(
+                Student.trainer_id == trainer_id,
+                Student.group.has(Group.trainer_id == trainer_id)
+            )
+        ).first()
+        if not is_own_student:
+            raise HTTPException(status_code=403, detail="Ви можете додавати оплату тільки своїм учням")
 
     db_payment = Payment(
         **payment.model_dump(),

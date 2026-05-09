@@ -71,6 +71,7 @@ async function loadStudents() {
 async function loadGroups() {
     try {
         allGroups = await groupsAPI.getAll();
+        return allGroups;
     } catch (error) {
         console.error('Error loading groups:', error);
         document.getElementById('groupsGrid').innerHTML =
@@ -290,7 +291,8 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
         }
 
         closeGroupModal();
-        await loadGroups();
+        const updatedGroups = await loadGroups();
+        renderGroups(updatedGroups);
     } catch (error) {
         console.error('Error saving group:', error);
         alert('Помилка збереження даних');

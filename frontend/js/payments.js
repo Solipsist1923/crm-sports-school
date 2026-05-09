@@ -241,7 +241,8 @@ document.getElementById('paymentForm').addEventListener('submit', async (e) => {
         await paymentsAPI.create(paymentData);
         alert('Оплату додано');
         closePaymentModal();
-        await loadPayments();
+        const updatedPayments = await loadPayments();
+        renderPayments(updatedPayments);
     } catch (error) {
         console.error('Error creating payment:', error);
         alert('Помилка: ' + (error.message || 'Не вдалося додати оплату'));
