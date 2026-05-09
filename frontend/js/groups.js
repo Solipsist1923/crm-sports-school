@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadGroups()
         ]);
         
+        // Рендеримо групи тільки після того як завантажились і тренери, і студенти
+        renderGroups(allGroups);
         setupScheduleBuilder();
         setupMobileMenu();
     } catch (err) {
@@ -65,7 +67,6 @@ async function loadStudents() {
 async function loadGroups() {
     try {
         allGroups = await groupsAPI.getAll();
-        renderGroups(allGroups);
     } catch (error) {
         console.error('Error loading groups:', error);
         document.getElementById('groupsGrid').innerHTML =

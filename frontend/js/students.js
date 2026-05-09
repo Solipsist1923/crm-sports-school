@@ -16,8 +16,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadStudents()
         ]);
         
+        // Тільки після того як ВСЕ завантажилось - малюємо
         setupFilters();
         setupMobileMenu();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('groupId')) {
+            filterStudents();
+        } else {
+            renderStudents(allStudents);
+        }
     } catch (err) {
         console.error('Критична помилка ініціалізації:', err);
     }
@@ -94,18 +102,6 @@ async function loadTrainers() {
 async function loadStudents() {
     try {
         allStudents = await studentsAPI.getAll();
-
-        // Перевіряємо, чи передано groupId через URL (наприклад, students.html?groupId=5)
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlGroupId = urlParams.get('groupId');
-
-        if (urlGroupId) {
-            const groupFilter = document.getElementById('groupFilter');
-            if (groupFilter) groupFilter.value = urlGroupId;
-            filterStudents(); // Автоматично фільтруємо список
-        } else {
-            renderStudents(allStudents);
-        }
     } catch (error) {
         console.error('Error loading students:', error);
         document.getElementById('studentsTable').innerHTML =

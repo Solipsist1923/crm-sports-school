@@ -25,9 +25,7 @@ function loadUserInfo() {
         const nameEl = document.getElementById('userName');
         const roleEl = document.getElementById('userRoleDisplay');
 
-        if (nameEl) {
-            nameEl.textContent = user.full_name || 'Користувач';
-        }
+        if (nameEl) nameEl.textContent = user.full_name || 'Користувач';
         if (roleEl) {
             roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
         }
@@ -52,18 +50,16 @@ async function loadDashboardStats() {
     try {
         const stats = await statsAPI.getDashboard();
 
-        // Update stat cards
-        const elements = {
-            'totalStudents': stats.total_students,
-            'activeStudents': stats.active_students,
-            'todayAttendance': stats.today_attendance,
-            'studentsWithDebts': stats.students_with_debts
+        // Оновлюємо картки статистики тільки якщо елементи існують
+        const updateEl = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val !== undefined ? val : 0;
         };
 
-        Object.entries(elements).forEach(([id, value]) => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = value;
-        });
+        updateEl('totalStudents', stats.total_students);
+        updateEl('activeStudents', stats.active_students);
+        updateEl('todayAttendance', stats.today_attendance);
+        updateEl('studentsWithDebts', stats.students_with_debts);
 
         // Show alerts if needed
         const expSubsEl = document.getElementById('expiringSubscriptions');
