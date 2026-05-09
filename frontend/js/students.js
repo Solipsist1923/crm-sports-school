@@ -41,11 +41,13 @@ function getInsuranceStatus(endDate) {
 function loadUserInfo() {
     try {
         const user = getUser();
+        if (!user) return;
+
         const nameEl = document.getElementById('userName');
         const roleEl = document.getElementById('userRoleDisplay');
         
-        if (user && nameEl) nameEl.textContent = user.full_name;
-        if (user && roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+        if (nameEl) nameEl.textContent = user.full_name || 'Користувач';
+        if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
     } catch (error) {
         console.error('Error loading user info:', error);
     }

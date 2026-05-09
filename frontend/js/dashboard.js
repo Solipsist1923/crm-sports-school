@@ -14,12 +14,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function loadUserInfo() {
-    const user = getUser();
-    const nameEl = document.getElementById('userName');
-    const roleEl = document.getElementById('userRoleDisplay');
+    try {
+        const user = getUser();
+        if (!user) return;
+        
+        const nameEl = document.getElementById('userName');
+        const roleEl = document.getElementById('userRoleDisplay');
 
-    if (user && nameEl) nameEl.textContent = user.full_name;
-    if (user && roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+        if (nameEl) nameEl.textContent = user.full_name || 'Користувач';
+        if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+    } catch (err) {
+        console.error('Error loading user info:', err);
+    }
 }
 
 function setCurrentDate() {

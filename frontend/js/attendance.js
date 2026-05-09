@@ -4,7 +4,6 @@ let allStudents = [];
 let allAttendance = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    showSpinner();
     requireAuth();
     loadUserInfo();
 
@@ -18,8 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadAttendance()
     ]).then(() => {
         setupMobileMenu();
-    }).finally(() => {
-        hideSpinner();
     });
 
     // Date filter
@@ -27,13 +24,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function loadUserInfo() {
-    const user = getUser();
-    if (user) {
+    try {
+        const user = getUser();
+        if (!user) return;
+        
         const nameEl = document.getElementById('userName');
         const roleEl = document.getElementById('userRoleDisplay');
         
-        if (nameEl) nameEl.textContent = user.full_name;
+        if (nameEl) nameEl.textContent = user.full_name || 'Користувач';
         if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+    } catch (err) {
+        console.error('Error loading user info:', err);
     }
 }
 

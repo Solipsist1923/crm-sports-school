@@ -4,7 +4,6 @@ let allStudents = [];
 let allPayments = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    showSpinner();
     requireAuth();
     loadUserInfo();
 
@@ -18,19 +17,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     ]).then(() => {
         setupFilters();
         setupMobileMenu();
-    }).finally(() => {
-        hideSpinner();
     });
 });
 
 function loadUserInfo() {
-    const user = getUser();
-    if (user) {
+    try {
+        const user = getUser();
+        if (!user) return;
+        
         const nameEl = document.getElementById('userName');
         const roleEl = document.getElementById('userRoleDisplay');
         
-        if (nameEl) nameEl.textContent = user.full_name;
+        if (nameEl) nameEl.textContent = user.full_name || 'Користувач';
         if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+    } catch (err) {
+        console.error('Error loading user info:', err);
     }
 }
 
