@@ -68,7 +68,6 @@ class GroupBase(BaseModel):
     name: str
     schedule: Optional[str] = None
     trainer_id: Optional[int] = None
-    max_students: int = 15
 
 class GroupCreate(GroupBase):
     pass
@@ -77,7 +76,6 @@ class GroupUpdate(BaseModel):
     name: Optional[str] = None
     schedule: Optional[str] = None
     trainer_id: Optional[int] = None
-    max_students: Optional[int] = None
     is_active: Optional[bool] = None
 
 class GroupResponse(GroupBase):

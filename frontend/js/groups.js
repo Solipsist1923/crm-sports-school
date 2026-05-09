@@ -118,7 +118,7 @@ function renderGroups(groups) {
                     </div>
                     <div class="info-item">
                         <i class="fas fa-users"></i>
-                        <span>Учнів: ${studentsInCount} / ${group.max_students}</span>
+                        <span>Учнів: ${studentsInCount}</span>
                     </div>
                 </div>
                 <div class="group-actions">
@@ -220,7 +220,6 @@ async function editGroup(id) {
         document.getElementById('groupId').value = group.id;
         document.getElementById('groupName').value = group.name;
         document.getElementById('trainerId').value = group.trainer_id || '';
-        document.getElementById('maxStudents').value = group.max_students;
 
         setScheduleToBuilder(group.schedule);
 
@@ -269,8 +268,7 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
     const groupData = {
         name: document.getElementById('groupName').value,
         schedule: schedule || null,
-        trainer_id: document.getElementById('trainerId').value ? parseInt(document.getElementById('trainerId').value) : null,
-        max_students: parseInt(document.getElementById('maxStudents').value)
+        trainer_id: document.getElementById('trainerId').value ? parseInt(document.getElementById('trainerId').value) : null
     };
 
     try {

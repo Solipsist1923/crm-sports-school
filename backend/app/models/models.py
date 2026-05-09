@@ -45,7 +45,6 @@ class Group(Base):
     name = Column(String(100), nullable=False)
     schedule = Column(Text)
     trainer_id = Column(Integer, ForeignKey("trainers.id", ondelete="SET NULL"))
-    max_students = Column(Integer, default=15)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
