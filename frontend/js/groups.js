@@ -19,17 +19,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function loadUserInfo() {
-    try {
-        const user = getUser();
-        if (!user) return;
-        
-        const nameEl = document.getElementById('userName');
-        const roleEl = document.getElementById('userRoleDisplay');
-        
-        if (nameEl) nameEl.textContent = user.full_name || 'Користувач';
-        if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
-    } catch (err) {
-        console.error('Error loading user info:', err);
+    const user = getUser();
+    if (!user) return;
+
+    const nameEl = document.getElementById('userName');
+    const roleEl = document.getElementById('userRoleDisplay');
+
+    if (nameEl) {
+        nameEl.textContent = user.full_name || 'Користувач';
+    }
+    if (roleEl) {
+        roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
     }
 }
 
