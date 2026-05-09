@@ -63,26 +63,14 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="content-header">
-                <div class="header-left">
-                    <div class="header-title-wrap">
-                        <button class="mobile-toggle" id="mobileToggle">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <h1>Дашборд</h1>
-                    </div>
-                    <p id="currentDate"></p>
-                </div>
-                <div class="header-right">
-                    <div class="user-info">
-                        <i class="fas fa-user-circle"></i>
-                        <div>
-                            <span id="userName">Завантаження...</span>
-                            <small id="userRoleDisplay">...</small>
-                        </div>
-                    </div>
-                    <button onclick="logout()" class="btn-logout">
-                        <i class="fas fa-sign-out-alt"></i> Вийти
+                <div class="header-title-wrap">
+                    <button class="mobile-toggle" id="mobileToggle">
+                        <i class="fas fa-bars"></i>
                     </button>
+                    <h1>Дашборд</h1>
+                </div>
+                <div class="header-actions">
+                    <span class="current-date" id="currentDate"></span>
                 </div>
             </header>
 

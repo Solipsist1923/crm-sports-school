@@ -63,27 +63,16 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="content-header">
-                <div class="header-left">
-                    <div class="header-title-wrap">
-                        <button class="mobile-toggle" id="mobileToggle">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <h1>Учні</h1>
-                    </div>
-                </div>
-                <div class="header-right">
-                    <div class="user-info">
-                        <i class="fas fa-user-circle"></i>
-                        <div>
-                            <span id="userName">Завантаження...</span>
-                            <small id="userRoleDisplay">...</small>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="openAddStudentModal()" style="margin-right: 10px;">
-                        <i class="fas fa-plus"></i>
+                <div class="header-title-wrap">
+                    <button class="mobile-toggle" id="mobileToggle">
+                        <i class="fas fa-bars"></i>
                     </button>
-                    <button onclick="logout()" class="btn-logout">
-                        <i class="fas fa-sign-out-alt"></i> Вийти
+                    <h1>Учні</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openAddStudentModal()">
+                        <i class="fas fa-plus"></i>
+                        Додати учня
                     </button>
                 </div>
             </header>
