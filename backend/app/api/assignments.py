@@ -43,21 +43,23 @@ async def create_assignment(
         raise HTTPException(status_code=400, detail="Не можна призначати заняття на минулу дату")
 
     try:
+        # Створюємо основний запис призначення
         db_assignment = Assignment(
             group_id=data.group_id,
             trainer_id=data.trainer_id,
-            price_id=data.price_id,
-            lesson_date=data.lesson_date,
-            is_subscription=data.is_subscription
+            lesson_date=data.lesson_date
         )
         db.add(db_assignment)
-        db.flush()
+        db.flush() 
 
-        # Додавання учнів через таблицю зв'язку
-        for s_id in data.student_ids:
-            student = db.query(Student).get(s_id)
-            if student:
-                db_assignment.students.append(student)
+        # Зберігаємо учнів та їх вибір оплати в таблицю зв'язку
+        for item in data.students_data:
+            # Додаємо запис у assignment_students з payment_choice
+            db.execute(assignment_students.insert().values(
+                assignment_id=db_assignment.id,
+                student_id=item['student_id'],
+                payment_choice=item['payment_choice']
+            ))
         
         db.commit()
         db.refresh(db_assignment)

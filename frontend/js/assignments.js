@@ -144,8 +144,9 @@ function renderAssignmentsCards(assignments) {
 }
 
 function openAddAssignmentModal() {
+    selectedStudentsForLesson = []; // Скидаємо обраних учнів
+    renderSelectedStudents();
     document.getElementById('assignmentForm').reset();
-    document.getElementById('priceSelectionGroup').style.display = 'none';
     document.getElementById('assignmentModal').classList.add('show');
 }
 
@@ -156,21 +157,22 @@ function closeAssignmentModal() {
 document.getElementById('assignmentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const selectedStudents = Array.from(document.querySelectorAll('input[name="student"]:checked'))
-        .map(cb => parseInt(cb.value));
-
-    if (selectedStudents.length === 0) {
+    if (selectedStudentsForLesson.length === 0) {
         alert('Будь ласка, виберіть хоча б одного учня');
         return;
     }
 
+    // Формуємо дані: список об'єктів {student_id, payment_choice}
+    const studentAssignments = selectedStudentsForLesson.map(s => ({
+        student_id: s.id,
+        payment_choice: s.payment_choice // 'subscription' або ID з прайсу
+    }));
+
     const data = {
         group_id: parseInt(document.getElementById('groupId').value),
         trainer_id: parseInt(document.getElementById('trainerId').value),
-        student_ids: selectedStudents,
-        lesson_date: document.getElementById('lessonDate').value,
-        is_subscription: document.getElementById('isSubscription').checked,
-        price_id: document.getElementById('isSubscription').checked ? null : parseInt(document.getElementById('priceId').value)
+        students_data: studentAssignments, // Відправляємо розширені дані
+        lesson_date: document.getElementById('lessonDate').value
     };
 
     try {
