@@ -37,7 +37,7 @@ async def get_groups(
     groups = query.offset(skip).limit(limit).all()
     return groups
 
-@router.get("{group_id}", response_model=GroupResponse)
+@router.get("/{group_id}", response_model=GroupResponse)
 async def get_group(
     group_id: int,
     db: Session = Depends(get_db),

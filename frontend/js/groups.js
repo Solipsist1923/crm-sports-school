@@ -94,11 +94,11 @@ function setupScheduleBuilder() {
     document.querySelectorAll('.day-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const day = this.value;
-            const timeInput = document.querySelector(`.time-input[data-day="${day}"]`);
-            timeInput.disabled = !this.checked;
-            if (!this.checked) {
-                timeInput.value = '';
-            }
+            const timeInputs = document.querySelectorAll(`.time-input[data-day="${day}"]`);
+            timeInputs.forEach(input => {
+                input.disabled = !this.checked;
+                if (!this.checked) input.value = '';
+            });
         });
     });
 }
@@ -107,9 +107,10 @@ function getScheduleFromBuilder() {
     const schedule = [];
     document.querySelectorAll('.day-checkbox:checked').forEach(checkbox => {
         const day = checkbox.value;
-        const timeInput = document.querySelector(`.time-input[data-day="${day}"]`);
-        if (timeInput.value) {
-            schedule.push(`${day} ${timeInput.value}`);
+        const start = document.querySelector(`.time-input.start-time[data-day="${day}"]`).value;
+        const end = document.querySelector(`.time-input.end-time[data-day="${day}"]`).value;
+        if (start && end) {
+            schedule.push(`${day} ${start}-${end}`);
         }
     });
     return schedule.join(', ');
@@ -125,19 +126,25 @@ function setScheduleToBuilder(scheduleText) {
 
     if (!scheduleText) return;
 
-    // Parse schedule like "Понеділок 16:00, Середа 16:00"
+    // Parse schedule like "Понеділок 16:00-17:30, Середа 16:00-17:30"
     const parts = scheduleText.split(',').map(s => s.trim());
     parts.forEach(part => {
-        const match = part.match(/^(.+?)\s+(\d{2}:\d{2})/);
+        const match = part.match(/^(.+?)\s+(\d{2}:\d{2})(?:-(\d{2}:\d{2}))?/);
         if (match) {
             const day = match[1];
-            const time = match[2];
+            const start = match[2];
+            const end = match[3];
             const checkbox = document.querySelector(`.day-checkbox[value="${day}"]`);
-            const timeInput = document.querySelector(`.time-input[data-day="${day}"]`);
-            if (checkbox && timeInput) {
+            const startInput = document.querySelector(`.time-input.start-time[data-day="${day}"]`);
+            const endInput = document.querySelector(`.time-input.end-time[data-day="${day}"]`);
+            if (checkbox && startInput) {
                 checkbox.checked = true;
-                timeInput.disabled = false;
-                timeInput.value = time;
+                startInput.disabled = false;
+                startInput.value = start;
+                if (endInput && end) {
+                    endInput.disabled = false;
+                    endInput.value = end;
+                }
             }
         }
     });
