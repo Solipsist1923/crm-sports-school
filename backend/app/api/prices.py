@@ -4,12 +4,14 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 from decimal import Decimal
+
 from app.core.database import get_db
 from app.api.auth import get_current_user
 from app.models.models import User, PriceList
 
 router = APIRouter(prefix="/api/prices", tags=["Prices"])
 
+# Схеми даних
 class PriceBase(BaseModel):
     name: str
     price: Decimal
@@ -29,20 +31,28 @@ class PriceResponse(PriceBase):
 
 @router.get("")
 async def get_prices(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(PriceList).filter(PriceList.is_active == True).all()
+    """Отримання списку послуг"""
+    return db.query(PriceList).filter(PriceList.is_active == True).order_at(PriceList.id).all()
 
 @router.post("", response_model=PriceResponse, status_code=201)
 async def create_price(price: PriceCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Створення нової послуги (адмін)"""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Тільки адміністратор може редагувати прайс")
-    db_price = PriceList(**price.model_dump())
-    db.add(db_price)
-    db.commit()
-    db.refresh(db_price)
-    return db_price
+    
+    try:
+        db_price = PriceList(**price.model_dump())
+        db.add(db_price)
+        db.commit()
+        db.refresh(db_price)
+        return db_price
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Помилка збереження: {str(e)}")
 
 @router.put("/{price_id}", response_model=PriceResponse)
 async def update_price(price_id: int, price_update: PriceCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Оновлення послуги (адмін)"""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Тільки адміністратор може редагувати прайс")
     
@@ -50,15 +60,19 @@ async def update_price(price_id: int, price_update: PriceCreate, db: Session = D
     if not db_price:
         raise HTTPException(status_code=404, detail="Service not found")
         
-    for key, value in price_update.model_dump().items():
-        setattr(db_price, key, value)
-        
-    db.commit()
-    db.refresh(db_price)
-    return db_price
+    try:
+        for key, value in price_update.model_dump().items():
+            setattr(db_price, key, value)
+        db.commit()
+        db.refresh(db_price)
+        return db_price
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Помилка оновлення: {str(e)}")
 
 @router.delete("/{price_id}", status_code=204)
 async def delete_price(price_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Видалення послуги (адмін)"""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Тільки адміністратор може видаляти")
     
@@ -66,6 +80,10 @@ async def delete_price(price_id: int, db: Session = Depends(get_db), current_use
     if not db_price:
         raise HTTPException(status_code=404, detail="Service not found")
         
-    db.delete(db_price)
-    db.commit()
-    return None
+    try:
+        db.delete(db_price)
+        db.commit()
+        return None
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Помилка видалення: {str(e)}")
