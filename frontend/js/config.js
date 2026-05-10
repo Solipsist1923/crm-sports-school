@@ -1,5 +1,5 @@
 // API Configuration - FORCE HTTPS
-const API_BASE_URL = window.location.origin; // Автоматично бере https і правильний домен
+const API_BASE_URL = ''; // Використовуємо відносні шляхи для усунення помилок Mixed Content
 
 console.log('API_BASE_URL:', API_BASE_URL);
 
