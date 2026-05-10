@@ -249,10 +249,10 @@ const attendanceAPI = {
 // Price List API (Крок 2: Каталог послуг)
 const pricesAPI = {
     async getAll() {
-        return await apiRequest('/api/prices/');
+        return await apiRequest('/api/prices');
     },
     async create(priceData) {
-        return await apiRequest('/api/prices/', {
+        return await apiRequest('/api/prices', {
             method: 'POST',
             body: JSON.stringify(priceData)
         });
