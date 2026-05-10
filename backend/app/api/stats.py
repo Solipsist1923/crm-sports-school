@@ -34,12 +34,6 @@ async def get_dashboard_stats(
         Attendance.status == "present"
     ).count()
 
-    # Учні з боргами (унікальні студенти)
-    students_with_debts = db.query(func.count(distinct(Payment.student_id))).filter(
-        Payment.next_payment_date < today,
-        Payment.status != "paid"
-    ).scalar() or 0
-
     # Абонементи, що закінчуються (менше 3 занять або закінчуються через 7 днів)
     week_later = today + timedelta(days=7)
     expiring_subs_query = db.query(Subscription).filter(
@@ -72,7 +66,7 @@ async def get_dashboard_stats(
         active_students=active_students,
         total_groups=total_groups,
         today_attendance=today_attendance,
-        students_with_debts=students_with_debts,
+        students_with_debts=0,
         expiring_subscriptions=expiring_subscriptions,
         expiring_insurance=expiring_insurance,
         expired_insurance=expired_insurance

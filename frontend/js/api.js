@@ -300,43 +300,6 @@ const subscriptionsAPI = {
     }
 };
 
-// Payments API
-const paymentsAPI = {
-    async getAll(params = {}) {
-        const searchParams = new URLSearchParams(params).toString();
-        const endpoint = searchParams ? `/api/payments/?${searchParams}` : '/api/payments/';
-        return await apiRequest(endpoint);
-    },
-
-    async getOverdue() {
-        return await apiRequest('/api/payments/overdue');
-    },
-
-    async getByStudent(studentId) {
-        return await apiRequest(`/api/payments/student/${studentId}`);
-    },
-
-    async create(payment) {
-        return await apiRequest('/api/payments', {
-            method: 'POST',
-            body: JSON.stringify(payment)
-        });
-    },
-
-    async update(id, payment) {
-        return await apiRequest(`/api/payments/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(payment)
-        });
-    },
-
-    async delete(id) {
-        return await apiRequest(`/api/payments/${id}`, {
-            method: 'DELETE'
-        });
-    }
-};
-
 // Stats API
 const statsAPI = {
     async getDashboard() {

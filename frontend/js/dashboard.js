@@ -46,9 +46,6 @@ async function loadDashboardStats() {
         updateEl('totalStudents', stats.total_students);
         updateEl('activeStudents', stats.active_students);
         updateEl('todayAttendance', stats.today_attendance);
-        updateEl('studentsWithDebts', stats.students_with_debts);
-
-        // Show alerts if needed
         const expSubsEl = document.getElementById('expiringSubscriptions');
         if (expSubsEl && stats.expiring_subscriptions > 0) {
             expSubsEl.style.display = 'flex';
