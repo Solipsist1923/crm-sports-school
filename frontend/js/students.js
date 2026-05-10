@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Показуємо індикатор завантаження
         const tbody = document.getElementById('studentsTable');
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center">Завантаження...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Завантаження...</td></tr>';
         }
         
         // Завантажуємо дані паралельно з обробкою кожного результату окремо
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderStudents(allStudents);
         } else {
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Помилка завантаження учнів.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Помилка завантаження учнів.</td></tr>';
             }
         }
         
@@ -56,7 +56,7 @@ function renderStudents(students) {
     const tbody = document.getElementById('studentsTable');
 
     if (students.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center">Немає учнів</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Немає учнів</td></tr>';
         return;
     }
 
