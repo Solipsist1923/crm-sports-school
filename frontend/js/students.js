@@ -20,13 +20,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Завантажуємо дані паралельно з обробкою кожного результату окремо
         const results = await Promise.allSettled([
-            loadGroups(),
-            loadTrainers(),
             loadStudents()
         ]);
         
-        // Відображаємо учнів, навіть якщо групи або тренери не завантажились
-        const studentsResult = results[2];
+        // Відображаємо учнів
+        const studentsResult = results[0];
         if (studentsResult.status === 'fulfilled') {
             renderStudents(allStudents);
         } else {
@@ -108,24 +106,20 @@ function renderStudents(students) {
 
 function setupFilters() {
     const searchInput = document.getElementById('searchInput');
-    const groupFilter = document.getElementById('groupFilter');
     const statusFilter = document.getElementById('statusFilter');
     const insuranceFilter = document.getElementById('insuranceFilter'); // Додайте цей елемент в HTML
 
     if (searchInput) searchInput.addEventListener('input', filterStudents);
-    if (groupFilter) groupFilter.addEventListener('change', filterStudents);
     if (statusFilter) statusFilter.addEventListener('change', filterStudents);
     if (insuranceFilter) insuranceFilter.addEventListener('change', filterStudents);
 }
 
 function filterStudents() {
     const searchInput = document.getElementById('searchInput');
-    const groupFilter = document.getElementById('groupFilter');
     const statusFilter = document.getElementById('statusFilter');
     const insuranceFilter = document.getElementById('insuranceFilter');
     
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-    const groupId = groupFilter ? groupFilter.value : '';
     const status = statusFilter ? statusFilter.value : '';
     const insuranceExpiring = insuranceFilter ? insuranceFilter.checked : false;
 
@@ -136,10 +130,6 @@ function filterStudents() {
             s.first_name.toLowerCase().includes(searchTerm) ||
             s.last_name.toLowerCase().includes(searchTerm)
         );
-    }
-
-    if (groupId) {
-        filtered = filtered.filter(s => s.group_id == groupId);
     }
 
     if (status === 'active') {
@@ -192,7 +182,6 @@ async function editStudent(id) {
         document.getElementById('birthDate').value = student.birth_date;
         document.getElementById('phoneParent').value = student.phone_parent;
         document.getElementById('telegramParent').value = student.telegram_parent || '';
-        document.getElementById('groupId').value = student.group_id || '';
         document.getElementById('insuranceStart').value = student.insurance_start || '';
         document.getElementById('insuranceEnd').value = student.insurance_end || '';
         document.getElementById('medicalCertificate').checked = student.medical_certificate || false;
@@ -230,7 +219,6 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         birth_date: document.getElementById('birthDate').value,
         phone_parent: document.getElementById('phoneParent').value,
         telegram_parent: document.getElementById('telegramParent').value || null,
-        group_id: document.getElementById('groupId').value ? parseInt(document.getElementById('groupId').value) : null,
         insurance_start: document.getElementById('insuranceStart').value || null,
         insurance_end: document.getElementById('insuranceEnd').value || null,
         medical_certificate: document.getElementById('medicalCertificate').checked,
