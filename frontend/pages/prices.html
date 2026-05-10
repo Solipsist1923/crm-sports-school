@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div id="loadingSpinner" class="loading-spinner hidden"><div class="spinner-icon"></div></div>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -36,7 +38,12 @@
 
         <main class="main-content">
             <header class="content-header">
-                <h1>Прайс-лист (Каталог послуг)</h1>
+                <div class="header-title-wrap">
+                    <button class="mobile-toggle" id="mobileToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Прайс-лист (Каталог послуг)</h1>
+                </div>
                 <div class="header-actions">
                     <button class="btn btn-primary" id="addPriceBtn" onclick="openAddPriceModal()">
                         <i class="fas fa-plus"></i> Додати послугу
