@@ -64,7 +64,7 @@ async function loadDashboardStats() {
             insAlert.style.display = 'flex';
             const insTextEl = document.getElementById('expiringIns');
             if (insTextEl) insTextEl.innerHTML = 
-                `Прострочено: <strong class="text-danger">${expiredIns}</strong>, закінчуються: <strong class="text-warning">${expiringIns}</strong>`;
+                `Відсутня/Прострочена: <strong class="text-danger">${expiredIns}</strong>, закінчуються: <strong class="text-warning">${expiringIns}</strong>`;
         }
     } catch (error) {
         console.error('Error loading dashboard stats:', error);

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, distinct, case
+from sqlalchemy import func, distinct, case, or_
 from typing import List
 from datetime import date, timedelta
 
@@ -51,10 +51,14 @@ async def get_dashboard_stats(
     # Страховки
     month_later = today + timedelta(days=30)
     
-    # Вже закінчилися (Expired)
+    # Відсутня або вже закінчилася (Expired/Missing)
     expired_insurance = db.query(Student).filter(
         Student.is_active == True,
-        Student.insurance_end < today
+        or_(
+            Student.insurance_end == None,
+            Student.insurance_end == "",
+            Student.insurance_end < today
+        )
     ).count()
 
     # Закінчуються протягом 30 днів (Expiring)
