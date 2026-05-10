@@ -12,6 +12,17 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Таблиця прайс-листа (Каталог послуг)
+CREATE TABLE IF NOT EXISTS price_list (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(100) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    category VARCHAR(50) DEFAULT 'subscription', -- subscription, single, individual, other
+    description TEXT,
+    is_active BOOLEAN DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Таблиця тренерів
 CREATE TABLE trainers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
