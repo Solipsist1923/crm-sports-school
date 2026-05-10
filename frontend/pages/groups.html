@@ -98,6 +98,26 @@
                     <label for="groupName">Назва групи *</label>
                     <input type="text" id="groupName" required placeholder="Наприклад: Початківці 6-8 років">
                 </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lessonType">Тип заняття</label>
+                        <select id="lessonType">
+                            <option value="gymnastics">Гімнастика</option>
+                            <option value="acrobatics">Акробатика</option>
+                            <option value="other">Інше</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxStudents">Макс. учнів</label>
+                        <input type="number" id="maxStudents" value="15" min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="isIndividual">
+                        <span>Це індивідуальне заняття</span>
+                    </label>
+                </div>
                 <div class="form-group">
                     <label>Розклад занять</label>
                     <div class="schedule-builder">

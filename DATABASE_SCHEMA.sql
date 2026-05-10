@@ -40,6 +40,8 @@ CREATE TABLE groups (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     schedule TEXT,
+    lesson_type VARCHAR(50) DEFAULT 'gymnastics',
+    is_individual BOOLEAN DEFAULT 0,
     trainer_id INTEGER,
     max_students INTEGER DEFAULT 15,
     is_active BOOLEAN DEFAULT 1,

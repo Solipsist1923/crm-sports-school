@@ -75,6 +75,7 @@ function renderGroups(groups) {
     grid.innerHTML = groups.map(group => {
         const trainer = allTrainers.find(t => t.id === group.trainer_id);
         const trainerName = trainer ? `${trainer.first_name} ${trainer.last_name}` : 'Не призначено';
+        const typeName = group.lesson_type === 'acrobatics' ? 'Акробатика' : 'Гімнастика';
 
         return `
             <div class="group-card">
@@ -82,6 +83,10 @@ function renderGroups(groups) {
                     <h3>${group.name}</h3>
                 </div>
                 <div class="group-info">
+                    <div class="info-item">
+                        <i class="fas fa-star"></i>
+                        <span>${typeName} ${group.is_individual ? '(Інд.)' : ''}</span>
+                    </div>
                     <div class="info-item">
                         <i class="fas fa-calendar"></i>
                         <span>${group.schedule || 'Розклад не вказано'}</span>
@@ -162,6 +167,10 @@ function openAddGroupModal() {
     document.getElementById('modalTitle').textContent = 'Додати групу';
     document.getElementById('groupForm').reset();
     document.getElementById('groupId').value = '';
+    
+    document.getElementById('lessonType').value = 'gymnastics';
+    document.getElementById('maxStudents').value = 15;
+    document.getElementById('isIndividual').checked = false;
 
     // Якщо користувач - тренер, ховаємо вибір тренера
     const user = getUser();
@@ -195,6 +204,10 @@ async function editGroup(id) {
         document.getElementById('groupId').value = group.id;
         document.getElementById('groupName').value = group.name;
         document.getElementById('trainerId').value = group.trainer_id || '';
+        
+        document.getElementById('lessonType').value = group.lesson_type || 'gymnastics';
+        document.getElementById('maxStudents').value = group.max_students || 15;
+        document.getElementById('isIndividual').checked = group.is_individual || false;
 
         setScheduleToBuilder(group.schedule);
 
@@ -229,7 +242,10 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
     const groupData = {
         name: document.getElementById('groupName').value,
         schedule: schedule || null,
-        trainer_id: document.getElementById('trainerId').value ? parseInt(document.getElementById('trainerId').value) : null
+        trainer_id: document.getElementById('trainerId').value ? parseInt(document.getElementById('trainerId').value) : null,
+        lesson_type: document.getElementById('lessonType').value,
+        max_students: parseInt(document.getElementById('maxStudents').value),
+        is_individual: document.getElementById('isIndividual').checked
     };
 
     try {
