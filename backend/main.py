@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api import auth, students, attendance, prices, stats, groups, trainers, users
+from app.api import auth, students, attendance, prices, payments, stats, groups, trainers, users
 
 # Створення таблиць та ініціалізація БД
 print("Initializing database...")

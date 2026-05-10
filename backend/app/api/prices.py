@@ -32,7 +32,7 @@ class PriceResponse(PriceBase):
 @router.get("")
 async def get_prices(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Отримання списку послуг"""
-    return db.query(PriceList).filter(PriceList.is_active == True).order_at(PriceList.id).all()
+    return db.query(PriceList).filter(PriceList.is_active == True).order_by(PriceList.id).all()
 
 @router.post("", response_model=PriceResponse, status_code=201)
 async def create_price(price: PriceCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
