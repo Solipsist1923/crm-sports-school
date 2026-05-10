@@ -256,6 +256,17 @@ const pricesAPI = {
             method: 'POST',
             body: JSON.stringify(priceData)
         });
+    },
+    async update(id, priceData) {
+        return await apiRequest(`/api/prices/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(priceData)
+        });
+    },
+    async delete(id) {
+        return await apiRequest(`/api/prices/${id}`, {
+            method: 'DELETE'
+        });
     }
 };
 
