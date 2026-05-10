@@ -27,12 +27,10 @@ async def get_groups(
     if trainer_id is not None:
         query = query.filter(Group.trainer_id == trainer_id)
 
-    # Якщо тренер, показуємо тільки його групи
+    # Оскільки групи тепер - це загальні шаблони занять, 
+    # дозволяємо всім авторизованим користувачам бачити список.
     if current_user.role == "trainer":
-        if not current_user.trainer:
-            return []
-        
-        query = query.filter(Group.trainer_id == current_user.trainer.id)
+        pass
 
     groups = query.offset(skip).limit(limit).all()
     return groups

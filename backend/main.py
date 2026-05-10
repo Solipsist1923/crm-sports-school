@@ -4,7 +4,7 @@ import os
 # Додати backend до Python path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -74,6 +74,10 @@ app.include_router(users.router)
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
 
 # Mount static files (frontend)
 frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
