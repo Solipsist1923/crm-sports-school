@@ -56,7 +56,6 @@ async def get_dashboard_stats(
         Student.is_active == True,
         or_(
             Student.insurance_end == None,
-            Student.insurance_end == "",
             Student.insurance_end < today
         )
     ).count()
