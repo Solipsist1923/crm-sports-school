@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Чекаємо завантаження даних, але продовжуємо навіть при помилці в одному з них
         await Promise.allSettled([
-            loadTrainers(),
             loadStudents(),
             loadGroups()
         ]);
@@ -26,19 +25,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Помилка ініціалізації сторінки груп:', err);
     }
 });
-
-async function loadTrainers() {
-    try {
-        allTrainers = await trainersAPI.getAll();
-
-        // Populate trainer select
-        const select = document.getElementById('trainerId');
-        select.innerHTML = '<option value="">Без тренера</option>' +
-            allTrainers.map(t => `<option value="${t.id}">${t.first_name} ${t.last_name}</option>`).join('');
-    } catch (error) {
-        console.error('Error loading trainers:', error);
-    }
-}
 
 async function loadStudents() {
     try {
@@ -73,8 +59,6 @@ function renderGroups(groups) {
     }
 
     grid.innerHTML = groups.map(group => {
-        const trainer = allTrainers.find(t => t.id === group.trainer_id);
-        const trainerName = trainer ? `${trainer.first_name} ${trainer.last_name}` : 'Не призначено';
         const typeName = group.lesson_type === 'acrobatics' ? 'Акробатика' : 'Гімнастика';
 
         return `
@@ -90,10 +74,6 @@ function renderGroups(groups) {
                     <div class="info-item">
                         <i class="fas fa-calendar"></i>
                         <span>${group.schedule || 'Розклад не вказано'}</span>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-user"></i>
-                        <span>Тренер: ${trainerName}</span>
                     </div>
                 </div>
                 <div class="group-actions">
@@ -171,15 +151,6 @@ function openAddGroupModal() {
     document.getElementById('lessonType').value = 'gymnastics';
     document.getElementById('isIndividual').checked = false;
 
-    // Якщо користувач - тренер, ховаємо вибір тренера
-    const user = getUser();
-    const trainerGroup = document.getElementById('trainerId').closest('.form-row');
-    if (user && user.role === 'trainer' && trainerGroup) {
-        trainerGroup.style.display = 'none';
-    } else if (trainerGroup) {
-        trainerGroup.style.display = 'grid';
-    }
-
     // Reset schedule builder
     document.querySelectorAll('.day-checkbox').forEach(cb => cb.checked = false);
     document.querySelectorAll('.time-input').forEach(input => {
@@ -202,7 +173,6 @@ async function editGroup(id) {
         document.getElementById('modalTitle').textContent = 'Редагувати групу';
         document.getElementById('groupId').value = group.id;
         document.getElementById('groupName').value = group.name;
-        document.getElementById('trainerId').value = group.trainer_id || '';
         
         document.getElementById('lessonType').value = group.lesson_type || 'gymnastics';
         document.getElementById('isIndividual').checked = group.is_individual || false;
@@ -240,7 +210,6 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
     const groupData = {
         name: document.getElementById('groupName').value,
         schedule: schedule || null,
-        trainer_id: document.getElementById('trainerId').value ? parseInt(document.getElementById('trainerId').value) : null,
         lesson_type: document.getElementById('lessonType').value,
         is_individual: document.getElementById('isIndividual').checked
     };

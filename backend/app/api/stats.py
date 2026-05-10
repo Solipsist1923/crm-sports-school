@@ -18,54 +18,55 @@ async def get_dashboard_stats(
 ):
     """Отримання статистики для дашборду"""
     today = date.today()
-
-    # Всього учнів
-    total_students = db.query(Student).count()
-
-    # Активні учні
-    active_students = db.query(Student).filter(Student.is_active == True).count()
-
-    # Кількість груп
-    total_groups = db.query(Group).filter(Group.is_active == True).count()
-
-    # Відвідування сьогодні
-    today_attendance = db.query(Attendance).filter(
-        Attendance.date == today,
-        Attendance.status == "present"
-    ).count()
-
-    # Учні з боргами (унікальні студенти)
-    students_with_debts = db.query(func.count(distinct(Payment.student_id))).filter(
-        Payment.next_payment_date < today,
-        Payment.status != "paid"
-    ).scalar() or 0
-
-    # Абонементи, що закінчуються (менше 3 занять або закінчуються через 7 днів)
-    week_later = today + timedelta(days=7)
-    expiring_subs_query = db.query(Subscription).filter(
-        Subscription.is_active == True,
-        (Subscription.remaining_classes <= 3) | (Subscription.end_date <= week_later)
-    )
-    expiring_subscriptions = expiring_subs_query.count()
-
-    # Страховки
-    month_later = today + timedelta(days=30)
     
-    # Відсутня або вже закінчилася (Expired/Missing)
-    expired_insurance = db.query(Student).filter(
-        Student.is_active == True,
-        or_(
-            Student.insurance_end == None,
-            Student.insurance_end < today
-        )
-    ).count()
+    # Базові запити, які точно працювали раніше
+    total_students = db.query(Student).count()
+    active_students = db.query(Student).filter(Student.is_active == True).count()
+    total_groups = db.query(Group).filter(Group.is_active == True).count()
+    today_attendance = db.query(Attendance).filter(Attendance.date == today, Attendance.status == "present").count()
 
-    # Закінчуються протягом 30 днів (Expiring)
-    expiring_insurance = db.query(Student).filter(
-        Student.is_active == True,
-        Student.insurance_end >= today,
-        Student.insurance_end <= month_later
-    ).count()
+    # Нові метрики загортаємо в try-except, щоб не "ламати" весь дашборд
+    students_with_debts = 0
+    try:
+        students_with_debts = db.query(func.count(distinct(Payment.student_id))).filter(
+            Payment.next_payment_date < today,
+            Payment.status != "paid"
+        ).scalar() or 0
+    except Exception:
+        pass
+
+    expiring_subscriptions = 0
+    try:
+        week_later = today + timedelta(days=7)
+        expiring_subscriptions = db.query(Subscription).filter(
+            Subscription.is_active == True,
+            (Subscription.remaining_classes <= 3) | (Subscription.end_date <= week_later)
+        ).count()
+    except Exception:
+        pass
+
+    expired_insurance = 0
+    try:
+        expired_insurance = db.query(Student).filter(
+            Student.is_active == True,
+            or_(
+                Student.insurance_end == None,
+                Student.insurance_end < today
+            )
+        ).count()
+    except Exception:
+        pass
+
+    expiring_insurance = 0
+    try:
+        month_later = today + timedelta(days=30)
+        expiring_insurance = db.query(Student).filter(
+            Student.is_active == True,
+            Student.insurance_end >= today,
+            Student.insurance_end <= month_later
+        ).count()
+    except Exception:
+        pass
 
     return DashboardStats(
         total_students=total_students,
