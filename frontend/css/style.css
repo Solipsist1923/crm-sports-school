@@ -1115,13 +1115,18 @@ body {
 
 .schedule-row {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items: flex-start;
+    gap: 15px;
     margin-bottom: 12px;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    background: white;
+    border-radius: 8px;
 }
 
 .schedule-row:last-child {
     margin-bottom: 0;
+    border-bottom: none;
 }
 
 .checkbox-label {
@@ -1131,6 +1136,7 @@ body {
     cursor: pointer;
     min-width: 120px;
     font-size: 14px;
+    padding-top: 8px; /* Вирівнювання з першим інпутом */
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -1139,12 +1145,24 @@ body {
     cursor: pointer;
 }
 
+.time-range {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.time-range span {
+    display: none; /* Ховаємо дефіс, бо тепер воно в стовпчик */
+}
+
 .time-input {
-    padding: 8px 12px;
+    padding: 6px 12px;
     border: 2px solid var(--border-color);
     border-radius: 6px;
     font-size: 14px;
     transition: all 0.3s;
+    max-width: 130px;
 }
 
 .time-input:disabled {
