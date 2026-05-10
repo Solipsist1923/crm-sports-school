@@ -41,9 +41,8 @@ CREATE TABLE groups (
     name VARCHAR(100) NOT NULL,
     schedule TEXT,
     lesson_type VARCHAR(50) DEFAULT 'gymnastics',
-    is_individual BOOLEAN DEFAULT 0,
+    is_individual BOOLEAN DEFAULT FALSE,
     trainer_id INTEGER,
-    max_students INTEGER DEFAULT 15,
     is_active BOOLEAN DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (trainer_id) REFERENCES trainers(id) ON DELETE SET NULL

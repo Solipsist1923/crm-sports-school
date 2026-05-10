@@ -169,7 +169,6 @@ function openAddGroupModal() {
     document.getElementById('groupId').value = '';
     
     document.getElementById('lessonType').value = 'gymnastics';
-    document.getElementById('maxStudents').value = 15;
     document.getElementById('isIndividual').checked = false;
 
     // Якщо користувач - тренер, ховаємо вибір тренера
@@ -206,7 +205,6 @@ async function editGroup(id) {
         document.getElementById('trainerId').value = group.trainer_id || '';
         
         document.getElementById('lessonType').value = group.lesson_type || 'gymnastics';
-        document.getElementById('maxStudents').value = group.max_students || 15;
         document.getElementById('isIndividual').checked = group.is_individual || false;
 
         setScheduleToBuilder(group.schedule);
@@ -244,7 +242,6 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
         schedule: schedule || null,
         trainer_id: document.getElementById('trainerId').value ? parseInt(document.getElementById('trainerId').value) : null,
         lesson_type: document.getElementById('lessonType').value,
-        max_students: parseInt(document.getElementById('maxStudents').value),
         is_individual: document.getElementById('isIndividual').checked
     };
 
