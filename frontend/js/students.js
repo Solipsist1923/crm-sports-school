@@ -34,10 +34,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         setupFilters();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlGroupId = urlParams.get('groupId');
+        if (urlGroupId) {
+            const groupFilter = document.getElementById('groupFilter');
+            if (groupFilter) groupFilter.value = urlGroupId;
+            filterStudents();
+        }
     } catch (err) {
         console.error('Критична помилка ініціалізації:', err);
     }
 });
+
+// Функція розрахунку статусу страховки
+function loadUserInfo() {
+    try {
+        const user = getUser();
+        if (!user) return;
+
+        const nameEl = document.getElementById('userName');
+        const roleEl = document.getElementById('userRoleDisplay');
+        
+        if (nameEl && user.full_name) {
+            nameEl.textContent = user.full_name;
+        }
+        if (roleEl) {
+            roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+        }
+    } catch (err) {
+        console.warn('Не вдалося завантажити інфо користувача:', err);
+    }
+}
 
 async function loadStudents() {
     try {
@@ -61,6 +89,7 @@ function renderStudents(students) {
     }
 
     tbody.innerHTML = students.map(student => {
+        
         return `
         <tr>
             <td>${student.first_name} ${student.last_name}</td>
@@ -79,12 +108,12 @@ function renderStudents(students) {
                                 <i class="fas ${ins.icon}"></i>
                                 <small>Страх. до: ${student.insurance_end ? formatDate(student.insurance_end) : 'Немає'}</small>
                             </div>
-                            <div class="status-info" title="Абонемент">
-                                <i class="fas fa-ticket-alt"></i>
-                                <small id="sub-status-${student.id}">Перевірка...</small>
-                            </div>
                         `;
                     })()}
+                    <div class="status-info" title="Абонемент">
+                        <i class="fas fa-ticket-alt"></i>
+                        <small id="sub-status-${student.id}">Перевірка...</small>
+                    </div>
                 </div>
             </td>
             <td>
@@ -242,3 +271,9 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         alert('Помилка збереження даних');
     }
 });
+
+function logout() {
+    if (confirm('Ви впевнені, що хочете вийти?')) {
+        authAPI.logout();
+    }
+}

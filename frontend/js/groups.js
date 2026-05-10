@@ -72,13 +72,7 @@ function renderGroups(groups) {
         return;
     }
 
-    const studentCounts = (Array.isArray(allStudents) ? allStudents : []).reduce((acc, s) => {
-        if (s.group_id) acc[s.group_id] = (acc[s.group_id] || 0) + 1;
-        return acc;
-    }, {});
-
     grid.innerHTML = groups.map(group => {
-        const studentsInCount = studentCounts[group.id] || 0;
         const trainer = allTrainers.find(t => t.id === group.trainer_id);
         const trainerName = trainer ? `${trainer.first_name} ${trainer.last_name}` : 'Не призначено';
 
@@ -86,9 +80,6 @@ function renderGroups(groups) {
             <div class="group-card">
                 <div class="group-header">
                     <h3>${group.name}</h3>
-                    <span class="badge ${group.is_active ? 'badge-success' : 'badge-danger'}">
-                        ${group.is_active ? 'Активна' : 'Неактивна'}
-                    </span>
                 </div>
                 <div class="group-info">
                     <div class="info-item">
@@ -99,16 +90,8 @@ function renderGroups(groups) {
                         <i class="fas fa-user"></i>
                         <span>Тренер: ${trainerName}</span>
                     </div>
-                    <div class="info-item">
-                        <i class="fas fa-users"></i>
-                        <span>Учнів: ${studentsInCount}</span>
-                    </div>
                 </div>
                 <div class="group-actions">
-                    <button class="btn btn-secondary btn-sm" onclick="viewGroupStudents(${group.id})">
-                        <i class="fas fa-eye"></i>
-                        Переглянути
-                    </button>
                     <button class="btn-icon" onclick="editGroup(${group.id})" title="Редагувати">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -223,32 +206,18 @@ async function editGroup(id) {
 }
 
 async function deleteGroup(id) {
-    const studentsInGroup = allStudents.filter(s => s.group_id === id).length;
-
-    if (studentsInGroup > 0) {
-        if (!confirm(`У цій групі ${studentsInGroup} учнів. Ви впевнені, що хочете видалити групу?`)) {
-            return;
-        }
-    } else {
-        if (!confirm('Ви впевнені, що хочете видалити цю групу?')) {
-            return;
-        }
+    if (!confirm('Ви впевнені, що хочете видалити цю групу?')) {
+        return;
     }
 
     try {
-        console.log('Deleting group:', id);
         await groupsAPI.delete(id);
-        console.log('Group deleted successfully');
         await loadGroups();
         alert('Групу видалено');
     } catch (error) {
-        console.error('Error deleting group:', error);
-        alert(`Помилка видалення групи: ${error.message || 'Невідома помилка'}`);
+        console.error('Помилка при видаленні групи:', error);
+        alert('Не вдалося видалити групу');
     }
-}
-
-function viewGroupStudents(groupId) {
-    window.location.href = `students.html?groupId=${groupId}`;
 }
 
 document.getElementById('groupForm').addEventListener('submit', async (e) => {
