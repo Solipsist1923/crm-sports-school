@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Призначення (Конструктор) - CRM</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="loadingSpinner" class="loading-spinner hidden"><div class="spinner-icon"></div></div>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-dumbbell"></i>
+                <h2>CRM Школа</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Дашборд</span></a>
+                <a href="students.html" class="nav-item"><i class="fas fa-users"></i><span>Учні</span></a>
+                <a href="attendance.html" class="nav-item"><i class="fas fa-clipboard-check"></i><span>Відвідування</span></a>
+                <a href="assignments.html" class="nav-item active"><i class="fas fa-magic"></i><span>Призначення</span></a>
+                <a href="prices.html" class="nav-item"><i class="fas fa-tags"></i><span>Прайс-лист</span></a>
+                <a href="groups.html" class="nav-item"><i class="fas fa-layer-group"></i><span>Групи</span></a>
+                <a href="users.html" class="nav-item" id="usersLink" style="display: none;"><i class="fas fa-user-cog"></i><span>Користувачі</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div><p id="userName">Користувач</p><small id="userRoleDisplay">Роль</small></div>
+                </div>
+                <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Вийти</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <div class="header-title-wrap">
+                    <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
+                    <h1>Призначення занять</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="addAssignmentBtn" onclick="openAddAssignmentModal()">
+                        <i class="fas fa-plus"></i> Створити призначення
+                    </button>
+                </div>
+            </header>
+
+            <div class="table-card">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Група / Напрямок</th>
+                                <th>Тренер</th>
+                                <th>Учнів</th>
+                                <th>Оплата</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assignmentsTable">
+                            <tr><td colspan="6" class="text-center">Завантаження...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модалка Конструктора -->
+    <div id="assignmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Нове призначення</h2>
+                <button class="modal-close" onclick="closeAssignmentModal()">&times;</button>
+            </div>
+            <form id="assignmentForm" class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lessonDate">Дата заняття *</label>
+                        <input type="date" id="lessonDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="groupId">Група (Шаблон) *</label>
+                        <select id="groupId" required><option value="">Оберіть групу...</option></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="trainerId">Призначити тренера *</label>
+                    <select id="trainerId" required><option value="">Оберіть тренера...</option></select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Виберіть учнів (Золотий список)</label>
+                    <div id="studentsChecklist" class="schedule-builder" style="max-height: 200px; overflow-y: auto; padding: 10px;">
+                        <!-- Список учнів з чекбоксами згенерується тут -->
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="isSubscription" checked>
+                            <span>По абонементу</span>
+                        </label>
+                    </div>
+                    <div class="form-group" id="priceSelectionGroup" style="display: none;">
+                        <label for="priceId">Послуга з прайсу</label>
+                        <select id="priceId"><option value="">Оберіть послугу...</option></select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAssignmentModal()">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти та створити журнал</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/assignments.js"></script>
+</body>
+</html>
