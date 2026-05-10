@@ -138,13 +138,22 @@ function filterStudents() {
         const monthLater = new Date(today);
         monthLater.setDate(today.getDate() + 30);
 
-        filtered = filtered.filter(s => 
-            !s.insurance_end || (function() {
-                const sDate = new Date(s.insurance_end.includes('T') ? s.insurance_end : `${s.insurance_end}T00:00:00`);
+        filtered = filtered.filter(s => {
+            // Якщо страховки немає зовсім (null або порожній рядок) - обов'язково показуємо
+            if (!s.insurance_end || s.insurance_end === "") return true;
+            
+            // Якщо дата є, перевіряємо чи вона прострочена або закінчується протягом 30 днів
+            try {
+                const dateValue = s.insurance_end.toString();
+                const dateStr = dateValue.includes('T') ? dateValue : `${dateValue}T00:00:00`;
+                const sDate = new Date(dateStr);
                 sDate.setHours(0, 0, 0, 0);
+                
                 return sDate <= monthLater;
-            })()
-        );
+            } catch (e) {
+                return true; // Якщо дата некоректна, теж вважаємо її проблемною
+            }
+        });
     }
 
     renderStudents(filtered);

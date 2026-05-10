@@ -54,6 +54,7 @@ async def get_students(
         query = query.filter(
             or_(
                 Student.insurance_end == None,
+                Student.insurance_end == "",
                 Student.insurance_end <= month_later
             )
         )
