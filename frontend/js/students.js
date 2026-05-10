@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         
+        setupFilters();
+        
     } catch (err) {
         console.error('Критична помилка ініціалізації:', err);
     }
@@ -102,6 +104,48 @@ function renderStudents(students) {
             </td>
         </tr>
     `}).join('');
+}
+
+function setupFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const insuranceFilter = document.getElementById('insuranceFilter');
+
+    if (searchInput) searchInput.addEventListener('input', filterStudents);
+    if (insuranceFilter) insuranceFilter.addEventListener('change', filterStudents);
+}
+
+function filterStudents() {
+    const searchInput = document.getElementById('searchInput');
+    const insuranceFilter = document.getElementById('insuranceFilter');
+    
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const insuranceExpiring = insuranceFilter ? insuranceFilter.checked : false;
+
+    let filtered = allStudents;
+
+    if (searchTerm) {
+        filtered = filtered.filter(s =>
+            s.first_name.toLowerCase().includes(searchTerm) ||
+            s.last_name.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    if (insuranceExpiring) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const monthLater = new Date(today);
+        monthLater.setDate(today.getDate() + 30);
+
+        filtered = filtered.filter(s => 
+            s.insurance_end && (function() {
+                const sDate = new Date(s.insurance_end.includes('T') ? s.insurance_end : `${s.insurance_end}T00:00:00`);
+                sDate.setHours(0, 0, 0, 0);
+                return sDate <= monthLater;
+            })()
+        );
+    }
+
+    renderStudents(filtered);
 }
 
 function openAddStudentModal() {
