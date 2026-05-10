@@ -83,3 +83,9 @@ function loadUserInfo() {
         console.warn('Помилка завантаження інфо користувача:', err);
     }
 }
+
+function logout() {
+    if (confirm('Ви впевнені, що хочете вийти?')) {
+        authAPI.logout();
+    }
+}

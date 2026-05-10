@@ -27,25 +27,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-function loadUserInfo() {
-    try {
-        const user = getUser();
-        if (!user) return;
-
-        const nameEl = document.getElementById('userName');
-        const roleEl = document.getElementById('userRoleDisplay');
-
-        if (nameEl) {
-            nameEl.textContent = user.full_name || 'Користувач';
-        }
-        if (roleEl) {
-            roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
-        }
-    } catch (err) {
-        console.warn(err);
-    }
-}
-
 async function loadTrainers() {
     try {
         allTrainers = await trainersAPI.getAll();
@@ -299,9 +280,3 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
         alert('Помилка збереження даних');
     }
 });
-
-function logout() {
-    if (confirm('Ви впевнені, що хочете вийти?')) {
-        authAPI.logout();
-    }
-}

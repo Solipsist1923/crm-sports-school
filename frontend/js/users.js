@@ -181,19 +181,6 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Завантаження інформації про користувача
-function loadUserInfo() {
-    const user = getUser();
-    if (user && user.full_name) {
-        const userNameEl = document.getElementById('userName');
-        // Використовуємо окремий ID для відображення ролі, щоб не було конфлікту з формою
-        const userRoleEl = document.getElementById('userRoleDisplay'); 
-        
-        if (userNameEl) userNameEl.textContent = user.full_name;
-        if (userRoleEl) userRoleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
-    }
-}
-
 // Ініціалізація
 document.addEventListener('DOMContentLoaded', function() {
     checkUserRole();
@@ -282,28 +269,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 });
-
-function setupMobileMenu() {
-    const toggle = document.getElementById('mobileToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-
-    if (toggle && sidebar && overlay) {
-        const toggleMenu = () => {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        };
-
-        toggle.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
-        
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                }
-            });
-        });
-    }
-}

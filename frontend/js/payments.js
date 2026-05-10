@@ -20,46 +20,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-function loadUserInfo() {
-    try {
-        const user = getUser();
-        if (!user) return;
-        
-        const nameEl = document.getElementById('userName');
-        const roleEl = document.getElementById('userRoleDisplay');
-        
-        if (nameEl) nameEl.textContent = user.full_name || 'Користувач';
-        if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
-    } catch (err) {
-        console.error('Error loading user info:', err);
-    }
-}
-
-function setupMobileMenu() {
-    const toggle = document.getElementById('mobileToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-
-    if (toggle && sidebar && overlay) {
-        const toggleMenu = () => {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        };
-
-        toggle.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
-        
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                }
-            });
-        });
-    }
-}
-
 async function loadStudents() {
     try {
         allStudents = await studentsAPI.getAll({ is_active: true });
@@ -288,36 +248,5 @@ async function deletePayment(id) {
     } catch (error) {
         console.error('Error deleting payment:', error);
         alert('Помилка видалення');
-    }
-}
-
-function logout() {
-    if (confirm('Ви впевнені, що хочете вийти?')) {
-        authAPI.logout();
-    }
-}
-
-function setupMobileMenu() {
-    const toggle = document.getElementById('mobileToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-
-    if (toggle && sidebar && overlay) {
-        const toggleMenu = () => {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        };
-
-        toggle.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
-        
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                }
-            });
-        });
     }
 }

@@ -242,9 +242,3 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         alert('Помилка збереження даних');
     }
 });
-
-function logout() {
-    if (confirm('Ви впевнені, що хочете вийти?')) {
-        authAPI.logout();
-    }
-}

@@ -25,21 +25,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('attendanceDate').addEventListener('change', loadAttendance);
 });
 
-function loadUserInfo() {
-    try {
-        const user = getUser();
-        if (!user) return;
-        
-        const nameEl = document.getElementById('userName');
-        const roleEl = document.getElementById('userRoleDisplay');
-        
-        if (nameEl) nameEl.textContent = user.full_name || 'Користувач';
-        if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
-    } catch (err) {
-        console.error('Error loading user info:', err);
-    }
-}
-
 async function loadStudents() {
     try {
         allStudents = await studentsAPI.getAll({ is_active: true });
@@ -216,11 +201,5 @@ async function deleteAttendance(id) {
     } catch (error) {
         console.error('Error deleting attendance:', error);
         alert('Помилка видалення');
-    }
-}
-
-function logout() {
-    if (confirm('Ви впевнені, що хочете вийти?')) {
-        authAPI.logout();
     }
 }
