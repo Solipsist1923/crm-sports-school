@@ -47,13 +47,15 @@ async def get_students(
     if is_active is not None:
         query = query.filter(Student.is_active == is_active)
 
-    # Фільтр за страховкою, що закінчується протягом найближчих 14 днів
+    # Фільтр за страховкою: що закінчується протягом 30 днів або відсутня
     if insurance_expiring:
         today = date.today()
         month_later = today + timedelta(days=30)
         query = query.filter(
-            Student.insurance_end >= today,
-            Student.insurance_end <= month_later
+            or_(
+                Student.insurance_end == None,
+                Student.insurance_end <= month_later
+            )
         )
 
     students = query.offset(skip).limit(limit).all()

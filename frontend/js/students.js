@@ -118,11 +118,12 @@ function filterStudents() {
     const searchInput = document.getElementById('searchInput');
     const insuranceFilter = document.getElementById('insuranceFilter');
     
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const insuranceExpiring = insuranceFilter ? insuranceFilter.checked : false;
 
     let filtered = allStudents;
 
+    // Пошук за ім'ям та прізвищем (ідентично як був)
     if (searchTerm) {
         filtered = filtered.filter(s =>
             s.first_name.toLowerCase().includes(searchTerm) ||
@@ -130,6 +131,7 @@ function filterStudents() {
         );
     }
 
+    // Фільтр страховки: 30 днів + ті, у кого її немає зовсім
     if (insuranceExpiring) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -137,7 +139,7 @@ function filterStudents() {
         monthLater.setDate(today.getDate() + 30);
 
         filtered = filtered.filter(s => 
-            s.insurance_end && (function() {
+            !s.insurance_end || (function() {
                 const sDate = new Date(s.insurance_end.includes('T') ? s.insurance_end : `${s.insurance_end}T00:00:00`);
                 sDate.setHours(0, 0, 0, 0);
                 return sDate <= monthLater;
