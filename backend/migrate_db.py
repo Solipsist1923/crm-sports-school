@@ -7,9 +7,14 @@ def migrate_db():
     db = SessionLocal()
 
     try:
-        # Перевірка чи існує колонка hashed_password
-        result = db.execute(text("PRAGMA table_info(users)"))
-        columns = [row[1] for row in result.fetchall()]
+        # Перевірка діалекту бази даних
+        if "sqlite" in str(engine.url):
+            result = db.execute(text("PRAGMA table_info(users)"))
+            columns = [row[1] for row in result.fetchall()]
+        else:
+            # Для PostgreSQL на Railway
+            result = db.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name='users'"))
+            columns = [row[0] for row in result.fetchall()]
 
         if 'hashed_password' in columns and 'password_hash' not in columns:
             print("Migrating database: renaming hashed_password to password_hash...")

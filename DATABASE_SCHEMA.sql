@@ -2,7 +2,7 @@
 
 -- Таблиця користувачів системи (адміністратори та тренери)
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL CHECK(role IN ('admin', 'trainer')),
@@ -14,7 +14,7 @@ CREATE TABLE users (
 
 -- Таблиця прайс-листа (Каталог послуг)
 CREATE TABLE IF NOT EXISTS price_list (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
     category VARCHAR(50) DEFAULT 'subscription', -- subscription, single, individual, other
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS price_list (
 
 -- Таблиця тренерів
 CREATE TABLE trainers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE trainers (
 
 -- Таблиця груп
 CREATE TABLE groups (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     schedule TEXT,
     trainer_id INTEGER,
@@ -49,7 +49,7 @@ CREATE TABLE groups (
 
 -- Таблиця учнів
 CREATE TABLE students (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     birth_date DATE NOT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE students (
 
 -- Таблиця відвідувань
 CREATE TABLE attendance (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL,
     date DATE NOT NULL,
     status VARCHAR(20) NOT NULL CHECK(status IN ('present', 'absent', 'sick', 'excused')),
@@ -82,7 +82,7 @@ CREATE TABLE attendance (
 
 -- Таблиця абонементів
 CREATE TABLE subscriptions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL,
     total_classes INTEGER NOT NULL,
     remaining_classes INTEGER NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE subscriptions (
 
 -- Таблиця оплат
 CREATE TABLE payments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     payment_date DATE NOT NULL,
@@ -112,7 +112,7 @@ CREATE TABLE payments (
 
 -- Таблиця страховок
 CREATE TABLE insurance (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL,
     insurance_company VARCHAR(100),
     start_date DATE NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE insurance (
 
 -- Таблиця фонду/додаткових зборів
 CREATE TABLE fund_payments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     purpose VARCHAR(200) NOT NULL,
@@ -139,7 +139,7 @@ CREATE TABLE fund_payments (
 
 -- Таблиця сповіщень
 CREATE TABLE notifications (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL,
     type VARCHAR(50) NOT NULL CHECK(type IN ('payment_reminder', 'subscription_expiring', 'insurance_expiring', 'custom')),
     message TEXT NOT NULL,
