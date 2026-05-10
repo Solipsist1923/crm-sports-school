@@ -9,7 +9,7 @@ from app.schemas.schemas import GroupCreate, GroupUpdate, GroupResponse
 
 router = APIRouter(prefix="/api/groups", tags=["Groups"])
 
-@router.get("/", response_model=List[GroupResponse])
+@router.get("", response_model=List[GroupResponse])
 async def get_groups(
     skip: int = 0,
     limit: int = 100,
@@ -37,7 +37,7 @@ async def get_groups(
     groups = query.offset(skip).limit(limit).all()
     return groups
 
-@router.get("/{group_id}", response_model=GroupResponse)
+@router.get("{group_id}", response_model=GroupResponse)
 async def get_group(
     group_id: int,
     db: Session = Depends(get_db),
@@ -58,7 +58,7 @@ async def get_group(
 
     return group
 
-@router.post("/", response_model=GroupResponse, status_code=201)
+@router.post("", response_model=GroupResponse, status_code=201)
 async def create_group(
     group: GroupCreate,
     db: Session = Depends(get_db),

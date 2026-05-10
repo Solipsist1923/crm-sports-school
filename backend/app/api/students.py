@@ -11,7 +11,7 @@ from app.schemas.schemas import StudentCreate, StudentUpdate, StudentResponse
 
 router = APIRouter(prefix="/api/students", tags=["Students"])
 
-@router.get("/", response_model=List[StudentResponse])
+@router.get("", response_model=List[StudentResponse])
 async def get_students(
     skip: int = 0,
     limit: int = 100,
@@ -75,7 +75,7 @@ async def get_student(
 
     return student
 
-@router.post("/", response_model=StudentResponse, status_code=201)
+@router.post("", response_model=StudentResponse, status_code=201)
 async def create_student(
     student: StudentCreate,
     db: Session = Depends(get_db),
