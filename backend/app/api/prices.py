@@ -3,21 +3,13 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.models.models import User, PriceList # Припустимо, ви додали модель PriceList
-from app.schemas.schemas import PriceCreate, PriceResponse # Та схеми
 
-router = APIRouter(prefix="/api/prices", tags=["Prices"])
-
-@router.get("", response_model=List[PriceResponse])
+@router.get("")
 async def get_prices(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(PriceList).filter(PriceList.is_active == True).all()
-@router.post("", response_model=PriceResponse, status_code=201)
-async def create_price(price: PriceCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Тільки адміністратор може редагувати прайс")
-    db_price = PriceList(**price.model_dump())
+    return []
+async def create_price(price: PriceCreate, db: Session = Depends(get_db), current_user: User = Depen
+        raise l="Тільки адміністратор може редагувати прайс")
     db.add(db_price)
-    db.commit()
     db.refresh(db_price)
     return db_price
 
