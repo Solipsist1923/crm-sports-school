@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api import auth, students, attendance, payments, stats, groups, trainers, users
+from app.api import auth, students, attendance, prices, stats, groups, trainers, users
 
 # Створення таблиць та ініціалізація БД
 print("Initializing database...")
@@ -64,7 +64,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(students.router)
 app.include_router(attendance.router)
-app.include_router(payments.router)
+app.include_router(prices.router)
 app.include_router(stats.router)
 app.include_router(groups.router)
 app.include_router(trainers.router)

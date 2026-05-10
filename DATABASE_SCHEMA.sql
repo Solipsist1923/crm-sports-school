@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS price_list (
     price DECIMAL(10, 2) NOT NULL,
     category VARCHAR(50) DEFAULT 'subscription', -- subscription, single, individual, other
     description TEXT,
-    is_active BOOLEAN DEFAULT 1,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
