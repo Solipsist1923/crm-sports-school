@@ -1,7 +1,15 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, ForeignKey, Numeric, Text, CheckConstraint
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, ForeignKey, Numeric, Text, CheckConstraint, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
+
+# Таблиця зв'язку Призначення <-> Учні
+assignment_students = Table(
+    "assignment_students",
+    Base.metadata,
+    Column("assignment_id", Integer, ForeignKey("assignments.id", ondelete="CASCADE"), primary_key=True),
+    Column("student_id", Integer, ForeignKey("students.id", ondelete="CASCADE"), primary_key=True)
+)
 
 class User(Base):
     __tablename__ = "users"
@@ -44,8 +52,6 @@ class Group(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     schedule = Column(Text)
-    lesson_type = Column(String(50), default="gymnastics")  # gymnastics, acrobatics
-    is_individual = Column(Boolean, default=False)
     trainer_id = Column(Integer, ForeignKey("trainers.id", ondelete="SET NULL"))
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -200,3 +206,20 @@ class PriceList(Base):
     description = Column(Text)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class Assignment(Base):
+    __tablename__ = "assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    group_id = Column(Integer, ForeignKey("groups.id", ondelete="CASCADE"), nullable=False)
+    trainer_id = Column(Integer, ForeignKey("trainers.id", ondelete="SET NULL"))
+    price_id = Column(Integer, ForeignKey("price_list.id", ondelete="SET NULL"))
+    lesson_date = Column(Date, nullable=False, index=True)
+    is_subscription = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Зв'язки
+    group = relationship("Group")
+    trainer = relationship("Trainer")
+    price = relationship("PriceList")
+    students = relationship("Student", secondary=assignment_students)

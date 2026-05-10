@@ -294,3 +294,24 @@ class DashboardStats(BaseModel):
     expiring_subscriptions: int
     expiring_insurance: int
     expired_insurance: int
+
+# Assignment Schemas
+class AssignmentCreate(BaseModel):
+    group_id: int
+    trainer_id: int
+    student_ids: List[int]
+    price_id: Optional[int] = None
+    lesson_date: date
+    is_subscription: bool = False
+
+class AssignmentResponse(BaseModel):
+    id: int
+    lesson_date: date
+    is_subscription: bool
+    group: GroupResponse
+    trainer: TrainerResponse
+    students: List[StudentResponse]
+    price: Optional[BaseModel] = None # Для спрощення
+
+    class Config:
+        from_attributes = True
