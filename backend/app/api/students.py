@@ -56,20 +56,6 @@ async def get_students(
             Student.insurance_end <= month_later
         )
 
-    # Якщо користувач тренер, показуємо тільки його учнів
-    if current_user.role == "trainer":
-        if not current_user.trainer:
-            # Якщо запис у таблиці trainers відсутній для цього користувача
-            return []
-        
-        trainer_id = current_user.trainer.id
-        query = query.filter(
-            or_(
-                Student.trainer_id == trainer_id,
-                Student.group.has(Group.trainer_id == trainer_id)
-            )
-        )
-
     students = query.offset(skip).limit(limit).all()
     return students
 
@@ -85,15 +71,6 @@ async def get_student(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    # Перевірка доступу для тренера
-    if current_user.role == "trainer":
-        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
-        if not trainer_profile or student.trainer_id != trainer_profile.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, 
-                detail="Доступ заборонено до цього учня"
-            )
-
     return student
 
 @router.post("/", response_model=StudentResponse, status_code=201)
@@ -106,12 +83,6 @@ async def create_student(
     try:
         student_data = student.model_dump()
         
-        # Автоматично підтягуємо тренера з обраної групи
-        if student_data.get("group_id"):
-            group = db.query(Group).filter(Group.id == student_data["group_id"]).first()
-            if group:
-                student_data["trainer_id"] = group.trainer_id
-
         db_student = Student(**student_data)
         db.add(db_student)
         db.commit()
@@ -135,27 +106,9 @@ async def update_student(
     if not db_student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    # Перевірка доступу для тренера
-    if current_user.role == "trainer":
-        trainer_profile = db.query(Trainer).filter(Trainer.user_id == current_user.id).first()
-        if not trainer_profile or db_student.trainer_id != trainer_profile.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, 
-                detail="Ви не можете редагувати цього учня"
-            )
-
     # Оновлення полів
     update_data = student_update.model_dump(exclude_unset=True)
     
-    # Якщо змінюється група, автоматично оновлюємо тренера
-    if "group_id" in update_data:
-        group_id = update_data["group_id"]
-        if group_id:
-            group = db.query(Group).filter(Group.id == group_id).first()
-            update_data["trainer_id"] = group.trainer_id if group else None
-        else:
-            update_data["trainer_id"] = None
-
     for field, value in update_data.items():
         setattr(db_student, field, value)
 

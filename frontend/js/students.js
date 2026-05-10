@@ -33,39 +33,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         
-        setupFilters();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlGroupId = urlParams.get('groupId');
-        if (urlGroupId) {
-            const groupFilter = document.getElementById('groupFilter');
-            if (groupFilter) groupFilter.value = urlGroupId;
-            filterStudents();
-        }
     } catch (err) {
         console.error('Критична помилка ініціалізації:', err);
     }
 });
-
-// Функція розрахунку статусу страховки
-function loadUserInfo() {
-    try {
-        const user = getUser();
-        if (!user) return;
-
-        const nameEl = document.getElementById('userName');
-        const roleEl = document.getElementById('userRoleDisplay');
-        
-        if (nameEl && user.full_name) {
-            nameEl.textContent = user.full_name;
-        }
-        if (roleEl) {
-            roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
-        }
-    } catch (err) {
-        console.warn('Не вдалося завантажити інфо користувача:', err);
-    }
-}
 
 async function loadStudents() {
     try {
@@ -82,6 +53,8 @@ async function loadStudents() {
 
 function renderStudents(students) {
     const tbody = document.getElementById('studentsTable');
+    const user = getUser(); // Отримуємо роль користувача
+    const isAdmin = user && user.role === 'admin';
 
     if (students.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center">Немає учнів</td></tr>';
@@ -110,10 +83,6 @@ function renderStudents(students) {
                             </div>
                         `;
                     })()}
-                    <div class="status-info" title="Абонемент">
-                        <i class="fas fa-ticket-alt"></i>
-                        <small id="sub-status-${student.id}">Перевірка...</small>
-                    </div>
                 </div>
             </td>
             <td>
@@ -125,64 +94,14 @@ function renderStudents(students) {
                 <button class="btn-icon" onclick="editStudent(${student.id})" title="Редагувати">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn-icon btn-danger" onclick="deleteStudent(${student.id})" title="Видалити">
-                    <i class="fas fa-trash"></i>
-                </button>
+                ${isAdmin ? `
+                    <button class="btn-icon btn-danger" onclick="deleteStudent(${student.id})" title="Видалити">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ''}
             </td>
         </tr>
     `}).join('');
-}
-
-function setupFilters() {
-    const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
-    const insuranceFilter = document.getElementById('insuranceFilter'); // Додайте цей елемент в HTML
-
-    if (searchInput) searchInput.addEventListener('input', filterStudents);
-    if (statusFilter) statusFilter.addEventListener('change', filterStudents);
-    if (insuranceFilter) insuranceFilter.addEventListener('change', filterStudents);
-}
-
-function filterStudents() {
-    const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
-    const insuranceFilter = document.getElementById('insuranceFilter');
-    
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-    const status = statusFilter ? statusFilter.value : '';
-    const insuranceExpiring = insuranceFilter ? insuranceFilter.checked : false;
-
-    let filtered = allStudents;
-
-    if (searchTerm) {
-        filtered = filtered.filter(s =>
-            s.first_name.toLowerCase().includes(searchTerm) ||
-            s.last_name.toLowerCase().includes(searchTerm)
-        );
-    }
-
-    if (status === 'active') {
-        filtered = filtered.filter(s => s.is_active);
-    } else if (status === 'inactive') {
-        filtered = filtered.filter(s => !s.is_active);
-    }
-
-    if (insuranceExpiring) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const monthLater = new Date(today);
-        monthLater.setDate(today.getDate() + 30);
-
-        filtered = filtered.filter(s => 
-            s.insurance_end && (function() {
-                const sDate = new Date(s.insurance_end.includes('T') ? s.insurance_end : `${s.insurance_end}T00:00:00`);
-                sDate.setHours(0, 0, 0, 0);
-                return sDate <= monthLater; // Показуємо і прострочені, і ті, що скоро закінчаться
-            })()
-        );
-    }
-
-    renderStudents(filtered);
 }
 
 function openAddStudentModal() {
