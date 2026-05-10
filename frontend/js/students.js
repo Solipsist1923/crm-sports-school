@@ -1,8 +1,6 @@
 // Students Page Logic
 
 let allStudents = [];
-let allGroups = [];
-let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -38,72 +36,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         setupFilters();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlGroupId = urlParams.get('groupId');
-        if (urlGroupId) {
-            const groupFilter = document.getElementById('groupFilter');
-            if (groupFilter) groupFilter.value = urlGroupId;
-            filterStudents();
-        }
     } catch (err) {
         console.error('Критична помилка ініціалізації:', err);
     }
 });
-
-// Функція розрахунку статусу страховки
-function loadUserInfo() {
-    try {
-        const user = getUser();
-        if (!user) return;
-
-        const nameEl = document.getElementById('userName');
-        const roleEl = document.getElementById('userRoleDisplay');
-        
-        if (nameEl && user.full_name) {
-            nameEl.textContent = user.full_name;
-        }
-        if (roleEl) {
-            roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
-        }
-    } catch (err) {
-        console.warn('Не вдалося завантажити інфо користувача:', err);
-    }
-}
-
-async function loadGroups() {
-    try {
-        allGroups = await groupsAPI.getAll();
-        console.log('Завантажено груп:', allGroups.length);
-
-        const select = document.getElementById('groupId');
-        if (select) {
-            select.innerHTML = '<option value="">Без групи</option>' +
-                allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        }
-
-        const filterSelect = document.getElementById('groupFilter');
-        if (filterSelect) {
-            filterSelect.innerHTML = '<option value="">Всі групи</option>' +
-                allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        }
-    } catch (error) {
-        console.error('Error loading groups:', error);
-        allGroups = [];
-        throw error;
-    }
-}
-
-async function loadTrainers() {
-    try {
-        allTrainers = await trainersAPI.getAll();
-        console.log('Завантажено тренерів:', allTrainers.length);
-    } catch (error) {
-        console.error('Error loading trainers:', error);
-        allTrainers = [];
-        throw error;
-    }
-}
 
 async function loadStudents() {
     try {
@@ -127,16 +63,11 @@ function renderStudents(students) {
     }
 
     tbody.innerHTML = students.map(student => {
-        const group = allGroups.find(g => g.id === student.group_id);
-        const trainer = allTrainers.find(t => t.id === student.trainer_id);
-        
         return `
         <tr>
             <td>${student.first_name} ${student.last_name}</td>
             <td>${formatDate(student.birth_date)}</td>
             <td>${student.phone_parent || '-'}</td>
-            <td>${group ? group.name : '-'}</td>
-            <td>${trainer ? `${trainer.first_name} ${trainer.last_name}` : '-'}</td>
             <td>
                 <div class="student-docs-info">
                     <div class="${student.medical_certificate ? 'status-success' : 'status-danger'}" title="Медична довідка">
@@ -149,6 +80,10 @@ function renderStudents(students) {
                             <div class="${ins.class}" title="Страховка">
                                 <i class="fas ${ins.icon}"></i>
                                 <small>Страх. до: ${student.insurance_end ? formatDate(student.insurance_end) : 'Немає'}</small>
+                            </div>
+                            <div class="status-info" title="Абонемент">
+                                <i class="fas fa-ticket-alt"></i>
+                                <small id="sub-status-${student.id}">Перевірка...</small>
                             </div>
                         `;
                     })()}

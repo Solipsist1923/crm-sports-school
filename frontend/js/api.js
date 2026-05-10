@@ -246,6 +246,49 @@ const attendanceAPI = {
     }
 };
 
+// Price List API (Крок 2: Каталог послуг)
+const pricesAPI = {
+    async getAll() {
+        return await apiRequest('/api/prices/');
+    },
+    async create(priceData) {
+        return await apiRequest('/api/prices/', {
+            method: 'POST',
+            body: JSON.stringify(priceData)
+        });
+    }
+};
+
+// Assignments API (Крок 4: Конструктор призначень)
+const assignmentsAPI = {
+    async getAll(params = {}) {
+        const searchParams = new URLSearchParams(params).toString();
+        return await apiRequest(`/api/assignments/?${searchParams}`);
+    },
+    async getByTrainer(trainerId) {
+        return await apiRequest(`/api/assignments/trainer/${trainerId}`);
+    },
+    async create(data) {
+        return await apiRequest('/api/assignments/', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+};
+
+// Subscriptions API (Крок 6: Абонементи)
+const subscriptionsAPI = {
+    async getByStudent(studentId) {
+        return await apiRequest(`/api/subscriptions/student/${studentId}`);
+    },
+    async buy(data) {
+        return await apiRequest('/api/subscriptions/', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+};
+
 // Payments API
 const paymentsAPI = {
     async getAll(params = {}) {

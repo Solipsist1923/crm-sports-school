@@ -66,3 +66,20 @@ function setupMobileMenu() {
         });
     }
 }
+
+function loadUserInfo() {
+    try {
+        const user = getUser(); // Функція з api.js
+        if (!user) return;
+
+        const nameEl = document.getElementById('userName');
+        const roleEl = document.getElementById('userRoleDisplay');
+        
+        if (nameEl) nameEl.textContent = user.full_name || user.username;
+        if (roleEl) {
+            roleEl.textContent = user.role === 'admin' ? 'Адміністратор' : 'Тренер';
+        }
+    } catch (err) {
+        console.warn('Помилка завантаження інфо користувача:', err);
+    }
+}
