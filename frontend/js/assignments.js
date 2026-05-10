@@ -3,6 +3,7 @@ let allGroups = [];
 let allTrainers = [];
 let allStudents = [];
 let allPrices = [];
+let selectedStudentsForLesson = []; // {id, name, payment_type}
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -21,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('lessonDate').min = today; // Заборона минулих дат
 
         await loadAllData();
-        setupPriceToggle();
+        setupStudentSearch();
     } catch (err) {
         console.error('Помилка ініціалізації:', err);
     }
@@ -42,61 +43,103 @@ async function loadAllData() {
     allStudents = results[3].status === 'fulfilled' ? results[3].value : [];
     allPrices = results[4].status === 'fulfilled' ? results[4].value : [];
 
-    renderAssignments(allAssignments);
+    renderAssignmentsCards(allAssignments);
     populateSelects();
 }
 
 function populateSelects() {
-    const groupSelect = document.getElementById('groupId');
-    const trainerSelect = document.getElementById('trainerId');
-    const priceSelect = document.getElementById('priceId');
-    const studentList = document.getElementById('studentsChecklist');
+    document.getElementById('groupId').innerHTML = '<option value="">Оберіть групу...</option>' + 
+        allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
 
-    groupSelect.innerHTML = '<option value="">Оберіть групу...</option>' + 
-        allGroups.map(g => `<option value="${g.id}">${g.name} (${g.schedule || ''})</option>`).join('');
-
-    trainerSelect.innerHTML = '<option value="">Оберіть тренера...</option>' + 
+    document.getElementById('trainerId').innerHTML = '<option value="">Оберіть тренера...</option>' + 
         allTrainers.map(t => `<option value="${t.id}">${t.first_name} ${t.last_name}</option>`).join('');
-
-    priceSelect.innerHTML = '<option value="">Оберіть послугу...</option>' + 
-        allPrices.map(p => `<option value="${p.id}">${p.name} - ${p.price} грн</option>`).join('');
-
-    studentList.innerHTML = allStudents.map(s => `
-        <label class="checkbox-label" style="display: flex; margin-bottom: 8px;">
-            <input type="checkbox" name="student" value="${s.id}">
-            <span style="margin-left: 10px;">${s.first_name} ${s.last_name}</span>
-        </label>
-    `).join('');
 }
 
-function setupPriceToggle() {
-    const isSub = document.getElementById('isSubscription');
-    const priceGroup = document.getElementById('priceSelectionGroup');
-    isSub.addEventListener('change', () => {
-        priceGroup.style.display = isSub.checked ? 'none' : 'block';
+function setupStudentSearch() {
+    const input = document.getElementById('studentSearch');
+    const suggestions = document.getElementById('searchSuggestions');
+
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        if (query.length < 2) { suggestions.innerHTML = ''; return; }
+
+        const matches = allStudents.filter(s => 
+            `${s.first_name} ${s.last_name}`.toLowerCase().includes(query) &&
+            !selectedStudentsForLesson.find(sel => sel.id === s.id)
+        );
+
+        suggestions.innerHTML = matches.map(s => `
+            <div class="suggestion-item" onclick="addStudentToLesson(${s.id}, '${s.first_name} ${s.last_name}')">
+                ${s.first_name} ${s.last_name}
+            </div>
+        `).join('');
     });
 }
 
-function renderAssignments(assignments) {
-    const tbody = document.getElementById('assignmentsTable');
-    if (!assignments || assignments.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Журнал порожній. Створіть перше призначення!</td></tr>';
+function addStudentToLesson(id, name) {
+    selectedStudentsForLesson.push({ id, name, payment_choice: 'subscription' });
+    document.getElementById('studentSearch').value = '';
+    document.getElementById('searchSuggestions').innerHTML = '';
+    renderSelectedStudents();
+}
+
+function removeStudentFromLesson(id) {
+    selectedStudentsForLesson = selectedStudentsForLesson.filter(s => s.id !== id);
+    renderSelectedStudents();
+}
+
+function renderSelectedStudents() {
+    const container = document.getElementById('selectedStudentsList');
+    if (selectedStudentsForLesson.length === 0) {
+        container.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 10px;">Нікого не обрано</p>';
         return;
     }
 
-    tbody.innerHTML = assignments.map(a => `
-        <tr>
-            <td><strong>${formatDate(a.lesson_date)}</strong></td>
-            <td>${a.group?.name || 'Видалена група'}</td>
-            <td>${a.trainer?.first_name} ${a.trainer?.last_name}</td>
-            <td><span class="badge badge-info">${a.students?.length || 0} учнів</span></td>
-            <td>${a.is_subscription ? 'Абонемент' : 'Разово'}</td>
-            <td>
-                <button class="btn-icon btn-danger" onclick="deleteAssignment(${a.id})" title="Видалити">
+    container.innerHTML = selectedStudentsForLesson.map(s => `
+        <div class="schedule-row" style="align-items: center; justify-content: space-between;">
+            <span><strong>${s.name}</strong></span>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <select onchange="updateStudentPayment(${s.id}, this.value)" style="width: 150px; padding: 5px;">
+                    <option value="subscription" ${s.payment_choice === 'subscription' ? 'selected' : ''}>Абонемент</option>
+                    ${allPrices.map(p => `<option value="${p.id}" ${s.payment_choice == p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+                </select>
+                <button type="button" class="btn-icon btn-danger" onclick="removeStudentFromLesson(${s.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateStudentPayment(id, value) {
+    const student = selectedStudentsForLesson.find(s => s.id === id);
+    if (student) student.payment_choice = value;
+}
+
+function renderAssignmentsCards(assignments) {
+    const grid = document.getElementById('assignmentsGrid');
+    if (!assignments || assignments.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">Журнал порожній. Створіть призначення!</div>';
+        return;
+    }
+
+    grid.innerHTML = assignments.map(a => `
+        <div class="group-card">
+            <div class="group-header">
+                <h3>${a.group?.name || 'Без назви'}</h3>
+                <span class="badge badge-info">${formatDate(a.lesson_date)}</span>
+            </div>
+            <div class="group-info">
+                <div class="info-item"><i class="fas fa-user-tie"></i><span>Тренер: ${a.trainer?.first_name} ${a.trainer?.last_name}</span></div>
+                <div class="info-item"><i class="fas fa-users"></i><span>Учнів: ${a.students?.length || 0}</span></div>
+            </div>
+            <div class="group-actions">
+                <button class="btn btn-secondary btn-sm" onclick="viewJournal(${a.id})"><i class="fas fa-book"></i> Журнал</button>
+                <button class="btn-icon btn-danger" onclick="deleteAssignment(${a.id})">
                     <i class="fas fa-trash"></i>
                 </button>
-            </td>
-        </tr>
+            </div>
+        </div>
     `).join('');
 }
 

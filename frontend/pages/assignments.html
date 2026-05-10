@@ -47,23 +47,10 @@
                 </div>
             </header>
 
-            <div class="table-card">
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Дата</th>
-                                <th>Група / Напрямок</th>
-                                <th>Тренер</th>
-                                <th>Учнів</th>
-                                <th>Оплата</th>
-                                <th>Дії</th>
-                            </tr>
-                        </thead>
-                        <tbody id="assignmentsTable">
-                            <tr><td colspan="6" class="text-center">Завантаження...</td></tr>
-                        </tbody>
-                    </table>
+            <!-- Дизайн картками як у групах -->
+            <div class="groups-grid" id="assignmentsGrid">
+                <div class="text-center" style="grid-column: 1/-1; padding: 40px;">
+                    Завантаження...
                 </div>
             </div>
         </main>
@@ -93,22 +80,15 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Виберіть учнів (Золотий список)</label>
-                    <div id="studentsChecklist" class="schedule-builder" style="max-height: 200px; overflow-y: auto; padding: 10px;">
-                        <!-- Список учнів з чекбоксами згенерується тут -->
-                    </div>
+                    <label>Пошук учня (Золотий список)</label>
+                    <input type="text" id="studentSearch" placeholder="Введіть прізвище або ім'я..." class="filter-input">
+                    <div id="searchSuggestions" class="search-suggestions"></div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="isSubscription" checked>
-                            <span>По абонементу</span>
-                        </label>
-                    </div>
-                    <div class="form-group" id="priceSelectionGroup" style="display: none;">
-                        <label for="priceId">Послуга з прайсу</label>
-                        <select id="priceId"><option value="">Оберіть послугу...</option></select>
+                <div class="form-group">
+                    <label>Обрані учні та тип оплати</label>
+                    <div id="selectedStudentsList" class="schedule-builder" style="max-height: 250px; overflow-y: auto;">
+                        <p class="text-center" style="color: var(--text-secondary); padding: 10px;">Нікого не обрано</p>
                     </div>
                 </div>
 
