@@ -8,7 +8,8 @@ assignment_students = Table(
     "assignment_students",
     Base.metadata,
     Column("assignment_id", Integer, ForeignKey("assignments.id", ondelete="CASCADE"), primary_key=True),
-    Column("student_id", Integer, ForeignKey("students.id", ondelete="CASCADE"), primary_key=True)
+    Column("student_id", Integer, ForeignKey("students.id", ondelete="CASCADE"), primary_key=True),
+    Column("payment_choice", String(50), default="subscription")
 )
 
 class User(Base):

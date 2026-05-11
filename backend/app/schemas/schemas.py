@@ -296,13 +296,15 @@ class DashboardStats(BaseModel):
     expired_insurance: int
 
 # Assignment Schemas
+class StudentAssignmentIn(BaseModel):
+    student_id: int
+    payment_choice: str # 'subscription' або ID ціни
+
 class AssignmentCreate(BaseModel):
     group_id: int
     trainer_id: int
-    student_ids: List[int]
-    price_id: Optional[int] = None
+    students_data: List[StudentAssignmentIn]
     lesson_date: date
-    is_subscription: bool = False
 
 class AssignmentResponse(BaseModel):
     id: int

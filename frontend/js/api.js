@@ -140,10 +140,11 @@ async function apiRequest(endpoint, options = {}) {
             } else {
                 data = { detail: await response.text() || response.statusText };
             }
-        } catch (e) { data = { detail: "Error parsing response" }; }
+        } catch (e) { data = { detail: "Помилка обробки відповіді сервера" }; }
 
         if (!response.ok) {
-            throw new Error(data.detail || 'Request failed');
+            const errorMsg = typeof data.detail === 'object' ? JSON.stringify(data.detail) : data.detail;
+            throw new Error(errorMsg || 'Запит відхилено сервером');
         }
 
         return data;
@@ -180,7 +181,7 @@ const authAPI = {
 const studentsAPI = {
     async getAll(params = {}) {
         const searchParams = new URLSearchParams(params).toString();
-        const endpoint = searchParams ? `/api/students/?${searchParams}` : '/api/students/';
+        const endpoint = searchParams ? `/api/students?${searchParams}` : '/api/students';
         return await apiRequest(endpoint);
     },
 
@@ -213,7 +214,7 @@ const studentsAPI = {
 const attendanceAPI = {
     async getAll(params = {}) {
         const searchParams = new URLSearchParams(params).toString();
-        const endpoint = searchParams ? `/api/attendance/?${searchParams}` : '/api/attendance/';
+        const endpoint = searchParams ? `/api/attendance?${searchParams}` : '/api/attendance';
         return await apiRequest(endpoint);
     },
 
@@ -311,7 +312,7 @@ const paymentsAPI = {
 const assignmentsAPI = {
     async getAll(params = {}) {
         const searchParams = new URLSearchParams(params).toString();
-        return await apiRequest(`/api/assignments/?${searchParams}`);
+        return await apiRequest(searchParams ? `/api/assignments?${searchParams}` : '/api/assignments');
     },
     async getByTrainer(trainerId) {
         return await apiRequest(`/api/assignments/trainer/${trainerId}`);
@@ -352,7 +353,7 @@ const statsAPI = {
 const groupsAPI = {
     async getAll(params = {}) {
         const searchParams = new URLSearchParams(params).toString();
-        const endpoint = searchParams ? `/api/groups/?${searchParams}` : '/api/groups/';
+        const endpoint = searchParams ? `/api/groups?${searchParams}` : '/api/groups';
         return await apiRequest(endpoint);
     },
 
