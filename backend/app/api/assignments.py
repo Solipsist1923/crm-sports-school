@@ -46,9 +46,7 @@ async def create_assignment(
         db_assignment = Assignment(
             group_id=data.group_id,
             trainer_id=data.trainer_id,
-            price_id=data.price_id,
             lesson_date=data.lesson_date,
-            is_subscription=data.is_subscription
         )
         db.add(db_assignment)
         db.flush()

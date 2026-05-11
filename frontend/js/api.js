@@ -275,7 +275,7 @@ const pricesAPI = {
 const paymentsAPI = {
     async getAll(params = {}) {
         const searchParams = new URLSearchParams(params).toString();
-        const endpoint = searchParams ? `/api/payments/?${searchParams}` : '/api/payments/';
+        const endpoint = searchParams ? `/api/payments?${searchParams}` : '/api/payments';
         return await apiRequest(endpoint);
     },
 
@@ -386,7 +386,7 @@ const groupsAPI = {
 const trainersAPI = {
     async getAll(params = {}) {
         const searchParams = new URLSearchParams(params).toString();
-        const endpoint = searchParams ? `/api/trainers/?${searchParams}` : '/api/trainers/';
+        const endpoint = searchParams ? `/api/trainers?${searchParams}` : '/api/trainers';
         return await apiRequest(endpoint);
     },
 

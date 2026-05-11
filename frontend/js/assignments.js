@@ -70,9 +70,17 @@ function setupStudentSearch() {
 
         suggestions.innerHTML = matches.map(s => `
             <div class="suggestion-item" onclick="addStudentToLesson(${s.id}, '${s.first_name} ${s.last_name}')">
-                ${s.first_name} ${s.last_name}
+                <i class="fas fa-user-plus" style="margin-right: 10px; color: var(--secondary-color)"></i>
+                <span>${s.first_name} ${s.last_name}</span>
             </div>
         `).join('');
+    });
+
+    // Закриття підказок при кліку поза ними
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.innerHTML = '';
+        }
     });
 }
 
