@@ -87,5 +87,7 @@ function loadUserInfo() {
 function logout() {
     if (confirm('Ви впевнені, що хочете вийти?')) {
         authAPI.logout();
+        // Примусовий редирект, якщо authAPI.logout() затримався
+        window.location.replace('login.html');
     }
 }

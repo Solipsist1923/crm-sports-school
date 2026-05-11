@@ -25,9 +25,13 @@ function setTokens(accessToken, refreshToken) {
 
 // Remove token from localStorage
 function removeToken() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    try {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+    } catch (e) {
+        console.error('Error clearing localStorage:', e);
+    }
 }
 
 // Get user from localStorage
@@ -318,7 +322,7 @@ const assignmentsAPI = {
         return await apiRequest(`/api/assignments/trainer/${trainerId}`);
     },
     async create(data) {
-        return await apiRequest('/api/assignments/', {
+        return await apiRequest('/api/assignments', {
             method: 'POST',
             body: JSON.stringify(data)
         });
