@@ -165,8 +165,16 @@ function closeAssignmentModal() {
 document.getElementById('assignmentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const groupId = document.getElementById('groupId').value;
+    const trainerId = document.getElementById('trainerId').value;
+
+    if (!groupId || !trainerId) {
+        showNotification('Оберіть групу та тренера', 'warning');
+        return;
+    }
+
     if (selectedStudentsForLesson.length === 0) {
-        alert('Будь ласка, виберіть хоча б одного учня');
+        showNotification('Будь ласка, виберіть хоча б одного учня', 'warning');
         return;
     }
 
@@ -177,8 +185,8 @@ document.getElementById('assignmentForm').addEventListener('submit', async (e) =
     }));
 
     const data = {
-        group_id: parseInt(document.getElementById('groupId').value),
-        trainer_id: parseInt(document.getElementById('trainerId').value),
+        group_id: parseInt(groupId),
+        trainer_id: parseInt(trainerId),
         students_data: studentAssignments, // Відправляємо розширені дані
         lesson_date: document.getElementById('lessonDate').value
     };
@@ -189,7 +197,7 @@ document.getElementById('assignmentForm').addEventListener('submit', async (e) =
         loadAllData();
         showNotification('Призначення створено', 'success');
     } catch (err) {
-        alert('Помилка: ' + err.message);
+        showNotification('Помилка: ' + err.message, 'error');
     }
 });
 
@@ -198,6 +206,7 @@ async function deleteAssignment(id) {
         try {
             await assignmentsAPI.delete(id);
             loadAllData();
-        } catch (err) { alert('Помилка'); }
+            showNotification('Призначення видалено', 'success');
+        } catch (err) { showNotification('Помилка видалення', 'error'); }
     }
 }

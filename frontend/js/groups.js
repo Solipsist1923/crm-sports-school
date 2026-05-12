@@ -189,7 +189,7 @@ async function editGroup(id) {
         document.getElementById('groupModal').classList.add('show');
     } catch (error) {
         console.error('Error loading group:', error);
-        alert('Помилка завантаження даних групи');
+        showNotification('Помилка завантаження даних групи', 'error');
     }
 }
 
@@ -201,10 +201,10 @@ async function deleteGroup(id) {
     try {
         await groupsAPI.delete(id);
         await loadGroups();
-        alert('Групу видалено');
+        showNotification('Групу видалено', 'success');
     } catch (error) {
         console.error('Помилка при видаленні групи:', error);
-        alert('Не вдалося видалити групу');
+        showNotification('Не вдалося видалити групу', 'error');
     }
 }
 
@@ -224,10 +224,10 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
     try {
         if (groupId) {
             await groupsAPI.update(groupId, groupData);
-            alert('Групу оновлено');
+            showNotification('Групу оновлено', 'success');
         } else {
             await groupsAPI.create(groupData);
-            alert('Групу додано');
+            showNotification('Групу додано', 'success');
         }
 
         closeGroupModal();
@@ -235,6 +235,6 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
         renderGroups(updatedGroups);
     } catch (error) {
         console.error('Error saving group:', error);
-        alert('Помилка збереження даних');
+        showNotification('Помилка збереження даних', 'error');
     }
 });

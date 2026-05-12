@@ -164,7 +164,7 @@ async function showOverdue() {
         renderPayments(overdue);
     } catch (error) {
         console.error('Error loading overdue payments:', error);
-        alert('Помилка завантаження прострочених оплат');
+        showNotification('Помилка завантаження прострочених оплат', 'error');
     }
 }
 
@@ -207,7 +207,7 @@ document.getElementById('paymentForm').addEventListener('submit', async (e) => {
     const studentId = idMatch ? parseInt(idMatch[1]) : null;
 
     if (!studentId) {
-        alert('Будь ласка, оберіть учня зі списку запропонованих');
+        showNotification('Будь ласка, оберіть учня зі списку запропонованих', 'warning');
         return;
     }
 
@@ -223,16 +223,16 @@ document.getElementById('paymentForm').addEventListener('submit', async (e) => {
     try {
         if (paymentId) {
             await paymentsAPI.update(paymentId, paymentData);
-            alert('Оплату оновлено');
+            showNotification('Оплату оновлено', 'success');
         } else {
             await paymentsAPI.create(paymentData);
-            alert('Оплату додано');
+            showNotification('Оплату додано', 'success');
         }
         closePaymentModal();
         await loadPayments();
     } catch (error) {
         console.error('Error creating payment:', error);
-        alert('Помилка: ' + (error.message || 'Не вдалося додати оплату'));
+        showNotification('Помилка: ' + (error.message || 'Не вдалося обробити оплату'), 'error');
     }
 });
 
@@ -244,9 +244,9 @@ async function deletePayment(id) {
     try {
         await paymentsAPI.delete(id);
         await loadPayments();
-        alert('Оплату видалено');
+        showNotification('Оплату видалено', 'success');
     } catch (error) {
         console.error('Error deleting payment:', error);
-        alert('Помилка видалення');
+        showNotification('Помилка видалення', 'error');
     }
 }

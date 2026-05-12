@@ -193,7 +193,7 @@ async function editStudent(id) {
         document.getElementById('studentModal').classList.add('show');
     } catch (error) {
         console.error('Error loading student:', error);
-        alert('Помилка завантаження даних учня');
+        showNotification('Помилка завантаження даних учня', 'error');
     }
 }
 
@@ -205,11 +205,23 @@ async function deleteStudent(id) {
     try {
         await studentsAPI.delete(id);
         await loadStudents();
-        alert('Учня видалено');
+        showNotification('Учня видалено', 'success');
     } catch (error) {
         console.error('Error deleting student:', error);
-        alert('Помилка видалення учня');
+        showNotification('Помилка видалення учня', 'error');
     }
+}
+
+function validateStudentForm(data) {
+    if (!data.first_name.trim() || !data.last_name.trim()) return "Ім'я та прізвище обов'язкові";
+    if (!data.birth_date) return "Дата народження обов'язкова";
+    if (!data.phone_parent.trim()) return "Телефон батьків обов'язковий";
+    
+    // Проста перевірка формату телефону (мінімум 10 цифр)
+    const phoneDigits = data.phone_parent.replace(/\D/g, '');
+    if (phoneDigits.length < 10) return "Введіть коректний номер телефону (мінімум 10 цифр)";
+    
+    return null;
 }
 
 document.getElementById('studentForm').addEventListener('submit', async (e) => {
@@ -228,13 +240,19 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         notes: document.getElementById('notes').value || null
     };
 
+    const validationError = validateStudentForm(studentData);
+    if (validationError) {
+        showNotification(validationError, 'error');
+        return;
+    }
+
     try {
         if (studentId) {
             await studentsAPI.update(studentId, studentData);
-            alert('Учня оновлено');
+            showNotification('Учня оновлено', 'success');
         } else {
             await studentsAPI.create(studentData);
-            alert('Учня додано');
+            showNotification('Учня додано', 'success');
         }
 
         closeStudentModal();
@@ -242,12 +260,6 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         renderStudents(updatedStudents);
     } catch (error) {
         console.error('Error saving student:', error);
-        alert('Помилка збереження даних');
+        showNotification('Помилка збереження даних: ' + error.message, 'error');
     }
 });
-
-function logout() {
-    if (confirm('Ви впевнені, що хочете вийти?')) {
-        authAPI.logout();
-    }
-}
