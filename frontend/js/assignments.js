@@ -170,41 +170,34 @@ async function openEditAssignmentModal(id) {
     editingAssignmentId = id;
     document.getElementById('modalTitle').textContent = 'Редагувати призначення';
     
+    // 1. Очищуємо форму
     const form = document.getElementById('assignmentForm');
     if (form) form.reset();
 
-    // Знаходимо елементи
-    const groupSelect = document.getElementById('groupId');
-    const trainerSelect = document.getElementById('trainerId');
-    const dateInput = document.getElementById('lessonDate');
+    // 2. Гарантуємо, що селекти заповнені опціями
+    populateSelects();
 
-    // Встановлюємо значення (примусово перетворюємо в String для селектів)
-    if (groupSelect) {
-        groupSelect.value = String(a.group_id);
-        // Якщо значення не встановилося (наприклад, список ще не завантажився), спробуємо ще раз
-        if (groupSelect.value === "" && a.group_id) {
-            setTimeout(() => { groupSelect.value = String(a.group_id); }, 100);
-        }
-    }
-    
-    if (trainerSelect) {
-        trainerSelect.value = String(a.trainer_id);
-        if (trainerSelect.value === "" && a.trainer_id) {
-            setTimeout(() => { trainerSelect.value = String(a.trainer_id); }, 100);
-        }
-    }
+    // 3. Встановлюємо значення основних полів (враховуємо можливу вкладеність)
+    const gId = a.group_id || (a.group && a.group.id);
+    const tId = a.trainer_id || (a.trainer && a.trainer.id);
 
-    if (dateInput) {
-        dateInput.value = a.lesson_date || "";
-    }
+    if (gId) document.getElementById('groupId').value = String(gId);
+    if (tId) document.getElementById('trainerId').value = String(tId);
+    if (a.lesson_date) document.getElementById('lessonDate').value = a.lesson_date;
 
-    // Відновлюємо список обраних учнів
-    selectedStudentsForLesson = (a.students || []).map(s => ({
-        id: s.id,
-        name: `${s.first_name} ${s.last_name}`,
-        // Беремо вибір оплати з об'єкта студента (який приходить з API призначення)
-        payment_choice: s.payment_choice || 'subscription'
-    }));
+    // 4. Відновлюємо список обраних учнів з коректним payment_choice
+    selectedStudentsForLesson = (a.students || []).map(s => {
+        // Шукаємо payment_choice в самому об'єкті студента або в метаданих зв'язку
+        let choice = 'subscription';
+        if (s.payment_choice) choice = s.payment_choice;
+        else if (s.pivot && s.pivot.payment_choice) choice = s.pivot.payment_choice;
+
+        return {
+            id: s.id,
+            name: `${s.first_name} ${s.last_name}`,
+            payment_choice: choice
+        };
+    });
     
     renderSelectedStudents();
     document.getElementById('assignmentModal').classList.add('show');
