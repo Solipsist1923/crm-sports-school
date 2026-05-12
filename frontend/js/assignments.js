@@ -157,10 +157,11 @@ function renderAssignmentsCards(assignments) {
 
 function viewJournal(id) {
     const assignment = allAssignments.find(a => a.id === id);
-    if (assignment) {
-        showNotification(`Журнал для групи ${assignment.group?.name || ''} за ${formatDate(assignment.lesson_date)}`, 'info');
-        // В майбутньому тут можна зробити редирект на attendance.html з фільтром
-    }
+    if (!assignment) return;
+
+    // Перенаправляємо на сторінку відвідуваності з параметрами дати та групи
+    const url = `attendance.html?date=${assignment.lesson_date}&group_id=${assignment.group_id}`;
+    window.location.href = url;
 }
 
 async function openEditAssignmentModal(id) {
@@ -170,15 +171,17 @@ async function openEditAssignmentModal(id) {
     editingAssignmentId = id;
     document.getElementById('modalTitle').textContent = 'Редагувати призначення';
     
-    document.getElementById('groupId').value = a.group_id;
-    document.getElementById('trainerId').value = a.trainer_id;
+    // Явно перетворюємо в рядок для коректного вибору в select
+    document.getElementById('groupId').value = String(a.group_id);
+    document.getElementById('trainerId').value = String(a.trainer_id);
     document.getElementById('lessonDate').value = a.lesson_date;
 
-    // Заповнюємо список обраних учнів
+    // Заповнюємо список обраних учнів з урахуванням їх вибору оплати
     selectedStudentsForLesson = a.students.map(s => ({
         id: s.id,
         name: `${s.first_name} ${s.last_name}`,
-        payment_choice: s.payment_choice || 'subscription'
+        // Тут важливо: якщо в об'єкті студента прийшов payment_choice, беремо його
+        payment_choice: s.assignment_details?.payment_choice || s.payment_choice || 'subscription'
     }));
     
     renderSelectedStudents();
