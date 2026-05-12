@@ -170,21 +170,25 @@ async function openEditAssignmentModal(id) {
     editingAssignmentId = id;
     document.getElementById('modalTitle').textContent = 'Редагувати призначення';
     
-    const form = document.getElementById('assignmentForm');
-    if (form) form.reset();
+    // Скидаємо форму
+    document.getElementById('assignmentForm').reset();
 
-    // Явно встановлюємо значення (перетворюємо в string для select)
-    if (a.group_id) document.getElementById('groupId').value = String(a.group_id);
-    if (a.trainer_id) document.getElementById('trainerId').value = String(a.trainer_id);
-    document.getElementById('lessonDate').value = a.lesson_date || "";
+    // Заповнюємо основні поля. Використовуємо setTimeout(0), щоб дати DOM оновитися
+    // хоча populateSelects вже виконано, це гарантує вибір значення
+    const groupSelect = document.getElementById('groupId');
+    const trainerSelect = document.getElementById('trainerId');
+    const dateInput = document.getElementById('lessonDate');
 
-    // Заповнюємо список обраних учнів. 
-    // Спробуємо дістати payment_choice, який зберігся в об'єкті студента (якщо бекенд його повернув)
+    if (groupSelect) groupSelect.value = a.group_id;
+    if (trainerSelect) trainerSelect.value = a.trainer_id;
+    if (dateInput) dateInput.value = a.lesson_date || "";
+
+    // Відновлюємо список обраних учнів
     selectedStudentsForLesson = (a.students || []).map(s => ({
         id: s.id,
         name: `${s.first_name} ${s.last_name}`,
-        // Пріоритет: збережений вибір > вибір за замовчуванням
-        payment_choice: s.payment_choice || (s.pivot ? s.pivot.payment_choice : 'subscription')
+        // Беремо вибір оплати з об'єкта студента (який приходить з API призначення)
+        payment_choice: s.payment_choice || 'subscription'
     }));
     
     renderSelectedStudents();

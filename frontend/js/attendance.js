@@ -68,12 +68,20 @@ async function loadAttendance() {
             allAttendance = await attendanceAPI.getAll({ limit: 100 });
         }
 
-        // Якщо ми прийшли з конкретного призначення (Journal button)
+        // Розумна фільтрація, якщо ми перейшли з кнопки "Журнал"
         if (groupId) {
-            allAttendance = allAttendance.filter(a => {
+            // Фільтруємо вже існуючі відмітки
+            const filteredAttendance = allAttendance.filter(a => {
                 const student = allStudents.find(s => s.id === a.student_id);
                 return student && String(student.group_id) === String(groupId);
             });
+            
+            if (filteredAttendance.length > 0) {
+                allAttendance = filteredAttendance;
+            } else {
+                // Якщо відміток ще немає, показуємо підказку
+                showNotification('Для цієї групи на обрану дату ще немає відміток. Натисніть "Відмітити", щоб додати.', 'info');
+            }
         }
 
         renderAttendance(allAttendance);
