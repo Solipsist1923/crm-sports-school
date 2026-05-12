@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('lessonDate').value = today;
-        document.getElementById('lessonDate').min = today; // Заборона минулих дат
 
         await loadAllData();
         setupStudentSearch();
@@ -171,17 +170,20 @@ async function openEditAssignmentModal(id) {
     editingAssignmentId = id;
     document.getElementById('modalTitle').textContent = 'Редагувати призначення';
     
-    // Явно перетворюємо в рядок для коректного вибору в select
-    document.getElementById('groupId').value = String(a.group_id);
-    document.getElementById('trainerId').value = String(a.trainer_id);
-    document.getElementById('lessonDate').value = a.lesson_date;
+    // Скидаємо стан форми перед заповненням
+    const form = document.getElementById('assignmentForm');
+    if (form) form.reset();
+
+    // Встановлюємо значення основних полів (Select-и автоматично підхоплять ID)
+    document.getElementById('groupId').value = a.group_id || "";
+    document.getElementById('trainerId').value = a.trainer_id || "";
+    document.getElementById('lessonDate').value = a.lesson_date || "";
 
     // Заповнюємо список обраних учнів з урахуванням їх вибору оплати
-    selectedStudentsForLesson = a.students.map(s => ({
+    selectedStudentsForLesson = (a.students || []).map(s => ({
         id: s.id,
         name: `${s.first_name} ${s.last_name}`,
-        // Тут важливо: якщо в об'єкті студента прийшов payment_choice, беремо його
-        payment_choice: s.assignment_details?.payment_choice || s.payment_choice || 'subscription'
+        payment_choice: s.payment_choice || 'subscription'
     }));
     
     renderSelectedStudents();

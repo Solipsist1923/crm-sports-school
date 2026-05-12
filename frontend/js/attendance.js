@@ -11,15 +11,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Перевіряємо URL параметри (якщо прийшли зі сторінки призначень)
     const urlParams = new URLSearchParams(window.location.search);
     const paramDate = urlParams.get('date');
+    const today = new Date().toISOString().split('T')[0];
     
     if (paramDate) {
         document.getElementById('attendanceDate').value = paramDate;
+        document.getElementById('attendanceDate2').value = paramDate;
     } else {
-        // Set today's date за замовчуванням
-        const today = new Date().toISOString().split('T')[0];
         document.getElementById('attendanceDate').value = today;
+        document.getElementById('attendanceDate2').value = today;
     }
-    document.getElementById('attendanceDate2').value = today;
 
     await Promise.all([
         loadStudents(),
