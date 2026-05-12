@@ -4,6 +4,7 @@ let allTrainers = [];
 let allStudents = [];
 let allPrices = [];
 let selectedStudentsForLesson = []; // {id, name, payment_type}
+let editingAssignmentId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -143,6 +144,9 @@ function renderAssignmentsCards(assignments) {
             </div>
             <div class="group-actions">
                 <button class="btn btn-secondary btn-sm" onclick="viewJournal(${a.id})"><i class="fas fa-book"></i> Журнал</button>
+                <button class="btn-icon" onclick="openEditAssignmentModal(${a.id})" title="Редагувати">
+                    <i class="fas fa-edit"></i>
+                </button>
                 <button class="btn-icon btn-danger" onclick="deleteAssignment(${a.id})">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -151,7 +155,39 @@ function renderAssignmentsCards(assignments) {
     `).join('');
 }
 
+function viewJournal(id) {
+    const assignment = allAssignments.find(a => a.id === id);
+    if (assignment) {
+        showNotification(`Журнал для групи ${assignment.group?.name || ''} за ${formatDate(assignment.lesson_date)}`, 'info');
+        // В майбутньому тут можна зробити редирект на attendance.html з фільтром
+    }
+}
+
+async function openEditAssignmentModal(id) {
+    const a = allAssignments.find(item => item.id === id);
+    if (!a) return;
+
+    editingAssignmentId = id;
+    document.getElementById('modalTitle').textContent = 'Редагувати призначення';
+    
+    document.getElementById('groupId').value = a.group_id;
+    document.getElementById('trainerId').value = a.trainer_id;
+    document.getElementById('lessonDate').value = a.lesson_date;
+
+    // Заповнюємо список обраних учнів
+    selectedStudentsForLesson = a.students.map(s => ({
+        id: s.id,
+        name: `${s.first_name} ${s.last_name}`,
+        payment_choice: s.payment_choice || 'subscription'
+    }));
+    
+    renderSelectedStudents();
+    document.getElementById('assignmentModal').classList.add('show');
+}
+
 function openAddAssignmentModal() {
+    editingAssignmentId = null;
+    document.getElementById('modalTitle').textContent = 'Створити призначення';
     selectedStudentsForLesson = []; // Скидаємо обраних учнів
     renderSelectedStudents();
     document.getElementById('assignmentForm').reset();
@@ -192,10 +228,15 @@ document.getElementById('assignmentForm').addEventListener('submit', async (e) =
     };
 
     try {
-        await assignmentsAPI.create(data);
+        if (editingAssignmentId) {
+            await assignmentsAPI.update(editingAssignmentId, data);
+            showNotification('Призначення оновлено', 'success');
+        } else {
+            await assignmentsAPI.create(data);
+            showNotification('Призначення створено', 'success');
+        }
         closeAssignmentModal();
         loadAllData();
-        showNotification('Призначення створено', 'success');
     } catch (err) {
         showNotification('Помилка: ' + err.message, 'error');
     }

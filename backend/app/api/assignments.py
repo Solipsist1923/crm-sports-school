@@ -67,6 +67,45 @@ async def create_assignment(
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Помилка створення призначення: {str(e)}")
 
+@router.put("/{id}", response_model=AssignmentResponse)
+async def update_assignment(
+    id: int,
+    data: AssignmentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Оновлення призначення (тільки адмін)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Тільки адміністратор може редагувати призначення")
+
+    db_item = db.query(Assignment).filter(Assignment.id == id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Призначення не знайдено")
+
+    try:
+        db_item.group_id = data.group_id
+        db_item.trainer_id = data.trainer_id
+        db_item.lesson_date = data.lesson_date
+
+        # Видаляємо старі зв'язки з учнями
+        db.execute(assignment_students.delete().where(assignment_students.c.assignment_id == id))
+
+        # Додаємо нові зв'язки
+        for item in data.students_data:
+            stmt = assignment_students.insert().values(
+                assignment_id=id,
+                student_id=item.student_id,
+                payment_choice=item.payment_choice
+            )
+            db.execute(stmt)
+
+        db.commit()
+        db.refresh(db_item)
+        return db_item
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Помилка оновлення призначення: {str(e)}")
+
 @router.delete("/{id}", status_code=204)
 async def delete_assignment(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "admin":
