@@ -105,7 +105,8 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
         await loadPrices();
         showNotification('Дані збережено', 'success');
     } catch (error) {
-        alert('Помилка збереження');
+        console.error('Error saving price:', error);
+        showNotification('Помилка збереження: ' + (error.message || ''), 'error');
     }
 });
 
@@ -114,5 +115,9 @@ async function deletePrice(id) {
     try {
         await pricesAPI.delete(id);
         await loadPrices();
-    } catch (error) { alert('Помилка видалення'); }
+        showNotification('Послугу видалено', 'success');
+    } catch (error) { 
+        console.error('Error deleting price:', error);
+        showNotification('Помилка видалення', 'error'); 
+    }
 }

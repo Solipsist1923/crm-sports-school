@@ -162,7 +162,7 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
     const studentId = idMatch ? parseInt(idMatch[1]) : null;
 
     if (!studentId) {
-        alert('Будь ласка, оберіть учня зі списку');
+        showNotification('Будь ласка, оберіть учня зі списку', 'warning');
         return;
     }
 
@@ -176,16 +176,16 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
     try {
         if (attendanceId) {
             await attendanceAPI.update(attendanceId, attendanceData);
-            alert('Відвідування оновлено');
+            showNotification('Відвідування оновлено', 'success');
         } else {
             await attendanceAPI.mark(attendanceData);
-            alert('Відвідування відмічено');
+            showNotification('Відвідування відмічено', 'success');
         }
         closeAttendanceModal();
         await loadAttendance();
     } catch (error) {
         console.error('Error marking attendance:', error);
-        alert('Помилка: ' + (error.message || 'Не вдалося відмітити відвідування'));
+        showNotification('Помилка: ' + (error.message || 'Не вдалося відмітити відвідування'), 'error');
     }
 });
 
@@ -197,9 +197,9 @@ async function deleteAttendance(id) {
     try {
         await attendanceAPI.delete(id);
         await loadAttendance();
-        alert('Відмітку видалено');
+        showNotification('Відмітку видалено', 'success');
     } catch (error) {
         console.error('Error deleting attendance:', error);
-        alert('Помилка видалення');
+        showNotification('Помилка видалення', 'error');
     }
 }

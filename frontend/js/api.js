@@ -401,17 +401,19 @@ const trainersAPI = {
 
 // Utility Functions
 // Show users menu for admin
-function showUsersMenuForAdmin() {
+function showAdminMenu() {
     const user = getUser();
     if (user && user.role === 'admin') {
-        const usersLink = document.getElementById('usersLink');
-        if (usersLink) {
-            usersLink.style.display = 'flex';
-        }
+        // Список ID посилань, які мають бачити тільки адміни
+        const adminLinks = ['usersLink', 'assignmentsLink', 'pricesLink'];
+        adminLinks.forEach(id => {
+            const link = document.getElementById(id);
+            if (link) link.style.display = 'flex';
+        });
     }
 }
 
 // Call this on page load
 document.addEventListener('DOMContentLoaded', function() {
-    showUsersMenuForAdmin();
+    showAdminMenu();
 });
