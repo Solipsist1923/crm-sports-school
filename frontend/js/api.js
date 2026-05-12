@@ -422,4 +422,6 @@ function showAdminMenu() {
 // Call this on page load
 document.addEventListener('DOMContentLoaded', function() {
     showAdminMenu();
+    // Додаткова перевірка через 100мс для гарантії відображення на всіх сторінках
+    setTimeout(showAdminMenu, 100);
 });

@@ -108,8 +108,8 @@ function renderSelectedStudents() {
             <span><strong>${s.name}</strong></span>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <select onchange="updateStudentPayment(${s.id}, this.value)" style="width: 150px; padding: 5px;">
-                    <option value="subscription" ${s.payment_choice === 'subscription' ? 'selected' : ''}>Абонемент</option>
-                    ${allPrices.map(p => `<option value="${p.id}" ${s.payment_choice == p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+                    <option value="subscription" ${String(s.payment_choice) === 'subscription' ? 'selected' : ''}>Абонемент</option>
+                    ${allPrices.map(p => `<option value="${p.id}" ${String(s.payment_choice) === String(p.id) ? 'selected' : ''}>${p.name}</option>`).join('')}
                 </select>
                 <button type="button" class="btn-icon btn-danger" onclick="removeStudentFromLesson(${s.id})">
                     <i class="fas fa-times"></i>
