@@ -59,11 +59,23 @@ async function loadTrainers() {
 async function loadAttendance() {
     try {
         const date = document.getElementById('attendanceDate').value;
+        const urlParams = new URLSearchParams(window.location.search);
+        const groupId = urlParams.get('group_id');
+
         if (date) {
             allAttendance = await attendanceAPI.getByDate(date);
         } else {
             allAttendance = await attendanceAPI.getAll({ limit: 100 });
         }
+
+        // Якщо ми прийшли з конкретного призначення (Journal button)
+        if (groupId) {
+            allAttendance = allAttendance.filter(a => {
+                const student = allStudents.find(s => s.id === a.student_id);
+                return student && String(student.group_id) === String(groupId);
+            });
+        }
+
         renderAttendance(allAttendance);
     } catch (error) {
         console.error('Error loading attendance:', error);

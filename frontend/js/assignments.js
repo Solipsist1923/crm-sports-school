@@ -170,20 +170,21 @@ async function openEditAssignmentModal(id) {
     editingAssignmentId = id;
     document.getElementById('modalTitle').textContent = 'Редагувати призначення';
     
-    // Скидаємо стан форми перед заповненням
     const form = document.getElementById('assignmentForm');
     if (form) form.reset();
 
-    // Встановлюємо значення основних полів (Select-и автоматично підхоплять ID)
-    document.getElementById('groupId').value = a.group_id || "";
-    document.getElementById('trainerId').value = a.trainer_id || "";
+    // Явно встановлюємо значення (перетворюємо в string для select)
+    if (a.group_id) document.getElementById('groupId').value = String(a.group_id);
+    if (a.trainer_id) document.getElementById('trainerId').value = String(a.trainer_id);
     document.getElementById('lessonDate').value = a.lesson_date || "";
 
-    // Заповнюємо список обраних учнів з урахуванням їх вибору оплати
+    // Заповнюємо список обраних учнів. 
+    // Спробуємо дістати payment_choice, який зберігся в об'єкті студента (якщо бекенд його повернув)
     selectedStudentsForLesson = (a.students || []).map(s => ({
         id: s.id,
         name: `${s.first_name} ${s.last_name}`,
-        payment_choice: s.payment_choice || 'subscription'
+        // Пріоритет: збережений вибір > вибір за замовчуванням
+        payment_choice: s.payment_choice || (s.pivot ? s.pivot.payment_choice : 'subscription')
     }));
     
     renderSelectedStudents();
