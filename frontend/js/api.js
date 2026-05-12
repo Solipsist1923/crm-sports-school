@@ -409,14 +409,17 @@ const trainersAPI = {
 // Show users menu for admin
 function showAdminMenu() {
     const user = getUser();
-    if (user && user.role === 'admin') {
-        // Список ID посилань, які мають бачити тільки адміни
-        const adminLinks = ['usersLink', 'assignmentsLink', 'pricesLink'];
-        adminLinks.forEach(id => {
-            const link = document.getElementById(id);
-            if (link) link.style.display = 'flex';
-        });
-    }
+    if (!user || user.role !== 'admin') return;
+
+    // Список ID посилань, які мають бачити тільки адміни
+    const adminLinks = ['usersLink', 'assignmentsLink', 'pricesLink'];
+    
+    adminLinks.forEach(id => {
+        const link = document.getElementById(id);
+        if (link) {
+            link.style.setProperty('display', 'flex', 'important');
+        }
+    });
 }
 
 // Call this on page load

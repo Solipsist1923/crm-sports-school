@@ -108,8 +108,11 @@ function renderSelectedStudents() {
             <span><strong>${s.name}</strong></span>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <select onchange="updateStudentPayment(${s.id}, this.value)" style="width: 150px; padding: 5px;">
-                    <option value="subscription" ${String(s.payment_choice) === 'subscription' ? 'selected' : ''}>Абонемент</option>
-                    ${allPrices.map(p => `<option value="${p.id}" ${String(s.payment_choice) === String(p.id) ? 'selected' : ''}>${p.name}</option>`).join('')}
+                    <option value="subscription" ${(!s.payment_choice || s.payment_choice === 'subscription') ? 'selected' : ''}>Абонемент</option>
+                    ${allPrices.map(p => {
+                        const isSelected = String(s.payment_choice) === String(p.id);
+                        return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
+                    }).join('')}
                 </select>
                 <button type="button" class="btn-icon btn-danger" onclick="removeStudentFromLesson(${s.id})">
                     <i class="fas fa-times"></i>
@@ -186,15 +189,17 @@ async function openEditAssignmentModal(id) {
     if (a.lesson_date) document.getElementById('lessonDate').value = a.lesson_date;
 
     // 4. Відновлюємо список обраних учнів з коректним payment_choice
-    selectedStudentsForLesson = (a.students || []).map(s => {
-        // Шукаємо payment_choice в самому об'єкті студента або в метаданих зв'язку
+    selectedStudentsForLesson = (a.students || []).map(studentInAssignment => {
         let choice = 'subscription';
-        if (s.payment_choice) choice = s.payment_choice;
-        else if (s.pivot && s.pivot.payment_choice) choice = s.pivot.payment_choice;
+        
+        // Перевіряємо всі можливі місця, де може бути збережений тип оплати
+        if (studentInAssignment.payment_choice) choice = studentInAssignment.payment_choice;
+        else if (studentInAssignment.pivot && studentInAssignment.pivot.payment_choice) choice = studentInAssignment.pivot.payment_choice;
+        else if (studentInAssignment.assignment_details && studentInAssignment.assignment_details.payment_choice) choice = studentInAssignment.assignment_details.payment_choice;
 
         return {
-            id: s.id,
-            name: `${s.first_name} ${s.last_name}`,
+            id: studentInAssignment.id,
+            name: `${studentInAssignment.first_name} ${studentInAssignment.last_name}`,
             payment_choice: choice
         };
     });
