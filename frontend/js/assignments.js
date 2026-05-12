@@ -170,18 +170,33 @@ async function openEditAssignmentModal(id) {
     editingAssignmentId = id;
     document.getElementById('modalTitle').textContent = 'Редагувати призначення';
     
-    // Скидаємо форму
-    document.getElementById('assignmentForm').reset();
+    const form = document.getElementById('assignmentForm');
+    if (form) form.reset();
 
-    // Заповнюємо основні поля. Використовуємо setTimeout(0), щоб дати DOM оновитися
-    // хоча populateSelects вже виконано, це гарантує вибір значення
+    // Знаходимо елементи
     const groupSelect = document.getElementById('groupId');
     const trainerSelect = document.getElementById('trainerId');
     const dateInput = document.getElementById('lessonDate');
 
-    if (groupSelect) groupSelect.value = a.group_id;
-    if (trainerSelect) trainerSelect.value = a.trainer_id;
-    if (dateInput) dateInput.value = a.lesson_date || "";
+    // Встановлюємо значення (примусово перетворюємо в String для селектів)
+    if (groupSelect) {
+        groupSelect.value = String(a.group_id);
+        // Якщо значення не встановилося (наприклад, список ще не завантажився), спробуємо ще раз
+        if (groupSelect.value === "" && a.group_id) {
+            setTimeout(() => { groupSelect.value = String(a.group_id); }, 100);
+        }
+    }
+    
+    if (trainerSelect) {
+        trainerSelect.value = String(a.trainer_id);
+        if (trainerSelect.value === "" && a.trainer_id) {
+            setTimeout(() => { trainerSelect.value = String(a.trainer_id); }, 100);
+        }
+    }
+
+    if (dateInput) {
+        dateInput.value = a.lesson_date || "";
+    }
 
     // Відновлюємо список обраних учнів
     selectedStudentsForLesson = (a.students || []).map(s => ({

@@ -68,19 +68,18 @@ async function loadAttendance() {
             allAttendance = await attendanceAPI.getAll({ limit: 100 });
         }
 
-        // Розумна фільтрація, якщо ми перейшли з кнопки "Журнал"
+        // Покращена фільтрація для кнопки "Журнал"
         if (groupId) {
-            // Фільтруємо вже існуючі відмітки
-            const filteredAttendance = allAttendance.filter(a => {
-                const student = allStudents.find(s => s.id === a.student_id);
+            const filtered = allAttendance.filter(attr => {
+                const student = allStudents.find(s => s.id === attr.student_id);
                 return student && String(student.group_id) === String(groupId);
             });
-            
-            if (filteredAttendance.length > 0) {
-                allAttendance = filteredAttendance;
+
+            if (filtered.length > 0) {
+                allAttendance = filtered;
             } else {
-                // Якщо відміток ще немає, показуємо підказку
-                showNotification('Для цієї групи на обрану дату ще немає відміток. Натисніть "Відмітити", щоб додати.', 'info');
+                const group = allStudents.find(s => String(s.group_id) === String(groupId))?.group_name || "обраної групи";
+                showNotification(`Журнал порожній. Натисніть "Відмітити", щоб додати учнів групи до заняття.`, 'info');
             }
         }
 
