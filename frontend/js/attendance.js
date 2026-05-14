@@ -369,7 +369,10 @@ async function handleConfirmAttendance() {
             return;
         }
 
-        const lessonDate = assignment.lesson_date;
+        // Отримуємо дату у форматі YYYY-MM-DD один раз для всіх запитів
+        const lessonDate = (assignment.lesson_date instanceof Date) 
+            ? assignment.lesson_date.toISOString().split('T')[0] 
+            : String(assignment.lesson_date).split('T')[0];
 
         for (const student of currentLessonStudents) {
             const sId = parseInt(student.id);
@@ -392,10 +395,7 @@ async function handleConfirmAttendance() {
 
             const attendanceData = {
                 student_id: sId,
-                // Форматуємо дату в YYYY-MM-DD
-                date: lessonDate instanceof Date 
-                    ? lessonDate.toISOString().split('T')[0] 
-                    : String(lessonDate).split('T')[0],
+                date: lessonDate,
                 status: status, 
                 notes: "", 
                 payment_choice: String(student.payment_choice),
