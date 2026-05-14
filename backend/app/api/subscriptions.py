@@ -8,7 +8,7 @@ from app.models.models import Subscription, Student, PriceList, User
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
 @router.get("/")
-def get_subscriptions(db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_active_user)):
+def get_subscriptions(db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
     subs = db.query(Subscription).all()
     result = []
     for sub in subs:
@@ -26,7 +26,7 @@ def get_subscriptions(db: Session = Depends(get_db), current_user: User = Depend
     return result
 
 @router.post("/")
-def create_subscription(data: dict, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_active_user)):
+def create_subscription(data: dict, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -52,7 +52,7 @@ def get_students_dropdown(db: Session = Depends(get_db)):
     return db.query(Student).filter(Student.is_active == True).all()
 
 @router.delete("/{sub_id}")
-def delete_subscription(sub_id: int, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_active_user)):
+def delete_subscription(sub_id: int, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

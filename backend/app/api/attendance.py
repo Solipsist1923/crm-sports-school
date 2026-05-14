@@ -154,12 +154,12 @@ async def mark_attendance(
         active_subscription = db.query(Subscription).filter(
             Subscription.student_id == attendance.student_id,
             Subscription.is_active == True,
-            Subscription.remaining_classes > 0
+            Subscription.classes_remaining > 0
         ).first()
 
         if active_subscription:
-            active_subscription.remaining_classes -= 1
-            if active_subscription.remaining_classes == 0:
+            active_subscription.classes_remaining -= 1
+            if active_subscription.classes_remaining == 0:
                 active_subscription.is_active = False
 
     db.commit()

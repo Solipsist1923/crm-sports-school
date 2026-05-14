@@ -169,17 +169,14 @@ class AttendanceResponse(AttendanceBase):
 # Subscription Schemas
 class SubscriptionBase(BaseModel):
     student_id: int
-    total_classes: int
-    remaining_classes: int
-    start_date: date
-    end_date: date
+    pricelist_item_id: int
+    classes_remaining: int
 
 class SubscriptionCreate(SubscriptionBase):
     pass
 
 class SubscriptionUpdate(BaseModel):
-    remaining_classes: Optional[int] = None
-    end_date: Optional[date] = None
+    classes_remaining: Optional[int] = None
     is_active: Optional[bool] = None
 
 class SubscriptionResponse(SubscriptionBase):
