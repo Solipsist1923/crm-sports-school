@@ -207,14 +207,16 @@ async function openMarkAttendanceModal(assignmentId) {
         
         if (!choice) choice = 'subscription';
 
-        // Абонемент завжди вважається оплаченим (заняття вже куплені)
-        const isPaid = s.is_paid === true || choice === 'subscription';
+        // Якщо відмітка вже є в базі — використовуємо її стан. 
+        // Якщо немає — для абонементів ставимо "Оплачено" за замовчуванням (щоб списалось).
+        const isPaid = s.attendance_id ? (s.is_paid === true) : (choice === 'subscription');
+        const isPresent = s.attendance_id ? (s.is_present === true) : false;
 
         return {
             id: s.student_id || s.id, 
             name: `${s.first_name} ${s.last_name}`,
             payment_choice: String(choice),
-            is_present: s.is_present === true, 
+            is_present: isPresent, 
             is_paid: isPaid,
             attendance_id: s.attendance_id
         };
@@ -385,7 +387,7 @@ function addStudentToCurrentLesson(id, name) {
         id: id,
         name: name,
         payment_choice: defaultPaymentChoice,
-        is_present: true, // Default to present when added by trainer
+        is_present: false, // За замовчуванням — відсутній
         is_paid: false,
         attendance_id: null // No existing attendance record yet
     });
@@ -418,6 +420,13 @@ async function handleConfirmAttendance() {
             const sId = parseInt(student.id);
             if (isNaN(sId)) {
                 console.warn('Пропущено учня через некоректний ID:', student);
+                continue;
+            }
+
+            // Логіка пропуску: якщо учень відсутній і це не абонемент (який треба списати), 
+            // і раніше запису не було — не створюємо "пустий" запис, щоб не псувати статистику
+            const isSubscription = student.payment_choice === 'subscription';
+            if (!student.is_present && !isSubscription && !student.attendance_id) {
                 continue;
             }
 
