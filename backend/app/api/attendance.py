@@ -133,38 +133,69 @@ async def mark_attendance(
         if not is_own_student:
             raise HTTPException(status_code=403, detail="Access denied")
 
-    # Перевірка, чи вже є відмітка на цю дату
-    existing = db.query(Attendance).filter(
-        Attendance.student_id == attendance.student_id,
-        Attendance.date == attendance.date
-    ).first()
-
-    if existing:
-        raise HTTPException(status_code=400, detail="Attendance already marked for this date")
-
-    # Створення відмітки
-    db_attendance = Attendance(
-        **attendance.model_dump(),
-        marked_by=current_user.id
-    )
-    db.add(db_attendance)
-
-    # Якщо вибрано абонемент і відмічено оплату, списуємо заняття (навіть якщо учень відсутній)
-    if attendance.payment_choice == "subscription" and attendance.is_paid:
-        active_subscription = db.query(Subscription).filter(
-            Subscription.student_id == attendance.student_id,
-            Subscription.is_active == True,
-            Subscription.classes_remaining > 0
+    try:
+        # Перевірка, чи вже є відмітка на цю дату
+        existing = db.query(Attendance).filter(
+            Attendance.student_id == attendance.student_id,
+            Attendance.date == attendance.date
         ).first()
 
-        if active_subscription:
-            active_subscription.classes_remaining -= 1
-            if active_subscription.classes_remaining == 0:
-                active_subscription.is_active = False
+        if existing:
+            # Якщо запис вже існує — оновлюємо його (upsert)
+            was_paid_subscription = (existing.payment_choice == "subscription" and existing.is_paid)
 
-    db.commit()
-    db.refresh(db_attendance)
-    return db_attendance
+            existing.status = attendance.status
+            existing.payment_choice = attendance.payment_choice
+            existing.is_paid = attendance.is_paid
+            existing.notes = attendance.notes
+            existing.marked_by = current_user.id
+
+            # Якщо раніше НЕ було списання абонементу, а тепер є — списуємо
+            if not was_paid_subscription and attendance.payment_choice == "subscription" and attendance.is_paid:
+                active_subscription = db.query(Subscription).filter(
+                    Subscription.student_id == attendance.student_id,
+                    Subscription.is_active == True,
+                    Subscription.classes_remaining > 0
+                ).first()
+                if active_subscription:
+                    active_subscription.classes_remaining -= 1
+                    if active_subscription.classes_remaining == 0:
+                        active_subscription.is_active = False
+
+            db.commit()
+            db.refresh(existing)
+            return existing
+
+        # Створення нової відмітки
+        db_attendance = Attendance(
+            **attendance.model_dump(),
+            marked_by=current_user.id
+        )
+        db.add(db_attendance)
+
+        # Якщо вибрано абонемент і відмічено оплату, списуємо заняття (навіть якщо учень відсутній)
+        if attendance.payment_choice == "subscription" and attendance.is_paid:
+            active_subscription = db.query(Subscription).filter(
+                Subscription.student_id == attendance.student_id,
+                Subscription.is_active == True,
+                Subscription.classes_remaining > 0
+            ).first()
+
+            if active_subscription:
+                active_subscription.classes_remaining -= 1
+                if active_subscription.classes_remaining == 0:
+                    active_subscription.is_active = False
+
+        db.commit()
+        db.refresh(db_attendance)
+        return db_attendance
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"Error marking attendance: {e}")
+        raise HTTPException(status_code=500, detail=f"Помилка збереження відвідування: {str(e)}")
 
 @router.put("/{attendance_id}", response_model=AttendanceResponse)
 async def update_attendance(
