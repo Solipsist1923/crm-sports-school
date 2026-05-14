@@ -6,7 +6,7 @@ from datetime import date, timedelta
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.models.models import Attendance, Student, Subscription, User, Group, Trainer
+from app.models.models import Attendance, Student, Subscription, User, Group, Trainer, PriceList
 from app.schemas.schemas import AttendanceCreate, AttendanceUpdate, AttendanceResponse
 
 router = APIRouter(prefix="/api/attendance", tags=["Attendance"])
@@ -108,6 +108,17 @@ async def get_student_attendance(
 
     return attendance
 
+def _is_subscription_payment(choice: str, db: Session) -> bool:
+    """Перевіряє, чи є вибір оплати абонементом (рядок 'subscription' або ID послуги типу абонемент)"""
+    if not choice: return False
+    if choice == "subscription": return True
+    try:
+        price_id = int(choice)
+        item = db.query(PriceList).filter(PriceList.id == price_id).first()
+        return item and item.category == "subscription"
+    except (ValueError, TypeError):
+        return False
+
 @router.post("/", response_model=AttendanceResponse, status_code=201)
 async def mark_attendance(
     attendance: AttendanceCreate,
@@ -142,7 +153,7 @@ async def mark_attendance(
 
         if existing:
             # Якщо запис вже існує — оновлюємо його (upsert)
-            was_paid_subscription = (existing.payment_choice == "subscription" and existing.is_paid)
+            was_paid_subscription = (_is_subscription_payment(existing.payment_choice, db) and existing.is_paid)
 
             existing.status = attendance.status
             existing.payment_choice = attendance.payment_choice
@@ -151,7 +162,8 @@ async def mark_attendance(
             existing.marked_by = current_user.id
 
             # Якщо раніше НЕ було списання абонементу, а тепер є — списуємо
-            if not was_paid_subscription and attendance.payment_choice == "subscription" and attendance.is_paid:
+            is_now_subscription = _is_subscription_payment(attendance.payment_choice, db)
+            if not was_paid_subscription and is_now_subscription and attendance.is_paid:
                 active_subscription = db.query(Subscription).filter(
                     Subscription.student_id == attendance.student_id,
                     Subscription.is_active == True,
@@ -174,7 +186,7 @@ async def mark_attendance(
         db.add(db_attendance)
 
         # Якщо вибрано абонемент і відмічено оплату, списуємо заняття (навіть якщо учень відсутній)
-        if attendance.payment_choice == "subscription" and attendance.is_paid:
+        if _is_subscription_payment(attendance.payment_choice, db) and attendance.is_paid:
             active_subscription = db.query(Subscription).filter(
                 Subscription.student_id == attendance.student_id,
                 Subscription.is_active == True,
@@ -224,14 +236,15 @@ async def update_attendance(
             raise HTTPException(status_code=403, detail="Access denied")
 
     try:
-        was_paid_subscription = (db_attendance.payment_choice == "subscription" and db_attendance.is_paid)
+        was_paid_subscription = (_is_subscription_payment(db_attendance.payment_choice, db) and db_attendance.is_paid)
 
         update_data = attendance_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_attendance, field, value)
 
         # Якщо раніше НЕ було списання абонементу, а тепер є — списуємо
-        if not was_paid_subscription and db_attendance.payment_choice == "subscription" and db_attendance.is_paid:
+        is_now_subscription = _is_subscription_payment(db_attendance.payment_choice, db)
+        if not was_paid_subscription and is_now_subscription and db_attendance.is_paid:
             active_subscription = db.query(Subscription).filter(
                 Subscription.student_id == db_attendance.student_id,
                 Subscription.is_active == True,

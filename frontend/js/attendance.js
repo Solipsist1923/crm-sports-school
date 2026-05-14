@@ -129,19 +129,30 @@ function renderAssignmentsCards(assignments) {
 
     grid.innerHTML = assignments.map(a => {
         const scheduleTime = a.group?.schedule ? `<div class="info-item"><i class="fas fa-clock"></i><span>${a.group.schedule}</span></div>` : '';
+        
+        // Рахуємо скільки учнів з цього призначення вже мають відмітку
+        const totalStudents = a.students?.length || 0;
+        const markedStudents = a.students?.filter(s => s.attendance_id).length || 0;
+        const isCompleted = totalStudents > 0 && markedStudents >= totalStudents;
+
         return `
-            <div class="group-card">
+            <div class="group-card ${isCompleted ? 'status-completed' : ''}" style="${isCompleted ? 'border-left: 5px solid #10b981; background-color: #f0fdf4;' : ''}">
                 <div class="group-header">
                     <h3>${a.group?.name || 'Без назви'}</h3>
-                    <span class="badge badge-info">${formatDate(a.lesson_date)}</span>
+                    <span class="badge ${isCompleted ? 'badge-success' : 'badge-info'}">
+                        ${isCompleted ? '<i class="fas fa-check-circle"></i> Відмічено' : formatDate(a.lesson_date)}
+                    </span>
                 </div>
                 <div class="group-info">
                     ${scheduleTime}
                     <div class="info-item"><i class="fas fa-user-tie"></i><span>Тренер: ${a.trainer?.first_name} ${a.trainer?.last_name}</span></div>
-                    <div class="info-item"><i class="fas fa-users"></i><span>Учнів: ${a.students?.length || 0}</span></div>
+                    <div class="info-item"><i class="fas fa-users"></i><span>Учнів: ${totalStudents} (${markedStudents}/${totalStudents})</span></div>
                 </div>
                 <div class="group-actions">
-                    <button class="btn btn-primary btn-sm" onclick="openMarkAttendanceModal(${a.id})"><i class="fas fa-clipboard-check"></i> Відмітити</button>
+                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-primary'} btn-sm" onclick="openMarkAttendanceModal(${a.id})">
+                        <i class="fas ${isCompleted ? 'fa-edit' : 'fa-clipboard-check'}"></i> 
+                        ${isCompleted ? 'Редагувати' : 'Відмітити'}
+                    </button>
                 </div>
             </div>
         `;
