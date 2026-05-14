@@ -1289,3 +1289,112 @@ body {
     padding: 0 5px;
     font-size: 1.1rem;
 }
+
+/* Покращені картки відвідування */
+.attendance-header-actions {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.attendance-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.student-attendance-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.student-attendance-card.is-present {
+    border-left: 4px solid var(--primary-color);
+}
+
+.student-attendance-card.is-paid {
+    background-color: #f0fdf4;
+    border-color: #bcf0da;
+}
+
+.card-main-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.student-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+}
+
+.price-tag {
+    background: var(--warning-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.btn-remove-student {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 5px;
+    font-size: 1.1rem;
+}
+
+.card-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.attendance-toggle {
+    cursor: pointer;
+}
+
+.attendance-toggle input {
+    display: none;
+}
+
+.toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.attendance-toggle input:checked + .toggle-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+.payment-choice-wrapper {
+    grid-column: span 2;
+    margin-top: 5px;
+}
+
+.card-select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    font-size: 13px;
+    background: white;
+}

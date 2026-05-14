@@ -180,52 +180,47 @@ function renderStudentsForAttendanceModal() {
     }
 
     container.innerHTML = `
-        <div class="attendance-table-container">
-            <table class="attendance-table">
-                <thead>
-                    <tr>
-                        <th class="sticky-col">Учень</th>
-                        <th>Н/В <button class="btn-text-only" onclick="markAllPresent()" title="Відмітити всіх як присутніх"><i class="fas fa-check-double"></i></button></th>
-                        <th>Оплата</th>
-                        <th>Тип оплати</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${currentLessonStudents.map(s => {
-                        const selectedPrice = allPrices.find(p => String(p.id) === String(s.payment_choice));
-                        const priceDisplay = (selectedPrice && (selectedPrice.category === 'single' || selectedPrice.category === 'individual'))
-                            ? `<br><small class="text-secondary">${selectedPrice.price} грн</small>` : '';
-                        
-                        return `
-                            <tr class="${s.is_present ? 'row-present' : ''} ${s.is_paid ? 'row-paid' : 'row-unpaid'}">
-                                <td class="sticky-col"><strong>${s.name}</strong>${priceDisplay}</td>
-                                <td>
-                                    <input type="checkbox" class="compact-check" ${s.is_present ? 'checked' : ''} 
-                                        onchange="updateStudentAttendanceStatus(${s.id}, 'is_present', this.checked)">
-                                </td>
-                                <td>
-                                    <input type="checkbox" class="compact-check" ${s.is_paid ? 'checked' : ''} 
-                                        onchange="updateStudentAttendanceStatus(${s.id}, 'is_paid', this.checked)">
-                                </td>
-                                <td>
-                                    <select onchange="updateStudentPaymentChoice(${s.id}, this.value)" class="table-select">
-                                        ${allPrices.map(p => {
-                                            const isSelected = String(s.payment_choice) === String(p.id);
-                                            return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
-                                        }).join('')}
-                                    </select>
-                                </td>
-                                <td>
-                                    <button type="button" class="btn-icon btn-sm btn-danger" onclick="removeStudentFromCurrentLesson(${s.id})">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('')}
-                </tbody>
-            </table>
+        <div class="attendance-header-actions">
+            <button class="btn btn-secondary btn-sm" onclick="markAllPresent()">
+                <i class="fas fa-check-double"></i> Відмітити всіх присутніми
+            </button>
+        </div>
+        <div class="attendance-cards-container">
+            ${currentLessonStudents.map(s => {
+                const selectedPrice = allPrices.find(p => String(p.id) === String(s.payment_choice));
+                const priceDisplay = (selectedPrice && (selectedPrice.category === 'single' || selectedPrice.category === 'individual'))
+                    ? `<span class="price-tag">${selectedPrice.price} грн</span>` : '';
+                
+                return `
+                    <div class="student-attendance-card ${s.is_present ? 'is-present' : ''} ${s.is_paid ? 'is-paid' : ''}">
+                        <div class="card-main-info">
+                            <span class="student-name">${s.name}</span>
+                            ${priceDisplay}
+                            <button type="button" class="btn-remove-student" onclick="removeStudentFromCurrentLesson(${s.id})" title="Видалити">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="card-controls">
+                            <label class="attendance-toggle">
+                                <input type="checkbox" ${s.is_present ? 'checked' : ''} onchange="updateStudentAttendanceStatus(${s.id}, 'is_present', this.checked)">
+                                <span class="toggle-btn"><i class="fas fa-user-check"></i> Присутній</span>
+                            </label>
+                            <label class="attendance-toggle">
+                                <input type="checkbox" ${s.is_paid ? 'checked' : ''} onchange="updateStudentAttendanceStatus(${s.id}, 'is_paid', this.checked)">
+                                <span class="toggle-btn"><i class="fas fa-money-bill-wave"></i> Оплачено</span>
+                            </label>
+                            <div class="payment-choice-wrapper">
+                                <select onchange="updateStudentPaymentChoice(${s.id}, this.value)" class="card-select">
+                                    ${allPrices.map(p => {
+                                        const isSelected = String(s.payment_choice) === String(p.id);
+                                        return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
+                                    }).join('')}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
         </div>
     `;
 
@@ -239,16 +234,6 @@ function markAllPresent() {
 }
 
 window.markAllPresent = markAllPresent;
-
-function updateStudentAttendanceStatus(studentId, field, value) {
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    updateConfirmButtonState();
-}
-
 function updateStudentAttendanceStatus(studentId, field, value) {
     const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
     if (student) {
