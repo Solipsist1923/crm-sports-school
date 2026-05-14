@@ -111,7 +111,7 @@ async def get_student_attendance(
 def _is_subscription_payment(choice: str, db: Session) -> bool:
     """Перевіряє, чи є вибір оплати абонементом (рядок 'subscription' або ID послуги типу абонемент)"""
     if not choice: return False
-    if choice == "subscription": return True
+    if choice == "subscription" or choice == "None": return True
     try:
         price_id = int(choice)
         item = db.query(PriceList).filter(PriceList.id == price_id).first()
@@ -186,7 +186,7 @@ async def mark_attendance(
         db.add(db_attendance)
 
         # Якщо вибрано абонемент і відмічено оплату, списуємо заняття (навіть якщо учень відсутній)
-        if _is_subscription_payment(attendance.payment_choice, db) and attendance.is_paid:
+        if _is_subscription_payment(str(attendance.payment_choice), db) and attendance.is_paid:
             active_subscription = db.query(Subscription).filter(
                 Subscription.student_id == attendance.student_id,
                 Subscription.is_active == True,

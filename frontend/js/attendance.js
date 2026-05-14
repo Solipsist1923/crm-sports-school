@@ -109,7 +109,25 @@ async function loadAssignmentsForDate(selectedDate, dateFrom = null, dateTo = nu
 
         // Trainer role filtering is handled by the backend `assignmentsAPI.getAll` based on `current_user`
         
-        allAssignments = await assignmentsAPI.getAll(params);
+        const [assignments, attendanceRecords] = await Promise.all([
+            assignmentsAPI.getAll(params),
+            selectedDate ? attendanceAPI.getByDate(selectedDate) : []
+        ]);
+
+        // Зшиваємо дані про призначення з реальними відмітками, щоб лічильник 0/1 оновився
+        allAssignments = assignments.map(assignment => {
+            if (assignment.students) {
+                assignment.students = assignment.students.map(student => {
+                    const record = attendanceRecords.find(r => r.student_id === (student.student_id || student.id));
+                    if (record) {
+                        return { ...student, attendance_id: record.id, is_present: record.status === 'present', is_paid: record.is_paid };
+                    }
+                    return student;
+                });
+            }
+            return assignment;
+        });
+
         renderAssignmentsCards(allAssignments);
     } catch (error) {
         console.error('Error loading assignments:', error);
