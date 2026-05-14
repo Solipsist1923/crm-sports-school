@@ -20,8 +20,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentUser = getUser();
         setupMobileMenu();
 
-        // Set default date to today
-        document.getElementById('attendanceDateFilter').value = today;
+        // Безпечне встановлення дати
+        const dateFilter = document.getElementById('attendanceDateFilter');
+        if (dateFilter) {
+            dateFilter.value = today;
+            dateFilter.addEventListener('change', (e) => {
+                loadAssignmentsForDate(e.target.value);
+            });
+        }
 
         // Load initial data
         await loadAllInitialData();
@@ -29,10 +35,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Load assignments for today
         await loadAssignmentsForDate(today);
 
-        // Event listener for date filter
-        document.getElementById('attendanceDateFilter').addEventListener('change', (e) => {
-            loadAssignmentsForDate(e.target.value);
-        });
+        // Переносимо слухач кнопки сюди для безпеки
+        const confirmBtn = document.getElementById('confirmAttendanceBtn');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', handleConfirmAttendance);
+        }
 
         // Make global functions available for HTML attributes
         window.openMarkAttendanceModal = openMarkAttendanceModal;
@@ -267,10 +274,8 @@ function removeStudentFromCurrentLesson(studentId) {
     renderStudentsForAttendanceModal();
 }
 
-document.getElementById('confirmAttendanceBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('confirmAttendanceBtn');
+async function handleConfirmAttendance() {
     setBtnLoading('confirmAttendanceBtn', true);
-
     try {
         const assignment = allAssignments.find(a => a.id === currentAssignmentId);
         if (!assignment) {
@@ -309,4 +314,4 @@ document.getElementById('confirmAttendanceBtn').addEventListener('click', async 
     } finally {
         setBtnLoading('confirmAttendanceBtn', false, '<i class="fas fa-check"></i> Підтвердити');
     }
-});
+}

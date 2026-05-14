@@ -74,35 +74,13 @@
                     <h1>Відвідування</h1>
                 </div>
                 <div class="header-actions">
-                    <input type="date" id="attendanceDate" class="date-input">
-                    <button class="btn btn-primary" onclick="openMarkAttendanceModal()">
-                        <i class="fas fa-check"></i>
-                        Відмітити відвідування
-                    </button>
+                    <input type="date" id="attendanceDateFilter" class="date-input">
                 </div>
             </header>
 
-            <!-- Attendance Table -->
-            <div class="table-card">
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Учень</th>
-                                <th>Дата</th>
-                                <th>Статус</th>
-                                <th>Примітки</th>
-                                <th>Відмітив</th>
-                                <th>Дії</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendanceTable">
-                            <tr>
-                                <td colspan="6" class="text-center">Завантаження...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <!-- Assignments Grid (Сюди JS малює картки занять) -->
+            <div id="assignmentsGrid" class="assignments-grid">
+                <div class="text-center" style="grid-column: 1/-1; padding: 40px;">Завантаження занять...</div>
             </div>
         </main>
     </div>
@@ -111,38 +89,29 @@
     <div id="attendanceModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Відмітити відвідування</h2>
+                <h2 id="attendanceModalTitle">Відмітка відвідування</h2>
                 <button class="modal-close" onclick="closeAttendanceModal()">&times;</button>
             </div>
-            <form id="attendanceForm" class="modal-form">
-                <input type="hidden" id="attendanceId">
-                <div class="form-group">
-                    <label for="studentSelect">Учень *</label>
-                    <input type="text" id="attendanceStudentSearch" list="studentsDatalist" placeholder="Почніть вводити ім'я..." required autocomplete="off">
-                    <datalist id="studentsDatalist"></datalist>
+            <div class="modal-body">
+                <!-- Пошук для додавання учня, якого немає в списку -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <div class="input-with-icon">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="addStudentToLessonSearch" placeholder="Додати учня до заняття...">
+                    </div>
+                    <div id="addStudentSuggestions" class="search-suggestions"></div>
                 </div>
-                <div class="form-group">
-                    <label for="attendanceDate2">Дата *</label>
-                    <input type="date" id="attendanceDate2" required>
+
+                <div id="studentsForAttendanceList">
+                    <!-- Список учнів з чекбоксами (генерується JS) -->
                 </div>
-                <div class="form-group">
-                    <label for="statusSelect">Статус *</label>
-                    <select id="statusSelect" required>
-                        <option value="present">Присутній</option>
-                        <option value="absent">Відсутній</option>
-                        <option value="sick">Хворів</option>
-                        <option value="excused">Поважна причина</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="attendanceNotes">Примітки</label>
-                    <textarea id="attendanceNotes" rows="3"></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeAttendanceModal()">Скасувати</button>
-                    <button type="submit" class="btn btn-primary">Зберегти</button>
-                </div>
-            </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeAttendanceModal()">Скасувати</button>
+                <button type="button" id="confirmAttendanceBtn" class="btn btn-primary" disabled>
+                    <i class="fas fa-check"></i> Підтвердити
+                </button>
+            </div>
         </div>
     </div>
 
