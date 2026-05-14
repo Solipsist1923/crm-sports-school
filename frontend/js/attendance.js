@@ -162,7 +162,7 @@ async function openMarkAttendanceModal(assignmentId) {
     currentLessonStudents = assignment.students.map(s => ({
         id: s.student_id || s.id, 
         name: `${s.first_name} ${s.last_name}`,
-        payment_choice: String(s.payment_choice || (allPrices.length > 0 ? allPrices[0].id : 'subscription')),
+        payment_choice: String(s.payment_choice || s.assignment_details?.payment_choice || (allPrices.length > 0 ? allPrices[0].id : 'subscription')),
         is_present: s.is_present === true, 
         is_paid: s.is_paid === true,
         attendance_id: s.attendance_id     // Existing attendance record ID if any
@@ -199,9 +199,9 @@ function renderStudentsForAttendanceModal() {
                 const selectedPrice = allPrices.find(p => String(p.id) === String(s.payment_choice));
                 const priceDisplay = (selectedPrice && (selectedPrice.category === 'single' || selectedPrice.category === 'individual'))
                     ? `<span class="price-tag">${selectedPrice.price} грн</span>` : '';
-                
-                // Додаємо клас попередження, якщо учень присутній, але не оплачений
-                const warningClass = (s.is_present && !s.is_paid) ? 'is-unpaid-warning' : '';
+
+                // Попередження, якщо не оплачено (тепер незалежно від присутності)
+                const warningClass = !s.is_paid ? 'is-unpaid-warning' : '';
 
                 return `
                     <div class="student-attendance-card ${s.is_present ? 'is-present' : ''} ${s.is_paid ? 'is-paid' : ''} ${warningClass}">
@@ -267,7 +267,8 @@ function updateConfirmButtonState() {
     const messageEl = document.getElementById('attendanceValidationMsg');
     if (!confirmBtn || !messageEl) return;
 
-    const unpaidCount = currentLessonStudents.filter(s => s.is_present && !s.is_paid).length;
+    // Тепер перевіряємо оплату для ВСІХ, бо абонемент має списатися навіть при відсутності
+    const unpaidCount = currentLessonStudents.filter(s => !s.is_paid).length;
     const hasStudents = currentLessonStudents.length > 0;
     const isReady = unpaidCount === 0 && hasStudents;
 
@@ -359,7 +360,7 @@ async function handleConfirmAttendance() {
                 date: typeof lessonDate === 'string' ? lessonDate.split('T')[0] : lessonDate,
                 status: student.is_present ? 'present' : 'absent', // If not present, mark as absent
                 notes: null, // Trainer can add notes later if needed
-                payment_choice: String(student.payment_choice),
+                payment_choice: isNaN(student.payment_choice) ? student.payment_choice : parseInt(student.payment_choice),
                 is_paid: Boolean(student.is_paid)
             };
 
