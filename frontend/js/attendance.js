@@ -161,27 +161,22 @@ async function openMarkAttendanceModal(assignmentId) {
 
     // Populate currentLessonStudents with data from the assignment
     currentLessonStudents = (assignment.students || []).map(s => {
-        // Пріоритет пошуку payment_choice: 
-        // 1. Прямо в об'єкті (якщо бекенд сплющив дані)
-        // 2. В об'єкті pivot (стандарт SQLAlchemy для зв'язків)
-        // 3. В assignment_details
         let choice = s.payment_choice || s.payment_type;
         if (!choice && s.pivot) choice = s.pivot.payment_choice;
         if (!choice && s.assignment_details) choice = s.assignment_details.payment_choice;
         
-        // Якщо нічого не знайдено, за замовчуванням 'subscription' (Абонемент)
         if (!choice) choice = 'subscription';
 
-        // Якщо це абонемент, він зазвичай вважається "оплаченим" (буде списано заняття)
-        const isPaid = s.is_paid === true || (choice === 'subscription' && s.is_present !== false);
+        // Абонемент завжди вважається оплаченим (заняття вже куплені)
+        const isPaid = s.is_paid === true || choice === 'subscription';
 
         return {
-        id: s.student_id || s.id, 
-        name: `${s.first_name} ${s.last_name}`,
-        payment_choice: String(choice),
-        is_present: s.is_present === true, 
-        is_paid: isPaid,
-        attendance_id: s.attendance_id     // Existing attendance record ID if any
+            id: s.student_id || s.id, 
+            name: `${s.first_name} ${s.last_name}`,
+            payment_choice: String(choice),
+            is_present: s.is_present === true, 
+            is_paid: isPaid,
+            attendance_id: s.attendance_id
         };
     });
 

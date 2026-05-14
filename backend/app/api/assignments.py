@@ -9,6 +9,16 @@ from app.schemas.schemas import AssignmentCreate, AssignmentResponse, Assignment
 
 router = APIRouter(prefix="/api/assignments", tags=["Assignments"])
 
+def _attach_payment_choices(db: Session, assignments: List[Assignment]):
+    """Прикріплює payment_choice з таблиці assignment_students до кожного студента в призначеннях"""
+    for a in assignments:
+        assoc_rows = db.execute(
+            assignment_students.select().where(assignment_students.c.assignment_id == a.id)
+        ).all()
+        payment_map = {row._mapping["student_id"]: row._mapping["payment_choice"] for row in assoc_rows}
+        for s in a.students:
+            s.payment_choice = payment_map.get(s.id)
+
 @router.get("", response_model=List[AssignmentResponse])
 async def get_assignments(
     db: Session = Depends(get_db),
@@ -38,7 +48,9 @@ async def get_assignments(
         if current_user.trainer:
             query = query.filter(Assignment.trainer_id == current_user.trainer.id)
     
-    return query.order_by(Assignment.lesson_date.asc()).all()
+    assignments = query.order_by(Assignment.lesson_date.asc()).all()
+    _attach_payment_choices(db, assignments)
+    return assignments
 
 @router.post("", response_model=AssignmentResponse, status_code=201)
 async def create_assignment(
@@ -74,6 +86,7 @@ async def create_assignment(
         
         db.commit()
         db.refresh(db_assignment)
+        _attach_payment_choices(db, [db_assignment])
         return db_assignment
     except Exception as e:
         db.rollback()
@@ -113,6 +126,7 @@ async def update_assignment(
 
         db.commit()
         db.refresh(db_item)
+        _attach_payment_choices(db, [db_item])
         return db_item
     except Exception as e:
         db.rollback()
