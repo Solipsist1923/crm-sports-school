@@ -111,14 +111,25 @@ async function loadAssignmentsForDate(selectedDate, dateFrom = null, dateTo = nu
         
         const [assignments, attendanceRecords] = await Promise.all([
             assignmentsAPI.getAll(params),
-            selectedDate ? attendanceAPI.getByDate(selectedDate) : []
+            selectedDate 
+                ? attendanceAPI.getByDate(selectedDate) 
+                : (dateFrom || dateTo ? attendanceAPI.getAll({ date_from: dateFrom, date_to: dateTo, limit: 500 }) : [])
         ]);
 
         // Зшиваємо дані про призначення з реальними відмітками, щоб лічильник 0/1 оновився
         allAssignments = assignments.map(assignment => {
             if (assignment.students) {
+                // Приводимо дату заняття до формату YYYY-MM-DD для точного порівняння
+                const lessonDateStr = String(assignment.lesson_date).split('T')[0];
+
                 assignment.students = assignment.students.map(student => {
-                    const record = attendanceRecords.find(r => r.student_id === (student.student_id || student.id));
+                    const studentId = student.student_id || student.id;
+                    // Шукаємо відмітку саме для цього учня І на цю конкретну дату заняття
+                    const record = attendanceRecords.find(r => 
+                        r.student_id === studentId && 
+                        String(r.date).split('T')[0] === lessonDateStr
+                    );
+
                     if (record) {
                         return { ...student, attendance_id: record.id, is_present: record.status === 'present', is_paid: record.is_paid };
                     }
