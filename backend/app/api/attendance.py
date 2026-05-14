@@ -161,7 +161,7 @@ async def mark_attendance(
             existing.notes = attendance.notes
             existing.marked_by = current_user.id
 
-            # Якщо раніше НЕ було списання абонементу, а тепер є — списуємо
+            # Списання ТІЛЬКИ якщо вибрано абонемент І стоїть галочка Оплачено
             is_now_subscription = _is_subscription_payment(attendance.payment_choice, db)
             if not was_paid_subscription and is_now_subscription and attendance.is_paid:
                 active_subscription = db.query(Subscription).filter(

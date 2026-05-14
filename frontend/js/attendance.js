@@ -207,9 +207,9 @@ async function openMarkAttendanceModal(assignmentId) {
         
         if (!choice) choice = 'subscription';
 
-        // Тепер за замовчуванням для нових записів Оплачено = false, 
-        // щоб тренер мав підтвердити дію вручну.
-        const isPaid = s.attendance_id ? (s.is_paid === true) : false;
+        // Отримуємо стан: якщо запис вже є в БД — беремо з нього, 
+        // якщо немає — ставимо false (тренер має клікнути сам)
+        const isPaid = (s.is_paid === true);
         const isPresent = s.attendance_id ? (s.is_present === true) : false;
 
         return {
@@ -313,6 +313,9 @@ function updateStudentPaymentChoice(studentId, value) {
     const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
     if (student) {
         student.payment_choice = String(value); // Завжди зберігаємо як рядок
+        
+        // Якщо це абонемент — зазвичай він вже оплачений, але ми даємо тренеру вибір.
+        // Можна залишити false, щоб тренер підтвердив списання.
         renderStudentsForAttendanceModal();
     }
 }
@@ -417,12 +420,8 @@ async function handleConfirmAttendance() {
                 continue;
             }
 
-            // Логіка пропуску: якщо учень відсутній і це не абонемент (який треба списати), 
-            // і раніше запису не було — не створюємо "пустий" запис, щоб не псувати статистику
-            const isSubscription = student.payment_choice === 'subscription';
-            if (!student.is_present && !isSubscription && !student.attendance_id) {
-                continue;
-            }
+            // Ми створюємо запис для ВСІХ учнів, які були в списку на момент натискання "Підтвердити",
+            // щоб картка заняття стала зеленою (1/1)
 
             // Формуємо статус: якщо не присутній, то absent
             let status = 'absent';
