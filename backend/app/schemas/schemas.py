@@ -66,6 +66,7 @@ class TrainerResponse(TrainerBase):
 # Group Schemas
 class GroupBase(BaseModel):
     name: str
+    schedule: Optional[str] = None
     lesson_type: str = "gymnastics"
     is_individual: bool = False
     trainer_id: Optional[int] = None
@@ -75,6 +76,7 @@ class GroupCreate(GroupBase):
 
 class GroupUpdate(BaseModel):
     name: Optional[str] = None
+    schedule: Optional[str] = None
     lesson_type: Optional[str] = None
     is_individual: Optional[bool] = None
     trainer_id: Optional[int] = None

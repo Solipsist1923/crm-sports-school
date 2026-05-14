@@ -127,15 +127,16 @@ function renderAssignmentsCards(assignments) {
         return;
     }
 
-    grid.innerHTML = assignments.map(a => {
-        const lessonTime = a.group?.schedule ? a.group.schedule.split(' ')[1] : 'Не вказано'; // Extract time from schedule
+        grid.innerHTML = assignments.map(a => {
+        const scheduleTime = a.group?.schedule ? `<div class="info-item"><i class="fas fa-clock"></i><span>${a.group.schedule}</span></div>` : '';
         return `
             <div class="group-card">
                 <div class="group-header">
-                    <h3>${lessonTime} - ${a.group?.name || 'Без назви'}</h3>
+                    <h3>${a.group?.name || 'Без назви'}</h3>
                     <span class="badge badge-info">${formatDate(a.lesson_date)}</span>
                 </div>
                 <div class="group-info">
+                    ${scheduleTime}
                     <div class="info-item"><i class="fas fa-user-tie"></i><span>Тренер: ${a.trainer?.first_name} ${a.trainer?.last_name}</span></div>
                     <div class="info-item"><i class="fas fa-users"></i><span>Учнів: ${a.students?.length || 0}</span></div>
                 </div>

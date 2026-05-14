@@ -60,6 +60,15 @@ function populateSelects() {
         allTrainers.map(t => `<option value="${t.id}">${t.first_name} ${t.last_name}</option>`).join('');
 }
 
+document.getElementById('groupId').addEventListener('change', function() {
+    const groupId = parseInt(this.value);
+    const group = allGroups.find(g => g.id === groupId);
+    const timeDisplay = document.getElementById('groupScheduleDisplay');
+    if (timeDisplay) {
+        timeDisplay.textContent = group?.schedule ? `⏰ ${group.schedule}` : '';
+    }
+});
+
 function setupStudentSearch() {
     const input = document.getElementById('studentSearch');
     const suggestions = document.getElementById('searchSuggestions');
@@ -146,13 +155,16 @@ function renderAssignmentsCards(assignments) {
         return;
     }
 
-    grid.innerHTML = assignments.map(a => `
+    grid.innerHTML = assignments.map(a => {
+        const scheduleTime = a.group?.schedule ? `<div class="info-item"><i class="fas fa-clock"></i><span>${a.group.schedule}</span></div>` : '';
+        return `
         <div class="group-card">
             <div class="group-header">
                 <h3>${a.group?.name || 'Без назви'}</h3>
                 <span class="badge badge-info">${formatDate(a.lesson_date)}</span>
             </div>
             <div class="group-info">
+                ${scheduleTime}
                 <div class="info-item"><i class="fas fa-user-tie"></i><span>Тренер: ${a.trainer?.first_name} ${a.trainer?.last_name}</span></div>
                 <div class="info-item"><i class="fas fa-users"></i><span>Учнів: ${a.students?.length || 0}</span></div>
             </div>
@@ -166,7 +178,7 @@ function renderAssignmentsCards(assignments) {
                 </button>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function viewJournal(id) {
@@ -196,7 +208,10 @@ async function openEditAssignmentModal(id) {
     const gId = a.group_id || (a.group && a.group.id);
     const tId = a.trainer_id || (a.trainer && a.trainer.id);
 
-    if (gId) document.getElementById('groupId').value = String(gId);
+    if (gId) {
+        document.getElementById('groupId').value = String(gId);
+        document.getElementById('groupId').dispatchEvent(new Event('change'));
+    }
     if (tId) document.getElementById('trainerId').value = String(tId);
     if (a.lesson_date) document.getElementById('lessonDate').value = a.lesson_date;
 
