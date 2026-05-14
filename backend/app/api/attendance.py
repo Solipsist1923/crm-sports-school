@@ -149,8 +149,8 @@ async def mark_attendance(
     )
     db.add(db_attendance)
 
-    # Якщо учень присутній, списуємо заняття з абонемента
-    if attendance.status == "present":
+    # Якщо вибрано абонемент і відмічено оплату, списуємо заняття (навіть якщо учень відсутній)
+    if attendance.payment_choice == "subscription" and attendance.is_paid:
         active_subscription = db.query(Subscription).filter(
             Subscription.student_id == attendance.student_id,
             Subscription.is_active == True,

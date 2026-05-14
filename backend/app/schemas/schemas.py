@@ -136,12 +136,16 @@ class AttendanceBase(BaseModel):
     student_id: int
     date: date
     status: str = Field(..., pattern="^(present|absent|sick|excused)$")
+    payment_choice: Optional[str] = None
+    is_paid: bool = False
     notes: Optional[str] = None
 
 class AttendanceCreate(AttendanceBase):
     pass
 
 class AttendanceUpdate(BaseModel):
+    payment_choice: Optional[str] = None
+    is_paid: Optional[bool] = None
     status: Optional[str] = Field(None, pattern="^(present|absent|sick|excused)$")
     notes: Optional[str] = None
 
@@ -296,14 +300,14 @@ class DashboardStats(BaseModel):
     expired_insurance: int
 
 # Assignment Schemas
-class StudentAssignmentIn(BaseModel):
+class AssignmentStudentData(BaseModel):
     student_id: int
     payment_choice: str # 'subscription' або ID ціни
 
 class AssignmentCreate(BaseModel):
     group_id: int
     trainer_id: int
-    students_data: List[StudentAssignmentIn]
+    students_data: List[AssignmentStudentData]
     lesson_date: date
 
 class AssignmentResponse(BaseModel):

@@ -98,6 +98,8 @@ class Attendance(Base):
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
     date = Column(Date, nullable=False, index=True)
     status = Column(String(20), nullable=False)
+    payment_choice = Column(String(50))
+    is_paid = Column(Boolean, default=False)
     notes = Column(Text)
     marked_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
