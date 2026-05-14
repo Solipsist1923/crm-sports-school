@@ -20,6 +20,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentUser = getUser();
         setupMobileMenu();
 
+        // Переконуємось, що пункти меню «Прайс-лист» та «Призначення» видимі для тренера
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            const href = item.getAttribute('href') || '';
+            if (href.includes('prices.html') || href.includes('assignments.html')) {
+                // Навіть якщо якийсь інший скрипт їх приховав, ми їх показуємо
+                item.style.display = 'flex';
+            }
+        });
+
         // Безпечне встановлення дати
         const dateFilter = document.getElementById('attendanceDateFilter');
         if (dateFilter) {
