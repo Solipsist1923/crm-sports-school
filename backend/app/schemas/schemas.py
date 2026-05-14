@@ -75,7 +75,6 @@ class GroupCreate(GroupBase):
 
 class GroupUpdate(BaseModel):
     name: Optional[str] = None
-    schedule: Optional[str] = None
     lesson_type: Optional[str] = None
     is_individual: Optional[bool] = None
     trainer_id: Optional[int] = None
