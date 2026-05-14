@@ -80,6 +80,12 @@
                     <select id="trainerId" required><option value="">Оберіть тренера...</option></select>
                 </div>
                 
+                <div class="form-group" style="position: relative;">
+                    <label>Пошук учня (Золотий список)</label>
+                    <input type="text" id="studentSearch" placeholder="Введіть прізвище або ім'я..." class="filter-input" autocomplete="off">
+                    <div id="searchSuggestions" class="search-suggestions"></div>
+                </div>
+
                 <div class="form-group">
                     <label>Обрані учні та тип оплати</label>
                     <div id="selectedStudentsList" class="schedule-builder" style="max-height: 250px; overflow-y: auto;">
