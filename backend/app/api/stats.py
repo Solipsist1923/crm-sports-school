@@ -47,7 +47,7 @@ async def get_dashboard_stats(
             week_later = today + timedelta(days=7)
             expiring_subscriptions = db.query(Subscription).filter(
                 Subscription.is_active == True,
-                (Subscription.remaining_classes <= 3) | (Subscription.end_date <= week_later)
+                (Subscription.classes_remaining <= 3)
             ).count()
         except Exception: pass
 
