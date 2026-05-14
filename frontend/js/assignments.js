@@ -302,9 +302,13 @@ document.getElementById('assignmentForm').addEventListener('submit', async (e) =
 async function deleteAssignment(id) {
     if (confirm('Видалити це призначення?')) {
         try {
+            console.log('Спроба видалення призначення ID:', id);
             await assignmentsAPI.delete(id);
-            loadAllData();
             showNotification('Призначення видалено', 'success');
-        } catch (err) { showNotification('Помилка видалення', 'error'); }
+            loadAllData();
+        } catch (err) { 
+            console.error('Помилка при видаленні призначення:', err);
+            showNotification('Помилка видалення: ' + (err.message || 'Невідома помилка'), 'error'); 
+        }
     }
 }
