@@ -116,6 +116,10 @@ async function loadAssignmentsForDate(selectedDate, dateFrom = null, dateTo = nu
                 : (dateFrom || dateTo ? attendanceAPI.getAll({ date_from: dateFrom, date_to: dateTo, limit: 500 }) : [])
         ]);
 
+        console.log('Завантаження для параметрів:', params);
+        console.log('Знайдено призначень:', assignments);
+        console.log('Знайдено відміток у БД:', attendanceRecords);
+
         // Зшиваємо дані про призначення з реальними відмітками, щоб лічильник 0/1 оновився
         allAssignments = assignments.map(assignment => {
             if (assignment.students) {
@@ -207,12 +211,9 @@ async function openMarkAttendanceModal(assignmentId) {
         
         if (!choice) choice = 'subscription';
 
-        // ТУТ ВИПРАВЛЕНО: для нових записів (де немає attendance_id) 
-        // Оплачено ЗАВЖДИ false, щоб тренер міг вибрати тип оплати 
-        // та підтвердити списання вручну.
-        const isPaid = s.attendance_id ? (s.is_paid === true) : false;
-        
-        const isPresent = s.attendance_id ? (s.is_present === true) : false;
+        // Новий запис ніколи не може бути оплаченим або присутнім автоматично
+        const isPaid = (s.attendance_id && s.is_paid === true) ? true : false;
+        const isPresent = (s.attendance_id && s.is_present === true) ? true : false;
 
         return {
             id: s.student_id || s.id, 
