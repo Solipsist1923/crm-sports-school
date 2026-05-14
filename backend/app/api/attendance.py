@@ -242,8 +242,9 @@ async def update_attendance(
         for field, value in update_data.items():
             setattr(db_attendance, field, value)
 
-        # Якщо раніше НЕ було списання абонементу, а тепер є — списуємо
         is_now_subscription = _is_subscription_payment(db_attendance.payment_choice, db)
+
+        # 1. Якщо раніше НЕ було списання, а тепер вибрали абонемент + Оплачено — списуємо
         if not was_paid_subscription and is_now_subscription and db_attendance.is_paid:
             active_subscription = db.query(Subscription).filter(
                 Subscription.student_id == db_attendance.student_id,
@@ -254,6 +255,15 @@ async def update_attendance(
                 active_subscription.classes_remaining -= 1
                 if active_subscription.classes_remaining == 0:
                     active_subscription.is_active = False
+
+        # 2. Якщо раніше БУЛО списання, а тепер змінили тип оплати або зняли статус "Оплачено" — повертаємо
+        elif was_paid_subscription and (not is_now_subscription or not db_attendance.is_paid):
+            active_subscription = db.query(Subscription).filter(
+                Subscription.student_id == db_attendance.student_id
+            ).order_by(Subscription.id.desc()).first()
+            if active_subscription:
+                active_subscription.classes_remaining += 1
+                active_subscription.is_active = True
 
         db.commit()
         db.refresh(db_attendance)

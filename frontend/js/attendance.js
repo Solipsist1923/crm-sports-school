@@ -207,9 +207,9 @@ async function openMarkAttendanceModal(assignmentId) {
         
         if (!choice) choice = 'subscription';
 
-        // Якщо відмітка вже є в базі — використовуємо її стан. 
-        // Якщо немає — для абонементів ставимо "Оплачено" за замовчуванням (щоб списалось).
-        const isPaid = s.attendance_id ? (s.is_paid === true) : (choice === 'subscription');
+        // Тепер за замовчуванням для нових записів Оплачено = false, 
+        // щоб тренер мав підтвердити дію вручну.
+        const isPaid = s.attendance_id ? (s.is_paid === true) : false;
         const isPresent = s.attendance_id ? (s.is_present === true) : false;
 
         return {
@@ -313,12 +313,6 @@ function updateStudentPaymentChoice(studentId, value) {
     const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
     if (student) {
         student.payment_choice = String(value); // Завжди зберігаємо як рядок
-        
-        // Якщо вибрано абонемент, автоматично ставимо "Оплачено", 
-        // бо він має списатися у будь-якому випадку (як ти і просив)
-        if (value === 'subscription') {
-            student.is_paid = true;
-        }
         renderStudentsForAttendanceModal();
     }
 }

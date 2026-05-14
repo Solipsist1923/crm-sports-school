@@ -28,11 +28,6 @@ async def get_assignments(
     lesson_date: Optional[date] = Query(None),
     trainer_id: Optional[int] = Query(None, description="Filter assignments by trainer ID")):
     """Отримати всі призначення (з авто-очищенням)"""
-    # Авто-очищення: видаляємо все, що було більше тижня тому
-    one_week_ago = date.today() - timedelta(days=7)
-    db.query(Assignment).filter(Assignment.lesson_date < one_week_ago).delete()
-    db.commit()
-
     query = db.query(Assignment)
 
     # Фільтрація за датою (конкретна дата або діапазон)
