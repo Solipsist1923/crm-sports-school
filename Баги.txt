@@ -1,6 +1,9 @@
-Failed to load resource: the server responded with a status of 500 ()
-api.js?v=1778184204:158 API Error: Error: Помилка збереження відвідування: (psycopg2.errors.UndefinedColumn) column attendance.payment_choice does not exist
-LINE 1: ...nce_date, attendance.status AS attendance_status, attendance...
+api.js?v=1778184204:113  POST https://crm-sports-school-production.up.railway.app/api/attendance/ 500 (Internal Server Error)
+apiRequest @ api.js?v=1778184204:113
+mark @ api.js?v=1778184204:236
+handleConfirmAttendance @ attendance.js:412
+api.js?v=1778184204:158 API Error: Error: Помилка збереження відвідування: (psycopg2.errors.UndefinedColumn) column attendance.is_paid does not exist
+LINE 1: ...ance.payment_choice AS attendance_payment_choice, attendance...
                                                              ^
 
 [SQL: SELECT attendance.id AS attendance_id, attendance.student_id AS attendance_student_id, attendance.date AS attendance_date, attendance.status AS attendance_status, attendance.payment_choice AS attendance_payment_choice, attendance.is_paid AS attendance_is_paid, attendance.notes AS attendance_notes, attendance.marked_by AS attendance_marked_by, attendance.created_at AS attendance_created_at 
@@ -11,10 +14,40 @@ WHERE attendance.student_id = %(student_id_1)s AND attendance.date = %(date_1)s
 (Background on this error at: https://sqlalche.me/e/20/f405)
     at apiRequest (api.js?v=1778184204:151:27)
     at async Object.mark (api.js?v=1778184204:236:16)
-    at async HTMLButtonElement.handleConfirmAttendance (attendance.js:417:17)
+    at async HTMLButtonElement.handleConfirmAttendance (attendance.js:412:17)
+
+==========================
+ВИПРАВЛЕННЯ (14.05.2026)
+==========================
+
+1. ПОМИЛКА: attendance.is_paid та attendance.payment_choice відсутні в БД PostgreSQL
+   - SQLAlchemy модель має ці колонки, але в реальній БД на Railway їх немає
+   - ФІКС: створено backend/migrate_attendance_columns.py — скрипт додає обидві колонки
+   - Додано запуск міграції в railway.toml та start.bat
+
+2. ПОМИЛКА: При редагуванні призначення payment_choice в учнів скидався
+   - Причина: SQLAlchemy many-to-many (assignment_students) не передає extra колонки
+   - ФІКС: backend/app/api/assignments.py — додано _attach_payment_choices() для GET/POST/PUT
+
+3. ПОМИЛКА: Кнопка "Підтвердити" в відвідуваннях заблокована
+   - Причина 1: payment_choice null → ставився 'subscription', але is_present: false (Pydantic default)
+   - isPaid = false || (true && false) = false → всі неоплачені
+   - ФІКС: frontend/js/attendance.js — змінено на isPaid = s.is_paid === true || choice === 'subscription'
+
+4. ДОДАТКОВО: subscription decrement додано в PUT endpoint attendance
+   - Раніше списання абонементу було тільки в POST (з upsert)
+   - Тепер і PUT обробляє списання при зміні на 'subscription'
+
+5. МІГРАЦІЯ В main.py: додано автоматичне створення колонок при старті
+   - Тепер незалежно від способу запуску (railway.toml, Procfile, start.bat)
+   - при старті додаються payment_choice та is_paid в таблицю attendance
+   - Працює для PostgreSQL та SQLite
 apiRequest @ api.js?v=1778184204:158
-attendance.js:424 Помилка збереження відвідування: Error: Помилка збереження відвідування: (psycopg2.errors.UndefinedColumn) column attendance.payment_choice does not exist
-LINE 1: ...nce_date, attendance.status AS attendance_status, attendance...
+await in apiRequest
+mark @ api.js?v=1778184204:236
+handleConfirmAttendance @ attendance.js:412
+attendance.js:419 Помилка збереження відвідування: Error: Помилка збереження відвідування: (psycopg2.errors.UndefinedColumn) column attendance.is_paid does not exist
+LINE 1: ...ance.payment_choice AS attendance_payment_choice, attendance...
                                                              ^
 
 [SQL: SELECT attendance.id AS attendance_id, attendance.student_id AS attendance_student_id, attendance.date AS attendance_date, attendance.status AS attendance_status, attendance.payment_choice AS attendance_payment_choice, attendance.is_paid AS attendance_is_paid, attendance.notes AS attendance_notes, attendance.marked_by AS attendance_marked_by, attendance.created_at AS attendance_created_at 
@@ -25,4 +58,4 @@ WHERE attendance.student_id = %(student_id_1)s AND attendance.date = %(date_1)s
 (Background on this error at: https://sqlalche.me/e/20/f405)
     at apiRequest (api.js?v=1778184204:151:27)
     at async Object.mark (api.js?v=1778184204:236:16)
-    at async HTMLButtonElement.handleConfirmAttendance (attendance.js:417:17)
+    at async HTMLButtonElement.handleConfirmAttendance (attendance.js:412:17)
