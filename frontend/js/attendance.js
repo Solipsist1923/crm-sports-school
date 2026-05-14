@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.addStudentToCurrentLesson = addStudentToCurrentLesson;
         window.changeDate = changeDate;
         window.loadWeek = loadWeek;
-        window.setupStudentSearchForModal = setupStudentSearchForModal; // For the modal's search
+        window.setupStudentSearchForModal = setupStudentSearchForModal; // For the modal's search // For the modal's search
     } catch (err) {
         console.error('Помилка ініціалізації сторінки відвідуваності:', err);
         showNotification('Помилка завантаження сторінки', 'error');
@@ -159,7 +159,7 @@ async function openMarkAttendanceModal(assignmentId) {
     }));
 
     renderStudentsForAttendanceModal();
-    setupStudentSearchForModal(); // Setup search for adding students within the modal
+    setupStudentSearchForModal();
 }
 
 function closeAttendanceModal() {
@@ -280,6 +280,7 @@ function updateConfirmButtonState() {
 function setupStudentSearchForModal() {
     const input = document.getElementById('addStudentToLessonSearch');
     const suggestions = document.getElementById('addStudentSuggestions');
+    if (!input || !suggestions) return;
 
     input.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
@@ -287,7 +288,7 @@ function setupStudentSearchForModal() {
 
         const matches = allStudents.filter(s => 
             `${s.first_name} ${s.last_name}`.toLowerCase().includes(query) &&
-            !currentLessonStudents.some(sel => sel.id === s.id) // Exclude already added students
+            !currentLessonStudents.some(sel => String(sel.id) === String(s.id))
         );
 
         suggestions.innerHTML = matches.map(s => `
@@ -298,7 +299,7 @@ function setupStudentSearchForModal() {
         `).join('');
     });
 
-    // Close suggestions on outside click
+    // Закриття підказок при кліку поза ними
     document.addEventListener('click', (e) => {
         if (!input.contains(e.target) && !suggestions.contains(e.target)) {
             suggestions.innerHTML = '';
@@ -344,8 +345,8 @@ async function handleConfirmAttendance() {
             if (!student.id) continue; // Захист від порожніх записів
 
             const attendanceData = {
-                student_id: student.id,
-                date: lessonDate.includes('T') ? lessonDate.split('T')[0] : lessonDate,
+                student_id: parseInt(student.id),
+                date: typeof lessonDate === 'string' ? lessonDate.split('T')[0] : lessonDate,
                 status: student.is_present ? 'present' : 'absent', // If not present, mark as absent
                 notes: null, // Trainer can add notes later if needed
                 payment_choice: String(student.payment_choice),

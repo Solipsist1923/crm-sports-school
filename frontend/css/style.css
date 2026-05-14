@@ -597,6 +597,7 @@ body {
         align-items: center;
     }
 
+    /* Приховуємо жовті кнопки фільтрів на мобілці */
     .quick-date-filters {
         display: none !important;
     }
@@ -632,11 +633,13 @@ body {
 
     /* Specific style for date input in header-actions (Attendance page) */
     .header-actions .date-input {
-        height: 44px; /* Match button height */
+        height: 44px;
         padding: 0 10px; /* Adjust padding */
         font-size: 14px;
         flex-shrink: 0;
-        max-width: 120px; /* Limit width for date input */
+        width: 100%;
+        max-width: 160px;
+        margin-left: 0 !important;
     }
 
     /* Ensure h1 doesn't push buttons off-screen */

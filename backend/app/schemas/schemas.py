@@ -131,6 +131,15 @@ class StudentResponse(StudentBase):
     class Config:
         from_attributes = True
 
+class AssignmentStudentResponse(StudentResponse):
+    is_present: bool = False
+    is_paid: bool = False
+    attendance_id: Optional[int] = None
+    payment_choice: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
 # Attendance Schemas
 class AttendanceBase(BaseModel):
     student_id: int
@@ -316,7 +325,7 @@ class AssignmentResponse(BaseModel):
     is_subscription: bool
     group: GroupResponse
     trainer: TrainerResponse
-    students: List[StudentResponse]
+    students: List[AssignmentStudentResponse]
     price: Optional[BaseModel] = None # Для спрощення
 
     class Config:
