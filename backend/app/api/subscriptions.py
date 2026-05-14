@@ -25,6 +25,13 @@ def get_subscriptions(db: Session = Depends(get_db), current_user: User = Depend
         })
     return result
 
+@router.get("/{sub_id}")
+def get_subscription(sub_id: int, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
+    sub = db.query(Subscription).filter(Subscription.id == sub_id).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    return sub
+
 @router.post("/")
 def create_subscription(data: dict, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
     if current_user.role != "admin":
@@ -41,6 +48,22 @@ def create_subscription(data: dict, db: Session = Depends(get_db), current_user:
     db.add(new_sub)
     db.commit()
     return {"status": "ok"}
+
+@router.put("/{sub_id}")
+def update_subscription(sub_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Тільки адмін")
+    
+    sub = db.query(Subscription).filter(Subscription.id == sub_id).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    sub.student_id = data.get('student_id', sub.student_id)
+    sub.pricelist_item_id = data.get('pricelist_item_id', sub.pricelist_item_id)
+    sub.classes_remaining = data.get('classes_remaining', sub.classes_remaining)
+    
+    db.commit()
+    return {"status": "updated"}
 
 @router.get("/pricelist_subscriptions/")
 def get_pricelist_subs(db: Session = Depends(get_db)):
