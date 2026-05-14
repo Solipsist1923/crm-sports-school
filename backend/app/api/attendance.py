@@ -192,14 +192,19 @@ async def update_attendance(
         if not is_own_student:
             raise HTTPException(status_code=403, detail="Access denied")
 
-    # Оновлення полів
-    update_data = attendance_update.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_attendance, field, value)
+    try:
+        # Оновлення полів
+        update_data = attendance_update.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_attendance, field, value)
 
-    db.commit()
-    db.refresh(db_attendance)
-    return db_attendance
+        db.commit()
+        db.refresh(db_attendance)
+        return db_attendance
+    except Exception as e:
+        db.rollback()
+        print(f"Error updating attendance: {e}")
+        raise HTTPException(status_code=500, detail=f"Помилка оновлення відмітки: {str(e)}")
 
 @router.delete("/{attendance_id}", status_code=204)
 async def delete_attendance(
