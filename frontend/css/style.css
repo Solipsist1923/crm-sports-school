@@ -1321,6 +1321,11 @@ body {
     border-color: #bcf0da;
 }
 
+.student-attendance-card.is-unpaid-warning {
+    border: 2px solid var(--danger-color);
+    background-color: #fff1f2;
+}
+
 .card-main-info {
     display: flex;
     justify-content: space-between;
@@ -1397,4 +1402,24 @@ body {
     border: 1px solid var(--border-color);
     font-size: 13px;
     background: white;
+}
+
+.btn-success {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #059669;
+    transform: translateY(-2px);
+}
+
+.validation-error-text {
+    color: var(--danger-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }

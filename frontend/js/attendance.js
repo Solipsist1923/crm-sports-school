@@ -191,8 +191,11 @@ function renderStudentsForAttendanceModal() {
                 const priceDisplay = (selectedPrice && (selectedPrice.category === 'single' || selectedPrice.category === 'individual'))
                     ? `<span class="price-tag">${selectedPrice.price} грн</span>` : '';
                 
+                // Додаємо клас попередження, якщо учень присутній, але не оплачений
+                const warningClass = (s.is_present && !s.is_paid) ? 'is-unpaid-warning' : '';
+
                 return `
-                    <div class="student-attendance-card ${s.is_present ? 'is-present' : ''} ${s.is_paid ? 'is-paid' : ''}">
+                    <div class="student-attendance-card ${s.is_present ? 'is-present' : ''} ${s.is_paid ? 'is-paid' : ''} ${warningClass}">
                         <div class="card-main-info">
                             <span class="student-name">${s.name}</span>
                             ${priceDisplay}
@@ -238,35 +241,40 @@ function updateStudentAttendanceStatus(studentId, field, value) {
     const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
     if (student) {
         student[field] = value;
-        renderStudentsForAttendanceModal(); 
+        renderStudentsForAttendanceModal(); // Це автоматично оновить і стан кнопки
     }
-    updateConfirmButtonState();
 }
 
 function updateStudentPaymentChoice(studentId, value) {
     const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
     if (student) {
         student.payment_choice = value;
+        renderStudentsForAttendanceModal();
     }
-    renderStudentsForAttendanceModal(); // Re-render to update price display
-}
-
-function updateStudentPaymentStatus(studentId, value) {
-    const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
-    if (student) {
-        student.is_paid = value;
-    }
-    updateConfirmButtonState();
 }
 
 function updateConfirmButtonState() {
     const confirmBtn = document.getElementById('confirmAttendanceBtn');
-    if (!confirmBtn) return;
+    const messageEl = document.getElementById('attendanceValidationMsg');
+    if (!confirmBtn || !messageEl) return;
 
-    const allStudentsPaid = currentLessonStudents.every(s => 
-        s.is_paid === true
-    );
-    confirmBtn.disabled = !allStudentsPaid || currentLessonStudents.length === 0;
+    const unpaidCount = currentLessonStudents.filter(s => s.is_present && !s.is_paid).length;
+    const hasStudents = currentLessonStudents.length > 0;
+    const isReady = unpaidCount === 0 && hasStudents;
+
+    if (isReady) {
+        confirmBtn.disabled = false;
+        confirmBtn.classList.add('btn-success');
+        messageEl.innerHTML = '';
+    } else {
+        confirmBtn.disabled = true;
+        confirmBtn.classList.remove('btn-success');
+        if (hasStudents && unpaidCount > 0) {
+            messageEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Не оплачено: ${unpaidCount}`;
+        } else {
+            messageEl.innerHTML = '';
+        }
+    }
 }
 
 // --- Add Student to Current Lesson (within modal) ---
