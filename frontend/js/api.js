@@ -148,7 +148,9 @@ async function apiRequest(endpoint, options = {}) {
 
         if (!response.ok) {
             const errorMsg = typeof data.detail === 'object' ? JSON.stringify(data.detail) : data.detail;
-            throw new Error(errorMsg || 'Запит відхилено сервером');
+            const error = new Error(errorMsg || 'Запит відхилено сервером');
+            error.status = response.status;
+            throw error;
         }
 
         return data;

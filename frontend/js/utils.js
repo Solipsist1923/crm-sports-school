@@ -91,3 +91,30 @@ function logout() {
         window.location.replace('login.html');
     }
 }
+
+// Уніфікована функція для ініціалізації сторінки
+async function initPage(loadDataCallback) {
+    try {
+        requireAuth();
+        loadUserInfo();
+        setupMobileMenu();
+        if (loadDataCallback) await loadDataCallback();
+    } catch (err) {
+        console.error('Помилка ініціалізації сторінки:', err);
+    }
+}
+
+// Допоміжна функція для блокування кнопок при завантаженні
+function setBtnLoading(btnId, isLoading, originalHtml = '') {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    
+    if (isLoading) {
+        btn.disabled = true;
+        btn.dataset.originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Зачекайте...';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.originalContent || originalHtml;
+    }
+}

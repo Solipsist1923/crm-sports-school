@@ -23,6 +23,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         await loadAllData();
         setupStudentSearch();
+
+        // Явно робимо функції доступними глобально для HTML атрибутів (onchange/onclick)
+        window.updateStudentPayment = updateStudentPayment;
+        window.removeStudentFromLesson = removeStudentFromLesson;
+        window.addStudentToLesson = addStudentToLesson;
     } catch (err) {
         console.error('Помилка ініціалізації:', err);
     }
@@ -104,13 +109,15 @@ function renderSelectedStudents() {
     }
 
     container.innerHTML = selectedStudentsForLesson.map(s => `
-        <div class="schedule-row" style="align-items: center; justify-content: space-between;">
+        <div class="schedule-row" style="align-items: center; justify-content: space-between;" data-student-id="${s.id}">
             <span><strong>${s.name}</strong></span>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <select onchange="updateStudentPayment(${s.id}, this.value)" style="width: 150px; padding: 5px;">
-                    <option value="subscription" ${(!s.payment_choice || s.payment_choice === 'subscription') ? 'selected' : ''}>Абонемент</option>
+                    <option value="subscription" ${(!s.payment_choice || String(s.payment_choice) === 'subscription') ? 'selected' : ''}>
+                        Абонемент
+                    </option>
                     ${allPrices.map(p => {
-                        const isSelected = String(s.payment_choice) === String(p.id);
+                        const isSelected = s.payment_choice && String(s.payment_choice) === String(p.id);
                         return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
                     }).join('')}
                 </select>
@@ -122,8 +129,8 @@ function renderSelectedStudents() {
     `).join('');
 }
 
-function updateStudentPayment(id, value) {
-    const student = selectedStudentsForLesson.find(s => s.id === id);
+function updateStudentPayment(studentId, value) {
+    const student = selectedStudentsForLesson.find(s => String(s.id) === String(studentId));
     if (student) student.payment_choice = value;
 }
 
@@ -189,7 +196,7 @@ async function openEditAssignmentModal(id) {
     if (a.lesson_date) document.getElementById('lessonDate').value = a.lesson_date;
 
     // 4. Відновлюємо список обраних учнів з коректним payment_choice
-    selectedStudentsForLesson = (a.students || []).map(studentInAssignment => {
+    selectedStudentsForLesson = (Array.isArray(a.students) ? a.students : []).map(studentInAssignment => {
         let choice = 'subscription';
         
         // Перевіряємо всі можливі місця, де може бути збережений тип оплати
@@ -198,7 +205,7 @@ async function openEditAssignmentModal(id) {
         else if (studentInAssignment.assignment_details && studentInAssignment.assignment_details.payment_choice) choice = studentInAssignment.assignment_details.payment_choice;
 
         return {
-            id: studentInAssignment.id,
+            id: studentInAssignment.student_id || studentInAssignment.id,
             name: `${studentInAssignment.first_name} ${studentInAssignment.last_name}`,
             payment_choice: choice
         };
