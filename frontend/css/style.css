@@ -1201,3 +1201,91 @@ body {
     background: var(--light-bg);
     color: var(--primary-color);
 }
+
+/* Стилі для компактної таблиці відвідування */
+.attendance-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: white;
+    -webkit-overflow-scrolling: touch; /* Плавний скрол на iOS */
+    margin-bottom: 10px;
+}
+
+.attendance-table {
+    width: 100%;
+    border-collapse: separate; /* Важливо для sticky */
+    border-spacing: 0;
+    font-size: 14px;
+}
+
+.attendance-table th,
+.attendance-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid rgba(0,0,0,0.05);
+    text-align: center;
+    vertical-align: middle;
+}
+
+.attendance-table th {
+    background-color: var(--light-bg);
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* Фіксована колонка з іменем */
+.attendance-table .sticky-col {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 10;
+    text-align: left;
+    min-width: 160px;
+    border-right: 2px solid var(--border-color);
+}
+
+.attendance-table thead th.sticky-col {
+    z-index: 20;
+    background-color: var(--light-bg);
+}
+
+/* Підсвітка рядків */
+.attendance-table tr.row-present {
+    background-color: rgba(16, 185, 129, 0.05); /* Легкий зелений */
+}
+
+.attendance-table tr:hover td {
+    background-color: var(--light-bg);
+}
+
+.attendance-table tr:hover td.sticky-col {
+    background-color: #f3f4f6;
+}
+
+/* Компактні елементи всередині таблиці */
+.compact-check {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.table-select {
+    width: 100%;
+    min-width: 130px;
+    padding: 4px 8px;
+    font-size: 13px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.btn-text-only {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 0 5px;
+    font-size: 1.1rem;
+}
