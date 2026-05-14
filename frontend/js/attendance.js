@@ -360,7 +360,7 @@ async function handleConfirmAttendance() {
                 date: typeof lessonDate === 'string' ? lessonDate.split('T')[0] : lessonDate,
                 status: student.is_present ? 'present' : 'absent', // If not present, mark as absent
                 notes: null, // Trainer can add notes later if needed
-                payment_choice: isNaN(student.payment_choice) ? student.payment_choice : parseInt(student.payment_choice),
+                payment_choice: String(student.payment_choice),
                 is_paid: Boolean(student.is_paid)
             };
 
