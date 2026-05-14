@@ -67,6 +67,17 @@ function changeDate(daysOffset) {
     loadAssignmentsForDate(dateStr);
 }
 
+function loadWeek() {
+    const today = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+    
+    const dateFrom = today.toISOString().split('T')[0];
+    const dateTo = nextWeek.toISOString().split('T')[0];
+    
+    loadAssignmentsForDate(null, dateFrom, dateTo);
+}
+
 async function loadAllInitialData() {
     const results = await Promise.allSettled([
         studentsAPI.getAll({ is_active: true }),
@@ -77,12 +88,16 @@ async function loadAllInitialData() {
     allPrices = results[1].status === 'fulfilled' ? results[1].value : [];
 }
 
-async function loadAssignmentsForDate(selectedDate) {
+async function loadAssignmentsForDate(selectedDate, dateFrom = null, dateTo = null) {
     try {
         const assignmentsGrid = document.getElementById('assignmentsGrid');
         assignmentsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Завантаження призначень...</div>';
 
-        let params = { lesson_date: selectedDate };
+        let params = {};
+        if (selectedDate) params.lesson_date = selectedDate;
+        if (dateFrom) params.date_from = dateFrom;
+        if (dateTo) params.date_to = dateTo;
+
         // Trainer role filtering is handled by the backend `assignmentsAPI.getAll` based on `current_user`
         
         allAssignments = await assignmentsAPI.getAll(params);
@@ -164,40 +179,68 @@ function renderStudentsForAttendanceModal() {
         return;
     }
 
-    container.innerHTML = currentLessonStudents.map(s => {
-        const selectedPrice = allPrices.find(p => String(p.id) === String(s.payment_choice));
-        const priceDisplay = (selectedPrice && (selectedPrice.category === 'single' || selectedPrice.category === 'individual'))
-            ? `<span class="price-tag">${selectedPrice.price} грн</span>` : '';
+    container.innerHTML = `
+        <div class="attendance-table-container">
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th class="sticky-col">Учень</th>
+                        <th>Н/В <button class="btn-text-only" onclick="markAllPresent()" title="Відмітити всіх як присутніх"><i class="fas fa-check-double"></i></button></th>
+                        <th>Оплата</th>
+                        <th>Тип оплати</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${currentLessonStudents.map(s => {
+                        const selectedPrice = allPrices.find(p => String(p.id) === String(s.payment_choice));
+                        const priceDisplay = (selectedPrice && (selectedPrice.category === 'single' || selectedPrice.category === 'individual'))
+                            ? `<br><small class="text-secondary">${selectedPrice.price} грн</small>` : '';
+                        
+                        return `
+                            <tr class="${s.is_present ? 'row-present' : ''} ${s.is_paid ? 'row-paid' : 'row-unpaid'}">
+                                <td class="sticky-col"><strong>${s.name}</strong>${priceDisplay}</td>
+                                <td>
+                                    <input type="checkbox" class="compact-check" ${s.is_present ? 'checked' : ''} 
+                                        onchange="updateStudentAttendanceStatus(${s.id}, 'is_present', this.checked)">
+                                </td>
+                                <td>
+                                    <input type="checkbox" class="compact-check" ${s.is_paid ? 'checked' : ''} 
+                                        onchange="updateStudentAttendanceStatus(${s.id}, 'is_paid', this.checked)">
+                                </td>
+                                <td>
+                                    <select onchange="updateStudentPaymentChoice(${s.id}, this.value)" class="table-select">
+                                        ${allPrices.map(p => {
+                                            const isSelected = String(s.payment_choice) === String(p.id);
+                                            return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
+                                        }).join('')}
+                                    </select>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn-icon btn-sm btn-danger" onclick="removeStudentFromCurrentLesson(${s.id})">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
 
-        return `
-            <div class="student-attendance-card ${s.is_paid ? 'paid' : 'unpaid'}" data-student-id="${s.id}">
-                <div class="student-info-main">
-                    <span class="student-name">${s.name}</span>
-                    ${priceDisplay}
-                </div>
-                <div class="attendance-actions-wrap">
-                    <div class="toggles-group">
-                        <label class="toggle-switch">
-                            <input type="checkbox" ${s.is_present ? 'checked' : ''} onchange="updateStudentAttendanceStatus(${s.id}, 'is_present', this.checked)">
-                            <span class="toggle-label">Присутній</span>
-                        </label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" ${s.is_paid ? 'checked' : ''} onchange="updateStudentAttendanceStatus(${s.id}, 'is_paid', this.checked)">
-                            <span class="toggle-label">Оплачено</span>
-                        </label>
-                    </div>
-                    <div class="payment-type-wrap">
-                        <i class="fas fa-wallet" style="color: var(--text-secondary); font-size: 0.8rem;"></i>
-                        <select onchange="updateStudentPaymentChoice(${s.id}, this.value)" class="payment-select-small">
-                            ${allPrices.map(p => {
-                                const isSelected = String(s.payment_choice) === String(p.id);
-                                return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
-                            }).join('')}
-                        </select>
-                    </div>
-                    <button type="button" class="btn-icon btn-danger" onclick="removeStudentFromCurrentLesson(${s.id})">
-                        <i class="fas fa-times"></i>
-                    </button>
+    updateConfirmButtonState();
+}
+
+function markAllPresent() {
+    currentLessonStudents.forEach(s => s.is_present = true);
+    renderStudentsForAttendanceModal();
+    updateConfirmButtonState();
+}
+
+window.markAllPresent = markAllPresent;
+
+function updateStudentAttendanceStatus(studentId, field, value) {
                 </div>
             </div>
         `;
