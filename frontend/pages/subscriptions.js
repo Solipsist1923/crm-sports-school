@@ -40,7 +40,7 @@ function displaySubscriptions(subscriptions) {
     tbody.innerHTML = '';
 
     if (subscriptions.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Абонементів не знайдено.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Абонементів не знайдено.</td></tr>';
         return;
     }
 
@@ -56,9 +56,6 @@ function displaySubscriptions(subscriptions) {
         if (sub.classes_remaining === 0) {
             classesCell.classList.add('text-danger'); // Highlight in red
         }
-
-        row.insertCell().textContent = sub.start_date ? new Date(sub.start_date).toLocaleDateString() : '—';
-        row.insertCell().textContent = sub.end_date ? new Date(sub.end_date).toLocaleDateString() : '—';
         row.insertCell().textContent = sub.is_active ? 'Активний' : 'Неактивний';
 
         const actionsCell = row.insertCell();

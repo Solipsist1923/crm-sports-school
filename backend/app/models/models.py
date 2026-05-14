@@ -116,10 +116,8 @@ class Subscription(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
-    total_classes = Column(Integer, nullable=False)
-    remaining_classes = Column(Integer, nullable=False)
-    start_date = Column(Date, nullable=False)
-    end_date = Column(Date, nullable=False)
+    pricelist_item_id = Column(Integer, ForeignKey("price_list.id", ondelete="CASCADE"), nullable=False)
+    classes_remaining = Column(Integer, default=0, nullable=False)
     is_active = Column(Boolean, default=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
