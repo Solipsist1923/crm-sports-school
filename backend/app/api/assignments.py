@@ -142,3 +142,34 @@ async def delete_assignment(id: int, db: Session = Depends(get_db), current_user
         db.delete(db_item)
         db.commit()
     return None
+
+@router.delete("/cleanup", status_code=204)
+async def cleanup_assignments(
+    before: date = Query(..., description="Дата, до якої видаляти призначення"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Масове видалення старих призначень (тільки адмін)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Тільки адміністратор може видаляти історію")
+    
+    try:
+        # Знаходимо ID всіх призначень, дата яких раніше вказаної
+        old_assignments_query = db.query(Assignment.id).filter(Assignment.lesson_date < before)
+        ids_to_delete = [r.id for r in old_assignments_query.all()]
+        
+        if ids_to_delete:
+            # Спочатку видаляємо зв'язки в таблиці assignment_students
+            db.execute(
+                assignment_students.delete().where(
+                    assignment_students.c.assignment_id.in_(ids_to_delete)
+                )
+            )
+            # Потім видаляємо самі призначення
+            db.query(Assignment).filter(Assignment.id.in_(ids_to_delete)).delete(synchronize_session=False)
+            db.commit()
+        
+        return None
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Помилка при очищенні призначень: {str(e)}")

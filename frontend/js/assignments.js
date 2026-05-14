@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.removeStudentFromLesson = removeStudentFromLesson;
         window.addStudentToLesson = addStudentToLesson;
         window.deleteAssignment = deleteAssignment;
+        window.deleteOldAssignments = deleteOldAssignments;
         window.openEditAssignmentModal = openEditAssignmentModal;
         window.viewJournal = viewJournal;
         window.openAddAssignmentModal = openAddAssignmentModal;
@@ -309,6 +310,25 @@ async function deleteAssignment(id) {
         } catch (err) { 
             console.error('Помилка при видаленні призначення:', err);
             showNotification('Помилка видалення: ' + (err.message || 'Невідома помилка'), 'error'); 
+        }
+    }
+}
+
+async function deleteOldAssignments() {
+    // Беремо сьогоднішню дату. Все, що < сьогодні = до вчора включно.
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (confirm(`Видалити ВСІ призначення до сьогодні (${formatDate(today)})? Цю дію неможливо скасувати!`)) {
+        try {
+            setBtnLoading('deleteOldBtn', true); 
+            await assignmentsAPI.cleanup(today);
+            showNotification('Старі призначення успішно видалено', 'success');
+            loadAllData();
+        } catch (err) {
+            console.error('Помилка очищення:', err);
+            showNotification('Помилка: ' + (err.message || 'Не вдалося видалити'), 'error');
+        } finally {
+            setBtnLoading('deleteOldBtn', false, '<i class="fas fa-broom"></i> Видалити старі');
         }
     }
 }

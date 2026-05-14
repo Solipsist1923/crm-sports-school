@@ -334,6 +334,16 @@ const assignmentsAPI = {
             method: 'PUT',
             body: JSON.stringify(data)
         });
+    },
+    async delete(id) {
+        return await apiRequest(`/api/assignments/${id}`, {
+            method: 'DELETE'
+        });
+    },
+    async cleanup(dateBefore) {
+        return await apiRequest(`/api/assignments/cleanup?before=${dateBefore}`, {
+            method: 'DELETE'
+        });
     }
 };
 
