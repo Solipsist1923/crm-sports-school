@@ -42,12 +42,12 @@
                     <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
                     <h1>Призначення занять</h1>
                 </div>
-                <div class="header-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn btn-primary" id="addAssignmentBtn" onclick="openAddAssignmentModal()" style="flex: 1; min-width: 180px;">
-                        <i class="fas fa-plus-circle"></i> Створити призначення
+                <div class="header-actions" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button class="btn btn-primary" id="addAssignmentBtn" onclick="openAddAssignmentModal()" style="min-width: 180px;">
+                        <i class="fas fa-plus-circle"></i> <span>Створити призначення</span>
                     </button>
-                    <button id="deleteOldBtn" class="btn btn-outline-danger" onclick="deleteOldAssignments()" style="flex: 1; min-width: 180px;">
-                        <i class="fas fa-broom"></i> Видалити старі
+                    <button id="deleteOldBtn" class="btn btn-outline-danger" onclick="deleteOldAssignments()" style="min-width: 180px;">
+                        <i class="fas fa-broom"></i> <span>Видалити старі</span>
                     </button>
                 </div>
             </header>

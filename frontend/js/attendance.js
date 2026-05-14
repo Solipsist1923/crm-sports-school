@@ -207,9 +207,11 @@ async function openMarkAttendanceModal(assignmentId) {
         
         if (!choice) choice = 'subscription';
 
-        // Отримуємо стан: якщо запис вже є в БД — беремо з нього, 
-        // якщо немає — ставимо false (тренер має клікнути сам)
-        const isPaid = (s.is_paid === true);
+        // ТУТ ВИПРАВЛЕНО: для нових записів (де немає attendance_id) 
+        // Оплачено ЗАВЖДИ false, щоб тренер міг вибрати тип оплати 
+        // та підтвердити списання вручну.
+        const isPaid = s.attendance_id ? (s.is_paid === true) : false;
+        
         const isPresent = s.attendance_id ? (s.is_present === true) : false;
 
         return {
