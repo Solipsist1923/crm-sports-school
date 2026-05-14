@@ -1,0 +1,28 @@
+Failed to load resource: the server responded with a status of 500 ()
+api.js?v=1778184204:158 API Error: Error: Помилка збереження відвідування: (psycopg2.errors.UndefinedColumn) column attendance.payment_choice does not exist
+LINE 1: ...nce_date, attendance.status AS attendance_status, attendance...
+                                                             ^
+
+[SQL: SELECT attendance.id AS attendance_id, attendance.student_id AS attendance_student_id, attendance.date AS attendance_date, attendance.status AS attendance_status, attendance.payment_choice AS attendance_payment_choice, attendance.is_paid AS attendance_is_paid, attendance.notes AS attendance_notes, attendance.marked_by AS attendance_marked_by, attendance.created_at AS attendance_created_at 
+FROM attendance 
+WHERE attendance.student_id = %(student_id_1)s AND attendance.date = %(date_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'student_id_1': 13, 'date_1': datetime.date(2026, 5, 20), 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+    at apiRequest (api.js?v=1778184204:151:27)
+    at async Object.mark (api.js?v=1778184204:236:16)
+    at async HTMLButtonElement.handleConfirmAttendance (attendance.js:417:17)
+apiRequest @ api.js?v=1778184204:158
+attendance.js:424 Помилка збереження відвідування: Error: Помилка збереження відвідування: (psycopg2.errors.UndefinedColumn) column attendance.payment_choice does not exist
+LINE 1: ...nce_date, attendance.status AS attendance_status, attendance...
+                                                             ^
+
+[SQL: SELECT attendance.id AS attendance_id, attendance.student_id AS attendance_student_id, attendance.date AS attendance_date, attendance.status AS attendance_status, attendance.payment_choice AS attendance_payment_choice, attendance.is_paid AS attendance_is_paid, attendance.notes AS attendance_notes, attendance.marked_by AS attendance_marked_by, attendance.created_at AS attendance_created_at 
+FROM attendance 
+WHERE attendance.student_id = %(student_id_1)s AND attendance.date = %(date_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'student_id_1': 13, 'date_1': datetime.date(2026, 5, 20), 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+    at apiRequest (api.js?v=1778184204:151:27)
+    at async Object.mark (api.js?v=1778184204:236:16)
+    at async HTMLButtonElement.handleConfirmAttendance (attendance.js:417:17)
