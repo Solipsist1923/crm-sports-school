@@ -23,16 +23,6 @@ def get_subscriptions(db: Session = Depends(get_db), current_user: User = Depend
     ).join(Student, Subscription.student_id == Student.id)\
      .outerjoin(PriceList, Subscription.pricelist_item_id == PriceList.id)
 
-    # Якщо тренер, показуємо тільки абонементи його учнів
-    if current_user.role == "trainer" and current_user.trainer:
-        trainer_id = current_user.trainer.id
-        query = query.filter(
-            or_(
-                Student.trainer_id == trainer_id,
-                Student.group.has(Group.trainer_id == trainer_id)
-            )
-        )
-
     results = query.all()
     return [dict(r._mapping) for r in results]
 

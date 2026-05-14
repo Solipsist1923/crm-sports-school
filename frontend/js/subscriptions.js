@@ -168,3 +168,16 @@ async function deleteSubscription(id) {
         showNotification('Помилка при видаленні', 'error');
     }
 }
+
+function filterSubscriptions() {
+    const searchTerm = document.getElementById('searchSubscriptions').value.toLowerCase().trim();
+    if (!searchTerm) {
+        displaySubscriptions(allSubscriptions);
+        return;
+    }
+    const filtered = allSubscriptions.filter(sub => 
+        sub.student_name.toLowerCase().includes(searchTerm) ||
+        sub.pricelist_item_name.toLowerCase().includes(searchTerm)
+    );
+    displaySubscriptions(filtered);
+}
