@@ -150,11 +150,11 @@ async function openMarkAttendanceModal(assignmentId) {
 
     // Populate currentLessonStudents with data from the assignment
     currentLessonStudents = assignment.students.map(s => ({
-        id: s.id || s.student_id, // Пробуємо обидва варіанти ID
+        id: s.student_id || s.id, 
         name: `${s.first_name} ${s.last_name}`,
-        payment_choice: String(s.payment_choice || (allPrices.length > 0 ? allPrices[0].id : '')),
-        is_present: s.is_present || false, // Default to false if not present in backend
-        is_paid: s.is_paid || false,       // Default to false if not present in backend
+        payment_choice: String(s.payment_choice || (allPrices.length > 0 ? allPrices[0].id : 'subscription')),
+        is_present: s.is_present === true, 
+        is_paid: s.is_paid === true,
         attendance_id: s.attendance_id     // Existing attendance record ID if any
     }));
 
@@ -341,13 +341,15 @@ async function handleConfirmAttendance() {
         const lessonDate = assignment.lesson_date;
 
         for (const student of currentLessonStudents) {
+            if (!student.id) continue; // Захист від порожніх записів
+
             const attendanceData = {
                 student_id: student.id,
-                date: typeof lessonDate === 'string' ? lessonDate.split('T')[0] : lessonDate,
+                date: lessonDate.includes('T') ? lessonDate.split('T')[0] : lessonDate,
                 status: student.is_present ? 'present' : 'absent', // If not present, mark as absent
                 notes: null, // Trainer can add notes later if needed
-                payment_choice: student.payment_choice,
-                is_paid: student.is_paid
+                payment_choice: String(student.payment_choice),
+                is_paid: Boolean(student.is_paid)
             };
 
             // Оскільки оплата тепер обов'язкова для всіх у списку, 

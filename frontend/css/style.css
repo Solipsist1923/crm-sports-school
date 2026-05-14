@@ -597,7 +597,6 @@ body {
         align-items: center;
     }
 
-    /* Приховуємо жовті точки/кнопки на мобілці за запитом */
     .quick-date-filters {
         display: none !important;
     }
@@ -1185,7 +1184,6 @@ body {
 /* Пошук учнів у Конструкторі */
 .search-suggestions {
     position: absolute;
-    left: 0;
     background: white;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -1194,6 +1192,11 @@ body {
     overflow-y: auto;
     z-index: 1000;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.search-suggestions:empty {
+    display: none !important;
+    border: none !important;
 }
 
 .suggestion-item {
@@ -1307,8 +1310,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    width: 100%;
-    overflow-x: hidden; /* Запобігає появі горизонтальної полоски */
 }
 
 .student-attendance-card {
@@ -1318,12 +1319,10 @@ body {
     padding: 15px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     transition: all 0.2s ease;
-    margin-left: 0;
-    width: 100%;
 }
 
 .student-attendance-card.is-present {
-    border-left: 4px solid var(--primary-color);
+    background-color: #f0f7ff; /* Замість лінії використовуємо колір фону */
 }
 
 .student-attendance-card.is-paid {
