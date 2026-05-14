@@ -74,7 +74,12 @@
                     <h1>Відвідування</h1>
                 </div>
                 <div class="header-actions">
-                    <input type="date" id="attendanceDateFilter" class="date-input">
+                    <div class="quick-date-filters">
+                        <button class="btn btn-secondary btn-sm" onclick="changeDate(-1)">Вчора</button>
+                        <button class="btn btn-secondary btn-sm" onclick="changeDate(0)">Сьогодні</button>
+                        <button class="btn btn-secondary btn-sm" onclick="changeDate(1)">Завтра</button>
+                    </div>
+                    <input type="date" id="attendanceDateFilter" class="date-input" style="margin-left: 10px;">
                 </div>
             </header>
 

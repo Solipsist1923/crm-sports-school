@@ -48,12 +48,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.updateStudentPaymentStatus = updateStudentPaymentStatus;
         window.removeStudentFromCurrentLesson = removeStudentFromCurrentLesson;
         window.addStudentToCurrentLesson = addStudentToCurrentLesson;
+        window.changeDate = changeDate;
         window.setupStudentSearchForModal = setupStudentSearchForModal; // For the modal's search
     } catch (err) {
         console.error('Помилка ініціалізації сторінки відвідуваності:', err);
         showNotification('Помилка завантаження сторінки', 'error');
     }
 });
+
+function changeDate(daysOffset) {
+    const dateInput = document.getElementById('attendanceDateFilter');
+    const d = new Date();
+    d.setDate(d.getDate() + daysOffset);
+    const dateStr = d.toISOString().split('T')[0];
+    dateInput.value = dateStr;
+    // Тригеримо завантаження занять
+    loadAssignmentsForDate(dateStr);
+}
 
 async function loadAllInitialData() {
     const results = await Promise.allSettled([
@@ -158,23 +169,31 @@ function renderStudentsForAttendanceModal() {
             ? `<span class="price-tag">${selectedPrice.price} грн</span>` : '';
 
         return `
-            <div class="student-attendance-row" data-student-id="${s.id}">
-                <span><strong>${s.name}</strong></span>
-                <div class="attendance-controls">
-                    <label class="checkbox-container">Присутній
-                        <input type="checkbox" ${s.is_present ? 'checked' : ''} onchange="updateStudentAttendanceStatus(${s.id}, 'is_present', this.checked)">
-                        <span class="checkmark"></span>
-                    </label>
-                    <label class="checkbox-container">Оплачено ${priceDisplay}
-                        <input type="checkbox" ${s.is_paid ? 'checked' : ''} onchange="updateStudentAttendanceStatus(${s.id}, 'is_paid', this.checked)">
-                        <span class="checkmark"></span>
-                    </label>
-                    <select onchange="updateStudentPaymentChoice(${s.id}, this.value)" style="width: 150px; padding: 5px; border-radius: 4px; border: 1px solid #ddd;">
-                        ${allPrices.map(p => {
-                            const isSelected = String(s.payment_choice) === String(p.id);
-                            return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
-                        }).join('')}
-                    </select>
+            <div class="student-attendance-card ${s.is_paid ? 'paid' : 'unpaid'}" data-student-id="${s.id}">
+                <div class="student-info-main">
+                    <span class="student-name">${s.name}</span>
+                    ${priceDisplay}
+                </div>
+                <div class="attendance-actions-wrap">
+                    <div class="toggles-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${s.is_present ? 'checked' : ''} onchange="updateStudentAttendanceStatus(${s.id}, 'is_present', this.checked)">
+                            <span class="toggle-label">Присутній</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${s.is_paid ? 'checked' : ''} onchange="updateStudentAttendanceStatus(${s.id}, 'is_paid', this.checked)">
+                            <span class="toggle-label">Оплачено</span>
+                        </label>
+                    </div>
+                    <div class="payment-type-wrap">
+                        <i class="fas fa-wallet" style="color: var(--text-secondary); font-size: 0.8rem;"></i>
+                        <select onchange="updateStudentPaymentChoice(${s.id}, this.value)" class="payment-select-small">
+                            ${allPrices.map(p => {
+                                const isSelected = String(s.payment_choice) === String(p.id);
+                                return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
+                            }).join('')}
+                        </select>
+                    </div>
                     <button type="button" class="btn-icon btn-danger" onclick="removeStudentFromCurrentLesson(${s.id})">
                         <i class="fas fa-times"></i>
                     </button>
