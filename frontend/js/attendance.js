@@ -164,19 +164,22 @@ async function openMarkAttendanceModal(assignmentId) {
         // 1. Прямо в об'єкті (якщо бекенд сплющив дані)
         // 2. В об'єкті pivot (стандарт SQLAlchemy для зв'язків)
         // 3. В assignment_details
-        let choice = s.payment_choice;
+        let choice = s.payment_choice || s.payment_type;
         if (!choice && s.pivot) choice = s.pivot.payment_choice;
         if (!choice && s.assignment_details) choice = s.assignment_details.payment_choice;
         
-        // Якщо нічого не знайдено, беремо першу ціну або 'subscription'
-        if (!choice) choice = allPrices.length > 0 ? allPrices[0].id : 'subscription';
+        // Якщо нічого не знайдено, за замовчуванням 'subscription' (Абонемент)
+        if (!choice) choice = 'subscription';
+
+        // Якщо це абонемент, він зазвичай вважається "оплаченим" (буде списано заняття)
+        const isPaid = s.is_paid === true || (choice === 'subscription' && s.is_present !== false);
 
         return {
         id: s.student_id || s.id, 
         name: `${s.first_name} ${s.last_name}`,
         payment_choice: String(choice),
         is_present: s.is_present === true, 
-        is_paid: s.is_paid === true,
+        is_paid: isPaid,
         attendance_id: s.attendance_id     // Existing attendance record ID if any
         };
     });
@@ -236,6 +239,7 @@ function renderStudentsForAttendanceModal() {
                             </label>
                             <div class="payment-choice-wrapper">
                                 <select onchange="updateStudentPaymentChoice(${s.id}, this.value)" class="card-select">
+                                    <option value="subscription" ${s.payment_choice === 'subscription' ? 'selected' : ''}>Абонемент</option>
                                     ${allPrices.map(p => {
                                         const isSelected = String(s.payment_choice) === String(p.id);
                                         return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
@@ -271,6 +275,12 @@ function updateStudentPaymentChoice(studentId, value) {
     const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
     if (student) {
         student.payment_choice = String(value); // Завжди зберігаємо як рядок
+        
+        // Якщо вибрано абонемент, автоматично ставимо "Оплачено", 
+        // бо він має списатися у будь-якому випадку (як ти і просив)
+        if (value === 'subscription') {
+            student.is_paid = true;
+        }
         renderStudentsForAttendanceModal();
     }
 }
@@ -366,12 +376,23 @@ async function handleConfirmAttendance() {
         const lessonDate = assignment.lesson_date;
 
         for (const student of currentLessonStudents) {
-            // Важливо: student_id має бути числом, решта параметрів згідно схеми
             const sId = parseInt(student.id);
             if (isNaN(sId)) {
                 console.warn('Пропущено учня через некоректний ID:', student);
                 continue;
             }
+
+            // Формуємо статус: якщо не присутній, то absent
+            let status = 'absent';
+            if (student.is_present) status = 'present';
+
+            // Перевірка для розробки: логуємо що відправляємо
+            console.log(`Sending attendance for ${student.name}:`, {
+                student_id: sId,
+                status: status,
+                payment: student.payment_choice,
+                is_paid: student.is_paid
+            });
 
             const attendanceData = {
                 student_id: sId,
@@ -379,7 +400,7 @@ async function handleConfirmAttendance() {
                 date: lessonDate instanceof Date 
                     ? lessonDate.toISOString().split('T')[0] 
                     : String(lessonDate).split('T')[0],
-                status: student.is_present ? 'present' : 'absent', // If not present, mark as absent
+                status: status, 
                 notes: "", 
                 payment_choice: String(student.payment_choice),
                 is_paid: Boolean(student.is_paid)
