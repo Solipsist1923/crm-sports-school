@@ -25,16 +25,13 @@ let allStudents = [];
 let allPricelistItems = [];
 
 async function loadSubscriptions() {
-    showLoadingSpinner();
     try {
-        const subscriptions = await apiGet('/subscriptions/');
+        const subscriptions = await apiRequest('/api/subscriptions/');
         allSubscriptions = subscriptions;
         displaySubscriptions(allSubscriptions);
     } catch (error) {
         console.error('Error loading subscriptions:', error);
         showNotification('Помилка завантаження абонементів.', 'error');
-    } finally {
-        hideLoadingSpinner();
     }
 }
 
@@ -90,9 +87,8 @@ async function openAddSubscriptionModal() {
 }
 
 async function openEditSubscriptionModal(subscriptionId) {
-    showLoadingSpinner();
     try {
-        const sub = await apiGet(`/subscriptions/${subscriptionId}`);
+        const sub = await apiRequest(`/api/subscriptions/${subscriptionId}`);
         await populateStudentAndPricelistDropdowns();
 
         document.getElementById('subscriptionId').value = sub.id;
@@ -104,8 +100,6 @@ async function openEditSubscriptionModal(subscriptionId) {
         document.getElementById('subscriptionModal').classList.add('show');
     } catch (error) {
         showNotification('Не вдалося завантажити дані абонемента', 'error');
-    } finally {
-        hideLoadingSpinner();
     }
 }
 
@@ -114,8 +108,16 @@ window.closeSubscriptionModal = function() {
 }
 
 async function populateStudentAndPricelistDropdowns() {
-    if (allStudents.length === 0) allStudents = await apiGet('/subscriptions/students_for_dropdown/');
-    if (allPricelistItems.length === 0) allPricelistItems = await apiGet('/subscriptions/pricelist_subscriptions/');
+    try {
+        if (allStudents.length === 0) {
+            allStudents = await apiRequest('/api/subscriptions/students_for_dropdown/');
+        }
+        if (allPricelistItems.length === 0) {
+            allPricelistItems = await apiRequest('/api/subscriptions/pricelist_subscriptions/');
+        }
+    } catch (error) {
+        console.error('Error populating dropdowns:', error);
+    }
 
     const studentSelect = document.getElementById('studentSelect');
     studentSelect.innerHTML = '<option value=\"\">Оберіть учня...</option>' + 
@@ -136,8 +138,17 @@ async function handleSubscriptionFormSubmit(event) {
     };
 
     try {
-        if (id) await apiPut(`/subscriptions/${id}`, data);
-        else await apiPost('/subscriptions/', data);
+        if (id) {
+            await apiRequest(`/api/subscriptions/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+        } else {
+            await apiRequest('/api/subscriptions/', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        }
         
         showNotification(id ? 'Оновлено' : 'Додано', 'success');
         closeSubscriptionModal();
@@ -149,6 +160,11 @@ async function handleSubscriptionFormSubmit(event) {
 
 async function deleteSubscription(id) {
     if (!confirm('Видалити цей абонемент?')) return;
-    await apiDelete(`/subscriptions/${id}`);
-    await loadSubscriptions();
+    try {
+        await apiRequest(`/api/subscriptions/${id}`, { method: 'DELETE' });
+        showNotification('Абонемент видалено', 'success');
+        await loadSubscriptions();
+    } catch (error) {
+        showNotification('Помилка при видаленні', 'error');
+    }
 }
