@@ -159,14 +159,27 @@ async function openMarkAttendanceModal(assignmentId) {
     document.getElementById('attendanceModal').classList.add('show');
 
     // Populate currentLessonStudents with data from the assignment
-    currentLessonStudents = assignment.students.map(s => ({
+    currentLessonStudents = (assignment.students || []).map(s => {
+        // Пріоритет пошуку payment_choice: 
+        // 1. Прямо в об'єкті (якщо бекенд сплющив дані)
+        // 2. В об'єкті pivot (стандарт SQLAlchemy для зв'язків)
+        // 3. В assignment_details
+        let choice = s.payment_choice;
+        if (!choice && s.pivot) choice = s.pivot.payment_choice;
+        if (!choice && s.assignment_details) choice = s.assignment_details.payment_choice;
+        
+        // Якщо нічого не знайдено, беремо першу ціну або 'subscription'
+        if (!choice) choice = allPrices.length > 0 ? allPrices[0].id : 'subscription';
+
+        return {
         id: s.student_id || s.id, 
         name: `${s.first_name} ${s.last_name}`,
-        payment_choice: String(s.payment_choice || s.assignment_details?.payment_choice || (allPrices.length > 0 ? allPrices[0].id : 'subscription')),
+        payment_choice: String(choice),
         is_present: s.is_present === true, 
         is_paid: s.is_paid === true,
         attendance_id: s.attendance_id     // Existing attendance record ID if any
-    }));
+        };
+    });
 
     renderStudentsForAttendanceModal();
     setupStudentSearchForModal();
@@ -353,13 +366,21 @@ async function handleConfirmAttendance() {
         const lessonDate = assignment.lesson_date;
 
         for (const student of currentLessonStudents) {
-            if (!student.id) continue; // Захист від порожніх записів
+            // Важливо: student_id має бути числом, решта параметрів згідно схеми
+            const sId = parseInt(student.id);
+            if (isNaN(sId)) {
+                console.warn('Пропущено учня через некоректний ID:', student);
+                continue;
+            }
 
             const attendanceData = {
-                student_id: parseInt(student.id),
-                date: typeof lessonDate === 'string' ? lessonDate.split('T')[0] : lessonDate,
+                student_id: sId,
+                // Форматуємо дату в YYYY-MM-DD
+                date: lessonDate instanceof Date 
+                    ? lessonDate.toISOString().split('T')[0] 
+                    : String(lessonDate).split('T')[0],
                 status: student.is_present ? 'present' : 'absent', // If not present, mark as absent
-                notes: null, // Trainer can add notes later if needed
+                notes: "", 
                 payment_choice: String(student.payment_choice),
                 is_paid: Boolean(student.is_paid)
             };
