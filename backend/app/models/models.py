@@ -53,6 +53,8 @@ class Group(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     schedule = Column(Text)
+    lesson_type = Column(String(50), default="gymnastics")
+    is_individual = Column(Boolean, default=False)
     trainer_id = Column(Integer, ForeignKey("trainers.id", ondelete="SET NULL"))
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Малюємо те, що вдалося завантажити
         renderGroups(allGroups);
-        setupScheduleBuilder();
     } catch (err) {
         console.error('Помилка ініціалізації сторінки груп:', err);
     }
@@ -59,7 +58,7 @@ function renderGroups(groups) {
     }
 
     grid.innerHTML = groups.map(group => {
-        const typeName = group.lesson_type === 'acrobatics' ? 'Акробатика' : 'Гімнастика';
+        const groupTypeText = group.is_individual ? 'Індивідуальне' : 'Групове';
 
         return `
             <div class="group-card">
@@ -69,11 +68,7 @@ function renderGroups(groups) {
                 <div class="group-info">
                     <div class="info-item">
                         <i class="fas fa-star"></i>
-                        <span>${typeName} ${group.is_individual ? '(Інд.)' : ''}</span>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-calendar"></i>
-                        <span>${group.schedule || 'Розклад не вказано'}</span>
+                        <span>${groupTypeText}</span>
                     </div>
                 </div>
                 <div class="group-actions">
@@ -89,67 +84,6 @@ function renderGroups(groups) {
     }).join('');
 }
 
-function setupScheduleBuilder() {
-    // Enable/disable time inputs based on checkbox
-    document.querySelectorAll('.day-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const day = this.value;
-            const timeInputs = document.querySelectorAll(`.time-input[data-day="${day}"]`);
-            timeInputs.forEach(input => {
-                input.disabled = !this.checked;
-                if (!this.checked) input.value = '';
-            });
-        });
-    });
-}
-
-function getScheduleFromBuilder() {
-    const schedule = [];
-    document.querySelectorAll('.day-checkbox:checked').forEach(checkbox => {
-        const day = checkbox.value;
-        const start = document.querySelector(`.time-input.start-time[data-day="${day}"]`).value;
-        const end = document.querySelector(`.time-input.end-time[data-day="${day}"]`).value;
-        if (start && end) {
-            schedule.push(`${day} ${start}-${end}`);
-        }
-    });
-    return schedule.join(', ');
-}
-
-function setScheduleToBuilder(scheduleText) {
-    // Reset all
-    document.querySelectorAll('.day-checkbox').forEach(cb => cb.checked = false);
-    document.querySelectorAll('.time-input').forEach(input => {
-        input.disabled = true;
-        input.value = '';
-    });
-
-    if (!scheduleText) return;
-
-    // Parse schedule like "Понеділок 16:00-17:30, Середа 16:00-17:30"
-    const parts = scheduleText.split(',').map(s => s.trim());
-    parts.forEach(part => {
-        const match = part.match(/^(.+?)\s+(\d{2}:\d{2})(?:-(\d{2}:\d{2}))?/);
-        if (match) {
-            const day = match[1];
-            const start = match[2];
-            const end = match[3];
-            const checkbox = document.querySelector(`.day-checkbox[value="${day}"]`);
-            const startInput = document.querySelector(`.time-input.start-time[data-day="${day}"]`);
-            const endInput = document.querySelector(`.time-input.end-time[data-day="${day}"]`);
-            if (checkbox && startInput) {
-                checkbox.checked = true;
-                startInput.disabled = false;
-                startInput.value = start;
-                if (endInput && end) {
-                    endInput.disabled = false;
-                    endInput.value = end;
-                }
-            }
-        }
-    });
-}
-
 function openAddGroupModal() {
     document.getElementById('modalTitle').textContent = 'Додати групу';
     document.getElementById('groupForm').reset();
@@ -157,14 +91,6 @@ function openAddGroupModal() {
     
     document.getElementById('lessonType').value = 'gymnastics';
     document.getElementById('isIndividual').checked = false;
-
-    // Reset schedule builder
-    document.querySelectorAll('.day-checkbox').forEach(cb => cb.checked = false);
-    document.querySelectorAll('.time-input').forEach(input => {
-        input.disabled = true;
-        input.value = '';
-    });
-
     document.getElementById('groupModal').classList.add('show');
 }
 
@@ -183,8 +109,6 @@ async function editGroup(id) {
         
         document.getElementById('lessonType').value = group.lesson_type || 'gymnastics';
         document.getElementById('isIndividual').checked = group.is_individual || false;
-
-        setScheduleToBuilder(group.schedule);
 
         document.getElementById('groupModal').classList.add('show');
     } catch (error) {
@@ -212,11 +136,9 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const groupId = document.getElementById('groupId').value;
-    const schedule = getScheduleFromBuilder();
 
     const groupData = {
         name: document.getElementById('groupName').value,
-        schedule: schedule || null,
         lesson_type: document.getElementById('lessonType').value,
         is_individual: document.getElementById('isIndividual').checked
     };
