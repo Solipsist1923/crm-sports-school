@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.removeStudentFromCurrentLesson = removeStudentFromCurrentLesson;
         window.addStudentToCurrentLesson = addStudentToCurrentLesson;
         window.changeDate = changeDate;
+        window.loadWeek = loadWeek;
         window.setupStudentSearchForModal = setupStudentSearchForModal; // For the modal's search
     } catch (err) {
         console.error('Помилка ініціалізації сторінки відвідуваності:', err);

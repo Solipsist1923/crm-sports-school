@@ -13,7 +13,9 @@ router = APIRouter(prefix="/api/assignments", tags=["Assignments"])
 async def get_assignments(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    lesson_date: Optional[date] = Query(None, description="Filter assignments by lesson date"),
+    date_from: Optional[date] = Query(None, alias="date_from"),
+    date_to: Optional[date] = Query(None, alias="date_to"),
+    lesson_date: Optional[date] = Query(None),
     trainer_id: Optional[int] = Query(None, description="Filter assignments by trainer ID")):
     """Отримати всі призначення (з авто-очищенням)"""
     # Авто-очищення: видаляємо все, що було більше тижня тому
@@ -22,6 +24,15 @@ async def get_assignments(
     db.commit()
 
     query = db.query(Assignment)
+
+    # Фільтрація за датою (конкретна дата або діапазон)
+    if lesson_date:
+        query = query.filter(Assignment.lesson_date == lesson_date)
+    elif date_from and date_to:
+        query = query.filter(Assignment.lesson_date >= date_from, Assignment.lesson_date <= date_to)
+    elif date_from:
+        query = query.filter(Assignment.lesson_date >= date_from)
+
     # Тренер бачить лише свої призначення
     if current_user.role == "trainer":
         if current_user.trainer:
