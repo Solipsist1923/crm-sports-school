@@ -150,9 +150,9 @@ async function openMarkAttendanceModal(assignmentId) {
 
     // Populate currentLessonStudents with data from the assignment
     currentLessonStudents = assignment.students.map(s => ({
-        id: s.id,
+        id: s.id || s.student_id, // Пробуємо обидва варіанти ID
         name: `${s.first_name} ${s.last_name}`,
-        payment_choice: s.payment_choice || (allPrices.length > 0 ? String(allPrices[0].id) : ''),
+        payment_choice: String(s.payment_choice || (allPrices.length > 0 ? allPrices[0].id : '')),
         is_present: s.is_present || false, // Default to false if not present in backend
         is_paid: s.is_paid || false,       // Default to false if not present in backend
         attendance_id: s.attendance_id     // Existing attendance record ID if any
@@ -247,7 +247,7 @@ function updateStudentAttendanceStatus(studentId, field, value) {
 function updateStudentPaymentChoice(studentId, value) {
     const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
     if (student) {
-        student.payment_choice = value;
+        student.payment_choice = String(value); // Завжди зберігаємо як рядок
         renderStudentsForAttendanceModal();
     }
 }
@@ -343,7 +343,7 @@ async function handleConfirmAttendance() {
         for (const student of currentLessonStudents) {
             const attendanceData = {
                 student_id: student.id,
-                date: lessonDate,
+                date: typeof lessonDate === 'string' ? lessonDate.split('T')[0] : lessonDate,
                 status: student.is_present ? 'present' : 'absent', // If not present, mark as absent
                 notes: null, // Trainer can add notes later if needed
                 payment_choice: student.payment_choice,
