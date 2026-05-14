@@ -54,18 +54,16 @@ def init_db():
         # Створення груп
         group1 = Group(
             name="Початківці 6-8 років",
-            schedule="Понеділок, Середа, П'ятниця 16:00-17:30",
+            schedule="16:00-17:30",
             trainer_id=trainer.id,
-            max_students=12,
             is_active=True
         )
         db.add(group1)
 
         group2 = Group(
             name="Середній рівень 9-12 років",
-            schedule="Вівторок, Четвер 17:00-18:30",
+            schedule="17:00-18:30",
             trainer_id=trainer.id,
-            max_students=15,
             is_active=True
         )
         db.add(group2)

@@ -127,7 +127,7 @@ function renderAssignmentsCards(assignments) {
         return;
     }
 
-        grid.innerHTML = assignments.map(a => {
+    grid.innerHTML = assignments.map(a => {
         const scheduleTime = a.group?.schedule ? `<div class="info-item"><i class="fas fa-clock"></i><span>${a.group.schedule}</span></div>` : '';
         return `
             <div class="group-card">

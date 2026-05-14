@@ -121,84 +121,14 @@
                     </label>
                 </div>
                 <div class="form-group">
-                    <label>Розклад занять</label>
-                    <div class="schedule-builder">
-                        <div class="schedule-row">
-                            <label class="checkbox-label">
-                                <input type="checkbox" class="day-checkbox" value="Понеділок">
-                                <span>Понеділок</span>
-                            </label>
-                            <div class="time-range">
-                                <input type="time" class="time-input start-time" data-day="Понеділок" disabled title="Час початку">
-                                <span>-</span>
-                                <input type="time" class="time-input end-time" data-day="Понеділок" disabled title="Час закінчення">
-                            </div>
+                    <label>Час заняття</label>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div style="flex: 1;">
+                            <input type="time" id="lessonStartTime" class="time-input" style="max-width: 100%;" title="Час початку">
                         </div>
-                        <div class="schedule-row">
-                            <label class="checkbox-label">
-                                <input type="checkbox" class="day-checkbox" value="Вівторок">
-                                <span>Вівторок</span>
-                            </label>
-                            <div class="time-range">
-                                <input type="time" class="time-input start-time" data-day="Вівторок" disabled title="Час початку">
-                                <span>-</span>
-                                <input type="time" class="time-input end-time" data-day="Вівторок" disabled title="Час закінчення">
-                            </div>
-                        </div>
-                        <div class="schedule-row">
-                            <label class="checkbox-label">
-                                <input type="checkbox" class="day-checkbox" value="Середа">
-                                <span>Середа</span>
-                            </label>
-                            <div class="time-range">
-                                <input type="time" class="time-input start-time" data-day="Середа" disabled title="Час початку">
-                                <span>-</span>
-                                <input type="time" class="time-input end-time" data-day="Середа" disabled title="Час закінчення">
-                            </div>
-                        </div>
-                        <div class="schedule-row">
-                            <label class="checkbox-label">
-                                <input type="checkbox" class="day-checkbox" value="Четвер">
-                                <span>Четвер</span>
-                            </label>
-                            <div class="time-range">
-                                <input type="time" class="time-input start-time" data-day="Четвер" disabled title="Час початку">
-                                <span>-</span>
-                                <input type="time" class="time-input end-time" data-day="Четвер" disabled title="Час закінчення">
-                            </div>
-                        </div>
-                        <div class="schedule-row">
-                            <label class="checkbox-label">
-                                <input type="checkbox" class="day-checkbox" value="П'ятниця">
-                                <span>П'ятниця</span>
-                            </label>
-                            <div class="time-range">
-                                <input type="time" class="time-input start-time" data-day="П'ятниця" disabled title="Час початку">
-                                <span>-</span>
-                                <input type="time" class="time-input end-time" data-day="П'ятниця" disabled title="Час закінчення">
-                            </div>
-                        </div>
-                        <div class="schedule-row">
-                            <label class="checkbox-label">
-                                <input type="checkbox" class="day-checkbox" value="Субота">
-                                <span>Субота</span>
-                            </label>
-                            <div class="time-range">
-                                <input type="time" class="time-input start-time" data-day="Субота" disabled title="Час початку">
-                                <span>-</span>
-                                <input type="time" class="time-input end-time" data-day="Субота" disabled title="Час закінчення">
-                            </div>
-                        </div>
-                        <div class="schedule-row">
-                            <label class="checkbox-label">
-                                <input type="checkbox" class="day-checkbox" value="Неділя">
-                                <span>Неділя</span>
-                            </label>
-                            <div class="time-range">
-                                <input type="time" class="time-input start-time" data-day="Неділя" disabled title="Час початку">
-                                <span>-</span>
-                                <input type="time" class="time-input end-time" data-day="Неділя" disabled title="Час закінчення">
-                            </div>
+                        <span style="font-weight: bold; color: var(--text-secondary);">—</span>
+                        <div style="flex: 1;">
+                            <input type="time" id="lessonEndTime" class="time-input" style="max-width: 100%;" title="Час закінчення">
                         </div>
                     </div>
                 </div>
