@@ -16,37 +16,6 @@ from app.api import auth, students, attendance, prices, payments, stats, groups,
 print("Initializing database...")
 Base.metadata.create_all(bind=engine)
 
-# Міграція: додаємо колонки payment_choice та is_paid, якщо їх немає
-from sqlalchemy import text as sa_text
-
-db_migrate = SessionLocal()
-try:
-    if "postgresql" in str(engine.url):
-        for col in ["payment_choice", "is_paid"]:
-            result = db_migrate.execute(sa_text(
-                "SELECT column_name FROM information_schema.columns "
-                "WHERE table_name='attendance' AND column_name=:col"
-            ), {"col": col})
-            if result.fetchone() is None:
-                col_type = "VARCHAR(50)" if col == "payment_choice" else "BOOLEAN DEFAULT 0"
-                db_migrate.execute(sa_text(f"ALTER TABLE attendance ADD COLUMN {col} {col_type}"))
-                print(f"Column '{col}' added to attendance table")
-    else:
-        result = db_migrate.execute(sa_text("PRAGMA table_info(attendance)"))
-        existing = {row[1] for row in result.fetchall()}
-        if 'payment_choice' not in existing:
-            db_migrate.execute(sa_text("ALTER TABLE attendance ADD COLUMN payment_choice VARCHAR(50)"))
-            print("Column 'payment_choice' added to attendance table")
-        if 'is_paid' not in existing:
-            db_migrate.execute(sa_text("ALTER TABLE attendance ADD COLUMN is_paid BOOLEAN DEFAULT 0"))
-            print("Column 'is_paid' added to attendance table")
-    db_migrate.commit()
-except Exception as e:
-    print(f"Migration error: {e}")
-    db_migrate.rollback()
-finally:
-    db_migrate.close()
-
 # Автоматична ініціалізація адміна при старті
 from app.core.database import SessionLocal
 from app.core.security import get_password_hash
