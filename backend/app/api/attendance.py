@@ -288,6 +288,18 @@ async def delete_attendance(
         if not is_own_student:
             raise HTTPException(status_code=403, detail="Access denied")
 
+    # Повертаємо заняття в абонемент, якщо воно було списане (для повторного тестування)
+    if _is_subscription_payment(db_attendance.payment_choice, db) and db_attendance.is_paid:
+        active_subscription = db.query(Subscription).filter(
+            Subscription.student_id == db_attendance.student_id,
+            Subscription.is_active == True
+        ).first()
+        if active_subscription:
+            active_subscription.classes_remaining += 1
+            # Якщо абонемент був деактивований через 0 занять — активуємо назад
+            if not active_subscription.is_active:
+                active_subscription.is_active = True
+
     db.delete(db_attendance)
     db.commit()
     return None

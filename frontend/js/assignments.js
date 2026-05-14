@@ -28,6 +28,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.updateStudentPayment = updateStudentPayment;
         window.removeStudentFromLesson = removeStudentFromLesson;
         window.addStudentToLesson = addStudentToLesson;
+        window.deleteAssignment = deleteAssignment;
+        window.openEditAssignmentModal = openEditAssignmentModal;
+        window.viewJournal = viewJournal;
+        window.openAddAssignmentModal = openAddAssignmentModal;
+        window.closeAssignmentModal = closeAssignmentModal;
     } catch (err) {
         console.error('Помилка ініціалізації:', err);
     }
