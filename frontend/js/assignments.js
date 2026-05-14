@@ -90,7 +90,15 @@ function setupStudentSearch() {
 }
 
 function addStudentToLesson(id, name) {
-    selectedStudentsForLesson.push({ id, name, payment_choice: 'subscription' });
+    // Знаходимо першу доступну послугу з прайсу як значення за замовчуванням
+    const defaultPriceId = allPrices.length > 0 ? allPrices[0].id : '';
+    
+    selectedStudentsForLesson.push({ 
+        id: id, 
+        name: name, 
+        payment_choice: String(defaultPriceId) 
+    });
+    
     document.getElementById('studentSearch').value = '';
     document.getElementById('searchSuggestions').innerHTML = '';
     renderSelectedStudents();
@@ -109,15 +117,12 @@ function renderSelectedStudents() {
     }
 
     container.innerHTML = selectedStudentsForLesson.map(s => `
-        <div class="schedule-row" style="align-items: center; justify-content: space-between;" data-student-id="${s.id}">
+        <div class="schedule-row" style="align-items: center; justify-content: space-between;">
             <span><strong>${s.name}</strong></span>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <select onchange="updateStudentPayment(${s.id}, this.value)" style="width: 150px; padding: 5px;">
-                    <option value="subscription" ${(!s.payment_choice || String(s.payment_choice) === 'subscription') ? 'selected' : ''}>
-                        Абонемент
-                    </option>
+                <select onchange="window.updateStudentPayment('${s.id}', this.value)" style="width: 200px; padding: 5px; border-radius: 4px; border: 1px solid #ddd;">
                     ${allPrices.map(p => {
-                        const isSelected = s.payment_choice && String(s.payment_choice) === String(p.id);
+                        const isSelected = String(s.payment_choice) === String(p.id);
                         return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
                     }).join('')}
                 </select>
@@ -197,17 +202,19 @@ async function openEditAssignmentModal(id) {
 
     // 4. Відновлюємо список обраних учнів з коректним payment_choice
     selectedStudentsForLesson = (Array.isArray(a.students) ? a.students : []).map(studentInAssignment => {
-        let choice = 'subscription';
+        // Пріоритет вибору послуги: з деталей призначення або перша з прайсу
+        let choice = '';
         
-        // Перевіряємо всі можливі місця, де може бути збережений тип оплати
         if (studentInAssignment.payment_choice) choice = studentInAssignment.payment_choice;
         else if (studentInAssignment.pivot && studentInAssignment.pivot.payment_choice) choice = studentInAssignment.pivot.payment_choice;
         else if (studentInAssignment.assignment_details && studentInAssignment.assignment_details.payment_choice) choice = studentInAssignment.assignment_details.payment_choice;
+        
+        if (!choice && allPrices.length > 0) choice = allPrices[0].id;
 
         return {
             id: studentInAssignment.student_id || studentInAssignment.id,
             name: `${studentInAssignment.first_name} ${studentInAssignment.last_name}`,
-            payment_choice: choice
+            payment_choice: String(choice)
         };
     });
     
