@@ -1,232 +1,312 @@
 // Attendance Page Logic
 
-let allStudents = [];
-let allAttendance = [];
-let allTrainers = [];
+let currentUser = null;
+let allAssignments = []; // Assignments for the selected date and trainer
+let allStudents = [];    // All active students (for adding new students to a lesson)
+let allPrices = [];      // All price list items (for payment choice)
+
+let currentLessonStudents = []; // Students for the currently open attendance modal
+let currentAssignmentId = null; // ID of the assignment currently being marked
 
 document.addEventListener('DOMContentLoaded', async () => {
-    requireAuth();
-    loadUserInfo();
+    try {
+        requireAuth();
+        loadUserInfo();
 
-    // Перевіряємо URL параметри (якщо прийшли зі сторінки призначень)
-    const urlParams = new URLSearchParams(window.location.search);
-    const paramDate = urlParams.get('date');
-    const today = new Date().toISOString().split('T')[0];
-    
-    if (paramDate) {
-        document.getElementById('attendanceDate').value = paramDate;
-        document.getElementById('attendanceDate2').value = paramDate;
-    } else {
-        document.getElementById('attendanceDate').value = today;
-        document.getElementById('attendanceDate2').value = today;
-    }
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramDate = urlParams.get('date');
+        const today = paramDate || new Date().toISOString().split('T')[0];
 
-    await Promise.all([
-        loadStudents(),
-        loadTrainers(),
-        loadAttendance()
-    ]).then(() => {
+        currentUser = getUser();
         setupMobileMenu();
-    });
 
-    // Date filter
-    document.getElementById('attendanceDate').addEventListener('change', loadAttendance);
+        // Set default date to today
+        document.getElementById('attendanceDateFilter').value = today;
+
+        // Load initial data
+        await loadAllInitialData();
+        
+        // Load assignments for today
+        await loadAssignmentsForDate(today);
+
+        // Event listener for date filter
+        document.getElementById('attendanceDateFilter').addEventListener('change', (e) => {
+            loadAssignmentsForDate(e.target.value);
+        });
+
+        // Make global functions available for HTML attributes
+        window.openMarkAttendanceModal = openMarkAttendanceModal;
+        window.updateStudentAttendanceStatus = updateStudentAttendanceStatus;
+        window.updateStudentPaymentChoice = updateStudentPaymentChoice;
+        window.updateStudentPaymentStatus = updateStudentPaymentStatus;
+        window.removeStudentFromCurrentLesson = removeStudentFromCurrentLesson;
+        window.addStudentToCurrentLesson = addStudentToCurrentLesson;
+        window.setupStudentSearchForModal = setupStudentSearchForModal; // For the modal's search
+    } catch (err) {
+        console.error('Помилка ініціалізації сторінки відвідуваності:', err);
+        showNotification('Помилка завантаження сторінки', 'error');
+    }
 });
 
-async function loadStudents() {
-    try {
-        allStudents = await studentsAPI.getAll({ is_active: true });
+async function loadAllInitialData() {
+    const results = await Promise.allSettled([
+        studentsAPI.getAll({ is_active: true }),
+        pricesAPI.getAll()
+    ]);
 
-        const datalist = document.getElementById('studentsDatalist');
-        if (datalist) {
-            datalist.innerHTML = allStudents.map(s =>
-                `<option value="${s.first_name} ${s.last_name} (ID: ${s.id})">`
-            ).join('');
-        }
+    allStudents = results[0].status === 'fulfilled' ? results[0].value : [];
+    allPrices = results[1].status === 'fulfilled' ? results[1].value : [];
+}
+
+async function loadAssignmentsForDate(selectedDate) {
+    try {
+        const assignmentsGrid = document.getElementById('assignmentsGrid');
+        assignmentsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Завантаження призначень...</div>';
+
+        let params = { lesson_date: selectedDate };
+        // Trainer role filtering is handled by the backend `assignmentsAPI.getAll` based on `current_user`
+        
+        allAssignments = await assignmentsAPI.getAll(params);
+        renderAssignmentsCards(allAssignments);
     } catch (error) {
-        console.error('Error loading students:', error);
+        console.error('Error loading assignments:', error);
+        showNotification('Помилка завантаження призначень: ' + (error.message || 'Невідома помилка'), 'error');
+        document.getElementById('assignmentsGrid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--danger-color);">Помилка завантаження призначень.</div>';
     }
 }
 
-async function loadTrainers() {
-    try {
-        allTrainers = await trainersAPI.getAll();
-    } catch (error) {
-        console.error('Error loading trainers:', error);
-    }
-}
+function renderAssignmentsCards(assignments) {
+    const grid = document.getElementById('assignmentsGrid');
+    if (!grid) return;
 
-async function loadAttendance() {
-    try {
-        const date = document.getElementById('attendanceDate').value;
-        const urlParams = new URLSearchParams(window.location.search);
-        const groupId = urlParams.get('group_id');
-
-        if (date) {
-            allAttendance = await attendanceAPI.getByDate(date);
-        } else {
-            allAttendance = await attendanceAPI.getAll({ limit: 100 });
-        }
-
-        // Покращена фільтрація для кнопки "Журнал"
-        if (groupId) {
-            const filtered = allAttendance.filter(attr => {
-                const student = allStudents.find(s => s.id === attr.student_id);
-                return student && String(student.group_id) === String(groupId);
-            });
-
-            if (filtered.length > 0) {
-                allAttendance = filtered;
-            } else {
-                const group = allStudents.find(s => String(s.group_id) === String(groupId))?.group_name || "обраної групи";
-                showNotification(`Журнал порожній. Натисніть "Відмітити", щоб додати учнів групи до заняття.`, 'info');
-            }
-        }
-
-        renderAttendance(allAttendance);
-    } catch (error) {
-        console.error('Error loading attendance:', error);
-        document.getElementById('attendanceTable').innerHTML =
-            '<tr><td colspan="6" class="text-center">Помилка завантаження даних</td></tr>';
-    }
-}
-
-function renderAttendance(attendance) {
-    const tbody = document.getElementById('attendanceTable');
-
-    if (attendance.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Немає відміток</td></tr>';
+    if (!assignments || assignments.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">На цей день призначень немає.</div>';
         return;
     }
 
-    tbody.innerHTML = attendance.map(a => {
-        const student = allStudents.find(s => s.id === a.student_id);
-        const studentName = student ? `${student.first_name} ${student.last_name}` : `ID: ${a.student_id}`;
-
-        // Знаходимо тренера, чий user_id збігається з тим, хто зробив відмітку
-        const trainer = allTrainers.find(t => t.user_id === a.marked_by);
-        const trainerName = trainer ? `${trainer.first_name} ${trainer.last_name}` : `ID: ${a.marked_by || '-'}`;
-
+    grid.innerHTML = assignments.map(a => {
+        const lessonTime = a.group?.schedule ? a.group.schedule.split(' ')[1] : 'Не вказано'; // Extract time from schedule
         return `
-            <tr>
-                <td>${studentName}</td>
-                <td>${formatDate(a.date)}</td>
-                <td>
-                    <span class="badge ${getStatusBadgeClass(a.status)}">
-                        ${getStatusText(a.status)}
-                    </span>
-                </td>
-                <td>${a.notes || '-'}</td>
-                <td>${trainerName}</td>
-                <td>
-                    <button class="btn-icon" onclick="openEditAttendanceModal(${a.id})" title="Редагувати">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-icon btn-danger" onclick="deleteAttendance(${a.id})" title="Видалити">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
+            <div class="group-card">
+                <div class="group-header">
+                    <h3>${lessonTime} - ${a.group?.name || 'Без назви'}</h3>
+                    <span class="badge badge-info">${formatDate(a.lesson_date)}</span>
+                </div>
+                <div class="group-info">
+                    <div class="info-item"><i class="fas fa-user-tie"></i><span>Тренер: ${a.trainer?.first_name} ${a.trainer?.last_name}</span></div>
+                    <div class="info-item"><i class="fas fa-users"></i><span>Учнів: ${a.students?.length || 0}</span></div>
+                </div>
+                <div class="group-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openMarkAttendanceModal(${a.id})"><i class="fas fa-clipboard-check"></i> Відмітити</button>
+                </div>
+            </div>
         `;
     }).join('');
 }
 
-function getStatusBadgeClass(status) {
-    switch (status) {
-        case 'present': return 'badge-success';
-        case 'absent': return 'badge-danger';
-        case 'sick': return 'badge-warning';
-        case 'excused': return 'badge-warning';
-        default: return '';
+async function openMarkAttendanceModal(assignmentId) {
+    const assignment = allAssignments.find(a => a.id === assignmentId);
+    if (!assignment) {
+        showNotification('Призначення не знайдено', 'error');
+        return;
     }
-}
 
-function getStatusText(status) {
-    switch (status) {
-        case 'present': return 'Присутній';
-        case 'absent': return 'Відсутній';
-        case 'sick': return 'Хворів';
-        case 'excused': return 'Поважна причина';
-        default: return status;
-    }
-}
-
-function openMarkAttendanceModal() {
-    document.getElementById('modalTitle').textContent = 'Відмітити відвідування';
-    document.getElementById('attendanceForm').reset();
-    document.getElementById('attendanceId').value = '';
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('attendanceDate2').value = today;
+    currentAssignmentId = assignmentId;
+    document.getElementById('attendanceModalTitle').textContent = `Відмітка відвідування: ${assignment.group?.name} (${formatDate(assignment.lesson_date)})`;
     document.getElementById('attendanceModal').classList.add('show');
+
+    // Populate currentLessonStudents with data from the assignment
+    currentLessonStudents = assignment.students.map(s => ({
+        id: s.student_id,
+        name: `${s.first_name} ${s.last_name}`,
+        payment_choice: s.payment_choice,
+        is_present: s.is_present || false, // Default to false if not present in backend
+        is_paid: s.is_paid || false,       // Default to false if not present in backend
+        attendance_id: s.attendance_id     // Existing attendance record ID if any
+    }));
+
+    renderStudentsForAttendanceModal();
+    setupStudentSearchForModal(); // Setup search for adding students within the modal
 }
 
 function closeAttendanceModal() {
     document.getElementById('attendanceModal').classList.remove('show');
+    currentAssignmentId = null;
+    currentLessonStudents = [];
 }
 
-async function openEditAttendanceModal(id) {
-    const attendance = allAttendance.find(a => a.id === id);
-    if (!attendance) return;
-
-    const student = allStudents.find(s => s.id === attendance.student_id);
+function renderStudentsForAttendanceModal() {
+    const container = document.getElementById('studentsForAttendanceList');
+    const confirmBtn = document.getElementById('confirmAttendanceBtn');
     
-    document.getElementById('modalTitle').textContent = 'Редагувати відвідування';
-    document.getElementById('attendanceId').value = attendance.id;
-    document.getElementById('attendanceStudentSearch').value = student ? `${student.first_name} ${student.last_name} (ID: ${student.id})` : `ID: ${attendance.student_id}`;
-    document.getElementById('attendanceDate2').value = attendance.date;
-    document.getElementById('statusSelect').value = attendance.status;
-    document.getElementById('attendanceNotes').value = attendance.notes || '';
-    
-    document.getElementById('attendanceModal').classList.add('show');
-}
-
-document.getElementById('attendanceForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const attendanceId = document.getElementById('attendanceId').value;
-    const searchValue = document.getElementById('attendanceStudentSearch').value;
-    const idMatch = searchValue.match(/\(ID: (\d+)\)$/);
-    const studentId = idMatch ? parseInt(idMatch[1]) : null;
-
-    if (!studentId) {
-        showNotification('Будь ласка, оберіть учня зі списку', 'warning');
+    if (currentLessonStudents.length === 0) {
+        container.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 10px;">Учнів немає</p>';
+        confirmBtn.disabled = true;
         return;
     }
 
-    const attendanceData = {
-        student_id: studentId,
-        date: document.getElementById('attendanceDate2').value,
-        status: document.getElementById('statusSelect').value,
-        notes: document.getElementById('attendanceNotes').value || null
-    };
+    container.innerHTML = currentLessonStudents.map(s => {
+        const selectedPrice = allPrices.find(p => String(p.id) === String(s.payment_choice));
+        const priceDisplay = (selectedPrice && (selectedPrice.category === 'single' || selectedPrice.category === 'individual'))
+            ? `<span class="price-tag">${selectedPrice.price} грн</span>` : '';
+
+        return `
+            <div class="student-attendance-row" data-student-id="${s.id}">
+                <span><strong>${s.name}</strong></span>
+                <div class="attendance-controls">
+                    <label class="checkbox-container">Присутній
+                        <input type="checkbox" ${s.is_present ? 'checked' : ''} onchange="updateStudentAttendanceStatus(${s.id}, 'is_present', this.checked)">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">Оплачено ${priceDisplay}
+                        <input type="checkbox" ${s.is_paid ? 'checked' : ''} onchange="updateStudentAttendanceStatus(${s.id}, 'is_paid', this.checked)">
+                        <span class="checkmark"></span>
+                    </label>
+                    <select onchange="updateStudentPaymentChoice(${s.id}, this.value)" style="width: 150px; padding: 5px; border-radius: 4px; border: 1px solid #ddd;">
+                        ${allPrices.map(p => {
+                            const isSelected = String(s.payment_choice) === String(p.id);
+                            return `<option value="${p.id}" ${isSelected ? 'selected' : ''}>${p.name}</option>`;
+                        }).join('')}
+                    </select>
+                    <button type="button" class="btn-icon btn-danger" onclick="removeStudentFromCurrentLesson(${s.id})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    updateConfirmButtonState();
+}
+
+function updateStudentAttendanceStatus(studentId, field, value) {
+    const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
+    if (student) {
+        student[field] = value;
+        renderStudentsForAttendanceModal(); 
+    }
+    updateConfirmButtonState();
+}
+
+function updateStudentPaymentChoice(studentId, value) {
+    const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
+    if (student) {
+        student.payment_choice = value;
+    }
+    renderStudentsForAttendanceModal(); // Re-render to update price display
+}
+
+function updateStudentPaymentStatus(studentId, value) {
+    const student = currentLessonStudents.find(s => String(s.id) === String(studentId));
+    if (student) {
+        student.is_paid = value;
+    }
+    updateConfirmButtonState();
+}
+
+function updateConfirmButtonState() {
+    const confirmBtn = document.getElementById('confirmAttendanceBtn');
+    if (!confirmBtn) return;
+
+    const allStudentsPaid = currentLessonStudents.every(s => 
+        s.is_paid === true
+    );
+    confirmBtn.disabled = !allStudentsPaid || currentLessonStudents.length === 0;
+}
+
+// --- Add Student to Current Lesson (within modal) ---
+function setupStudentSearchForModal() {
+    const input = document.getElementById('addStudentToLessonSearch');
+    const suggestions = document.getElementById('addStudentSuggestions');
+
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        if (query.length < 2) { suggestions.innerHTML = ''; return; }
+
+        const matches = allStudents.filter(s => 
+            `${s.first_name} ${s.last_name}`.toLowerCase().includes(query) &&
+            !currentLessonStudents.some(sel => sel.id === s.id) // Exclude already added students
+        );
+
+        suggestions.innerHTML = matches.map(s => `
+            <div class="suggestion-item" onclick="addStudentToCurrentLesson(${s.id}, '${s.first_name} ${s.last_name}')">
+                <i class="fas fa-user-plus" style="margin-right: 10px; color: var(--secondary-color)"></i>
+                <span>${s.first_name} ${s.last_name}</span>
+            </div>
+        `).join('');
+    });
+
+    // Close suggestions on outside click
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.innerHTML = '';
+        }
+    });
+}
+
+function addStudentToCurrentLesson(id, name) {
+    // Default payment choice to the first price item
+    const defaultPaymentChoice = allPrices.length > 0 ? String(allPrices[0].id) : '';
+
+    currentLessonStudents.push({
+        id: id,
+        name: name,
+        payment_choice: defaultPaymentChoice,
+        is_present: true, // Default to present when added by trainer
+        is_paid: false,
+        attendance_id: null // No existing attendance record yet
+    });
+
+    document.getElementById('addStudentToLessonSearch').value = '';
+    document.getElementById('addStudentSuggestions').innerHTML = '';
+    renderStudentsForAttendanceModal();
+}
+
+function removeStudentFromCurrentLesson(studentId) {
+    currentLessonStudents = currentLessonStudents.filter(s => String(s.id) !== String(studentId));
+    renderStudentsForAttendanceModal();
+}
+
+document.getElementById('confirmAttendanceBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('confirmAttendanceBtn');
+    setBtnLoading('confirmAttendanceBtn', true);
 
     try {
-        if (attendanceId) {
-            await attendanceAPI.update(attendanceId, attendanceData);
-            showNotification('Відвідування оновлено', 'success');
-        } else {
-            await attendanceAPI.mark(attendanceData);
-            showNotification('Відвідування відмічено', 'success');
+        const assignment = allAssignments.find(a => a.id === currentAssignmentId);
+        if (!assignment) {
+            showNotification('Помилка: Призначення не знайдено.', 'error');
+            return;
         }
+
+        const lessonDate = assignment.lesson_date;
+
+        for (const student of currentLessonStudents) {
+            const attendanceData = {
+                student_id: student.id,
+                date: lessonDate,
+                status: student.is_present ? 'present' : 'absent', // If not present, mark as absent
+                notes: null, // Trainer can add notes later if needed
+                payment_choice: student.payment_choice,
+                is_paid: student.is_paid
+            };
+
+            // Оскільки оплата тепер обов'язкова для всіх у списку, 
+            // ми створюємо або оновлюємо запис для кожного
+            if (student.attendance_id) {
+                // Update existing attendance record
+                await attendanceAPI.update(student.attendance_id, attendanceData);
+            } else {
+                // Create new attendance record
+                await attendanceAPI.mark(attendanceData);
+            }
+        }
+        showNotification('Відвідування успішно оновлено!', 'success');
         closeAttendanceModal();
-        await loadAttendance();
+        await loadAssignmentsForDate(lessonDate); // Reload assignments to reflect changes
     } catch (error) {
-        console.error('Error marking attendance:', error);
-        showNotification('Помилка: ' + (error.message || 'Не вдалося відмітити відвідування'), 'error');
+        console.error('Помилка збереження відвідування:', error);
+        showNotification('Помилка збереження відвідування: ' + (error.message || 'Невідома помилка'), 'error');
+    } finally {
+        setBtnLoading('confirmAttendanceBtn', false, '<i class="fas fa-check"></i> Підтвердити');
     }
 });
-
-async function deleteAttendance(id) {
-    if (!confirm('Ви впевнені, що хочете видалити цю відмітку?')) {
-        return;
-    }
-
-    try {
-        await attendanceAPI.delete(id);
-        await loadAttendance();
-        showNotification('Відмітку видалено', 'success');
-    } catch (error) {
-        console.error('Error deleting attendance:', error);
-        showNotification('Помилка видалення', 'error');
-    }
-}

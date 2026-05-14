@@ -76,6 +76,8 @@ CREATE TABLE attendance (
     notes TEXT,
     marked_by INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    payment_choice VARCHAR(50), -- Added: Stores the chosen price_list.id or 'subscription' for this attendance record
+    is_paid BOOLEAN DEFAULT 0,  -- Added: Indicates if this specific attendance record was paid
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     FOREIGN KEY (marked_by) REFERENCES users(id) ON DELETE SET NULL,
     UNIQUE(student_id, date)

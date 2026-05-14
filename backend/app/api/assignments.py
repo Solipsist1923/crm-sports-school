@@ -1,19 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from datetime import date, timedelta
-from app.core.database import get_db
+from app.core.database import get_db # type: ignore
 from app.api.auth import get_current_user
-from app.models.models import User, Assignment, Student, Group, assignment_students
-from app.schemas.schemas import AssignmentCreate, AssignmentResponse
+from app.models.models import User, Assignment, Student, Group, assignment_students, Attendance # Import Attendance
+from app.schemas.schemas import AssignmentCreate, AssignmentResponse, AssignmentStudentData # type: ignore
 
 router = APIRouter(prefix="/api/assignments", tags=["Assignments"])
 
 @router.get("", response_model=List[AssignmentResponse])
 async def get_assignments(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+    current_user: User = Depends(get_current_user),
+    lesson_date: Optional[date] = Query(None, description="Filter assignments by lesson date"),
+    trainer_id: Optional[int] = Query(None, description="Filter assignments by trainer ID")):
     """Отримати всі призначення (з авто-очищенням)"""
     # Авто-очищення: видаляємо все, що було більше тижня тому
     one_week_ago = date.today() - timedelta(days=7)
