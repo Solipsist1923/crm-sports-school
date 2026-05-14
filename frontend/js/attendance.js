@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.openMarkAttendanceModal = openMarkAttendanceModal;
         window.updateStudentAttendanceStatus = updateStudentAttendanceStatus;
         window.updateStudentPaymentChoice = updateStudentPaymentChoice;
-        window.updateStudentPaymentStatus = updateStudentPaymentStatus;
         window.removeStudentFromCurrentLesson = removeStudentFromCurrentLesson;
         window.addStudentToCurrentLesson = addStudentToCurrentLesson;
         window.changeDate = changeDate;
@@ -151,9 +150,9 @@ async function openMarkAttendanceModal(assignmentId) {
 
     // Populate currentLessonStudents with data from the assignment
     currentLessonStudents = assignment.students.map(s => ({
-        id: s.student_id,
+        id: s.id,
         name: `${s.first_name} ${s.last_name}`,
-        payment_choice: s.payment_choice,
+        payment_choice: s.payment_choice || (allPrices.length > 0 ? String(allPrices[0].id) : ''),
         is_present: s.is_present || false, // Default to false if not present in backend
         is_paid: s.is_paid || false,       // Default to false if not present in backend
         attendance_id: s.attendance_id     // Existing attendance record ID if any

@@ -597,6 +597,10 @@ body {
         align-items: center;
     }
 
+    .quick-date-filters {
+        display: none;
+    }
+
     .header-actions {
         display: flex; /* Make it a flex container */
         gap: 8px; /* Space between buttons/elements */
